@@ -1,0 +1,9 @@
+
+full-build:
+  deps:
+
+  build:
+    target: None
+    configuration: None
+
+  artifacts:
