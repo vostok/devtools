@@ -12,3 +12,5 @@ To install it into any project, just include the .props file directly into .cspr
 It may look like this in a project that resides in a subdirectory of its cement module:
 
 <Import Project="..\..\vostok.devtools\git-commit-to-assembly-title\Vostok.Tools.GitCommit2AssemblyTitle.props" />
+
+Then include AssemblyTitle.cs to module's .gitignore file.
