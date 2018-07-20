@@ -328,7 +328,3 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
-
-# Pre-built NuGet packages with dotnet CLI utilities for CI.
-!dotnetcementrefs/nupkg/*
-!dotnetversionsuffix/nupkg/*
