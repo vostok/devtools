@@ -12,6 +12,13 @@
 ### Module granularity
 * 1 Cement module = 1 Git repository = 1 published NuGet package
 
+* It's generally a good idea to separate public interfaces from implementations. A good example of such separation is [logging.abstractions](https://github.com/vostok/logging.abstractions) library with core interfaces like `ILog` and implementation libraries, such as [logging.console](https://github.com/vostok/logging.console) and [logging.file](https://github.com/vostok/logging.file).
+
+* The most general guideline is to design modules with their external dependencies in mind. We want our users to be able to consume what they wish without pulling any unnecessary dependency packages. This implies that one module should not contain subsets of code with notably different dependencies: if a developer finds himself pulling a JSON parser into an otherwise pristine netstandard library while working on a feature, he should strongly consider moving that particular thing into a module of its own.
+
+* One important exception to the rule above is when an external dependency is only needed for internal consumption and is not exposed from public API in any way. In such cases it's acceptable to just merge this dependency into library with a tool such as ILRepack. References to merged dependencies should be marked private so that they are not listed in final package.  
+
+
 <br/>
 
 ### Cement module requirements
@@ -161,7 +168,7 @@
 ### Continuous integration
 * CI happens in [AppVeyor](https://ci.appveyor.com/projects).
 
-* AppVeyor configuration is maintained in an [appveyor.yml](TODO) file in `vostok.devtools` module.
+* AppVeyor configuration is maintained in an [appveyor.yml](../library-ci/appveyor.yml) file in `vostok.devtools` module.
 
 * Builds and tests are run in a variety of conditions:
 	* On two different operating systems: Windows and Ubuntu
