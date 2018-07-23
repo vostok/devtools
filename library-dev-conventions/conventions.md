@@ -1,13 +1,19 @@
 ## Vostok library development conventions
 <br/>
 
-### Preferred development tools
-* Visual Studio 2017 with latest updates
-* .NET Core 2.1 SDK (both x86 and x64)
-* JetBrains ReSharper
-* [Cement](https://github.com/skbkontur/cement) for dependency management
+### Table of contents
+[Module granularity](#module-granularity)<br/>
+[Cement module requirements](#cement-module-requirements)<br/>
+[Project requirements](#project-requirements)<br/>
+[Code-related practices](#code-related-practices)<br/>
+[Versioning](#versioning)<br/>
+[Git workflow](#git-workflow)<br/>
+[NuGet publishing](#nuget-publishing)<br/>
+[Publishing process](#publishing-process)<br/>
+[Continuous integration](#continuous-integration)<br/>
 
 <br/>
+
 
 ### Module granularity
 * 1 Cement module = 1 Git repository = 1 published NuGet package
