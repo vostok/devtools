@@ -10,8 +10,18 @@ install:
   - ps: ./install-cement.ps1
   - cmd: cm self-update
 
+shallow_clone: true  
+
+
+
+build: off
+
 build_script:
   - cmd: echo "build"
+
+
+
+test: off
 
 test_script:
   - cmd: echo "test"
