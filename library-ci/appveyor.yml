@@ -11,6 +11,8 @@ install:
   - cmd: cm self-update
 
 build_script:
+  - cmd: echo "build"
 
 test_script:
+  - cmd: echo "test"
 
