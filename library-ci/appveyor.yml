@@ -8,6 +8,7 @@ matrix:
 install:
   - ps: Invoke-WebRequest "https://raw.githubusercontent.com/vostok/devtools/master/library-ci/install-cement.ps1" -Out "install-cement.ps1"
   - ps: ./install-cement.ps1
+  - cmd: cm self-update
 
 build_script:
 
