@@ -195,4 +195,4 @@
 
 * A notification to a special Slack channel is sent every time a package is successfully published.
 
-* A notification to a special Slack channel is sent every time a build fails.
+* A notification to a special Slack channel is sent every time a build on `master` branch or a tagged commit fails.
