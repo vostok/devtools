@@ -85,7 +85,7 @@
 #### Tests project
 
 ##### Common
-* Should target `net471` and `netcoreapp2.1`.
+* Should target `net471` and `netcoreapp2.1` on Windows and just `netcoreapp2.1` on Linux (see [library project sample](../library-project-sample) for example).
 * Should include Git commit info in assembly attributes using [git-commit-to-assembly-title](https://github.com/vostok/devtools/tree/master/git-commit-to-assembly-title) target from `vostok.devtools` module.
 
 ##### Packaging
@@ -196,3 +196,11 @@
 * A notification to a special Slack channel is sent every time a package is successfully published.
 
 * A notification to a special Slack channel is sent every time a build on `master` branch or a tagged commit fails.
+
+
+<br/>
+
+
+### Change log
+
+25.07.2018: unit test projects should not target full framework when building on Linux.
