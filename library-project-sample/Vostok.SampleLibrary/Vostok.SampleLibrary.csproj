@@ -37,7 +37,8 @@
     <PackageProjectUrl>TODO</PackageProjectUrl>
     <PackageLicenseUrl>TODO</PackageLicenseUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageTags>vostok vostok.logging</PackageTags>
+    <PackageTags>vostok</PackageTags>
+    <PackageIconUrl>https://raw.githubusercontent.com/vostok/devtools/master/assets/Vostok-icon.png</PackageIconUrl>
     <RepositoryUrl>TODO</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
