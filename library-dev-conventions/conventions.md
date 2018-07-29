@@ -75,6 +75,7 @@
 	* `PackageProjectUrl` with a link to library's GitHub repository.
 	* `PackageLicenseUrl` with a link to license text in library's GitHub repository.
 	* `PackageRequireLicenseAcceptance` = `false`
+	* `PackageIconUrl` = `https://raw.githubusercontent.com/vostok/devtools/master/assets/Vostok-icon.png`
 	* `PackageTags` = `vostok vostok.<library name>`
 
 ##### References
@@ -207,5 +208,6 @@
 
 ### Change log
 
+* 29.07.2018: added PackageIconUrl requirement.
 * 29.07.2018: main project internals should only be visible to corresponding unit test projects.
 * 25.07.2018: unit test projects should not target full framework when building on Linux.
