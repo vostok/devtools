@@ -1,0 +1,192 @@
+image:
+  - Ubuntu
+  - Visual Studio 2017
+
+
+matrix:
+  fast_finish: true
+
+
+environment:
+  sshKeyEncryptionSecret:
+    secure: YxpCTXzimLxFE18bQJPIzD1n5WyQK/M/rVuGvtrM/SJ/HzGTGK43v4zO9xSeiK4F
+
+  matrix:
+    # This dimension of build matrix controls our intention to produce NuGet packages.
+    # Producing packages also implies building and testing against NuGet dependencies.
+    - producePackages: false
+    - producePackages: true
+
+
+init:
+  # Get rid of default AppVeyor build version (might want to pull a real one from .csproj later):
+  - ps: |
+      if ($env:APPVEYOR_REPO_TAG_NAME -ne $null) 
+      { 
+        Update-AppveyorBuild -Version "$env:APPVEYOR_REPO_TAG_NAME" 
+      }
+      else 
+      {
+        Update-AppveyorBuild -Version "$env:APPVEYOR_REPO_BRANCH-$env:APPVEYOR_BUILD_NUMBER"
+      }
+
+
+  # Determine whether we'll need to deploy to NuGet
+  - ps: |
+      $isMasterBranch = $env:APPVEYOR_REPO_BRANCH -eq "master"
+      $hasReleaseTag = $env:APPVEYOR_REPO_TAG_NAME -ne $null -and $env:APPVEYOR_REPO_TAG_NAME.StartsWith("release/")
+      $hasPrereleaseTag = $env:APPVEYOR_REPO_TAG_NAME -ne $null -and $env:APPVEYOR_REPO_TAG_NAME.StartsWith("prerelease/")
+      $needToProducePackages = $env:producePackages -eq "true"
+      $needToPublishRelease = $hasReleaseTag -and $isMasterBranch
+      $needToPublishPrerelease = $hasPrereleaseTag -or $isMasterBranch
+      $needToPatchVersion = $needToProducePackages -and $needToPublishPrerelease
+      $needToDeploy = $needToProducePackages -and ($needToPublishRelease -or $needToPublishPrerelease)
+
+      Write-Host "Need to publish release = $needToPublishRelease"
+      Write-Host "Need to publish prerelease = $needToPublishPrerelease"
+      Write-Host "Need to patch version = $needToPatchVersion"
+      Write-Host "Need to deploy to NuGet = $needToDeploy"
+
+      # We don't need to run 2 job configurations specialized on NuGet when there's no intention to deploy at all.
+      if ($needToProducePackages -and -not $needToDeploy) { Exit-AppveyorBuild }
+
+      # Using marker files as a workaround for somehow not being able to share dynamic env. variables between scripts:
+      if ($needToPatchVersion) { New-Item -Path .. -Name ".need-to-patch-version" -ItemType "file" }
+      if ($needToDeploy) { New-Item -Path .. -Name ".need-to-deploy" -ItemType "file" }
+
+
+
+install:
+  # Install Cement:
+  # Step 1: determine paths to folders and executable, setup env. variables.
+  # Step 2: download and unpack a release with binaries.
+  # Step 3: setup appropriate Cement settings.
+  - ps: |
+      $ErrorActionPreference = "Stop"
+      $cementBaseDirectory = if ($isLinux) { "~/bin" } else { "$env:USERPROFILE\bin" }
+      $cementDirectory = if ($isLinux) { "$cementBaseDirectory/dotnet" } else { "$cementBaseDirectory\dotnet" }
+      Invoke-WebRequest "https://github.com/skbkontur/cement/releases/download/v1.0.36/cd10b5220e492beebc13a374a356aa8a680626d3.zip" -Out "cement.zip"
+      Expand-Archive "cement.zip" -Force -DestinationPath "$cementBaseDirectory"
+
+  # Make Cement easily callable by typing 'cm':
+  - sh: alias cm='mono ~/bin/dotnet/cm.exe'
+  - cmd: set PATH=%USERPROFILE%\bin\dotnet;%PATH%
+
+  # Update Cement to latest version and display it:
+  - cm self-update
+  - cm --version
+
+  # Init parent directory to become Cement-tracked:
+  - pushd .. && cm init && popd
+
+  # Install SSH key to access Vostok repositories:
+  - ps: Invoke-WebRequest "https://github.com/vostok/devtools/raw/master/library-ci/id_rsa.enc" -Out "id_rsa.enc"
+  - ps: iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/appveyor/secure-file/master/install.ps1'))
+  - cmd: appveyor-tools\secure-file -decrypt id_rsa.enc -secret %sshKeyEncryptionSecret%
+  - cmd: move /Y id_rsa  %USERPROFILE%\.ssh\
+  - sh: ./appveyor-tools/secure-file -decrypt id_rsa.enc -secret $sshKeyEncryptionSecret
+  - sh: mv -f id_rsa ~/.ssh/
+  - sh: sudo chmod 600 ~/.ssh/id_rsa
+
+  # Fetch 'vostok.devtools' module:
+  - pushd .. && cm get vostok.devtools && popd
+
+  # Build and install 'dotnetversionsuffix' CLI tool:
+  - cmd: pushd ..\vostok.devtools\dotnetversionsuffix && dotnet build -c Release && popd
+  - cmd: dotnet tool install --add-source ..\vostok.devtools\dotnetversionsuffix/nupkg -g dotnetversionsuffix
+  - sh: pushd ../vostok.devtools/dotnetversionsuffix && dotnet build -c Release && popd
+  - sh: dotnet tool install --add-source ../vostok.devtools/dotnetversionsuffix/nupkg -g dotnetversionsuffix
+
+  # Build and install 'dotnetcementrefs' CLI tool:
+  - cmd: pushd ..\vostok.devtools\dotnetcementrefs && dotnet build -c Release && popd
+  - cmd: dotnet tool install --add-source ..\vostok.devtools\dotnetcementrefs/nupkg -g dotnetcementrefs
+  - sh: pushd ../vostok.devtools/dotnetcementrefs && dotnet build -c Release && popd
+  - sh: dotnet tool install --add-source ../vostok.devtools/dotnetcementrefs/nupkg -g dotnetcementrefs
+
+
+before_build:
+  - ps: |
+
+      # Add version suffix to project if we are in a prerelease build. 
+      if (Test-Path -Path "../.need-to-patch-version") {
+        $versionSuffix = "pre" + [convert]::ToInt32($env:APPVEYOR_BUILD_NUMBER, 10).ToString("000000")
+
+        dotnetversionsuffix $versionSuffix
+
+        if ($LASTEXITCODE -ne 0) { throw "Failed to convert Cement references to package references." }
+      }
+
+  - ps: |
+
+      # Patch Cement references in projects and convert them to NuGet package references if we are to deploy later: 
+      if (Test-Path -Path "../.need-to-deploy") {
+        
+        dotnetcementrefs
+
+        if ($LASTEXITCODE -ne 0) { throw "Failed to convert Cement references to package references." }
+      }
+
+
+build_script:
+  - cm update-deps 
+  - cm build-deps 
+  - dotnet restore
+  - dotnet build -c Release
+
+
+test_script:
+  - ps: |
+
+      # Locate tests project folder:
+      $testProjectFolder = Get-ChildItem "." | Where-Object { $_.PSIsContainer -and $_.Name.EndsWith(".Tests")} | Select-Object -First 1 | % { $_.FullName }
+
+      # Add a reference to an external AppVeyor logger to test project:
+      dotnet add "$testProjectFolder" package Appveyor.TestLogger
+      
+      # Run 'dotnet test' command there:
+      dotnet test -c Release --test-adapter-path:. --logger "AppVeyor" "$testProjectFolder"
+
+      # Fail build if there were any failed tests:
+      if ($LASTEXITCODE -ne 0) { throw "There were some failed tests." }
+
+
+after_test:
+  - ps: | 
+      if (Test-Path -Path "../.need-to-deploy") {
+
+        # Create NuGet packages based on metadata in .csproj: 
+        dotnet pack -c Release
+
+        if ($LASTEXITCODE -ne 0) { throw "Failed to produce NuGet packages." }
+      }
+
+
+artifacts:
+  - path: '**\*.nupkg'
+
+
+# The purpose of this 'for' scope is to prevent deployment unless we are on Windows and need to deploy packages.
+# This ensures that we do not deploy unless everything builds and passes tests in all configurations.
+# However, there are a couple of assumptions here:
+# 1. Matrix jobs are defined in the order where (Windows + packages) is the last one.
+# 2. Matrix jobs are executed by AppVeyor in the order they are defined.
+# 3. Fail fast is enabled in this config.
+for:
+  -
+    matrix:
+      only:
+        - image: Visual Studio 2017
+          producePackages: true
+  
+    deploy:
+      provider: Environment
+      name: nuget-org
+
+
+notifications:
+  - provider: Slack
+    incoming_webhook:
+      secure: ZK5UUIckrg0IC/TbkGc4zNt7WGd2DEbMzDsxxlp3lo+z+rXafaC8AHp2H60JhHRvTMpHQsbQqGF03PQW8KgqJJg3yDUt5ODCmaz1BXZxQeg=
+    on_build_success: false
+    on_build_failure: true
+    on_build_status_changed: false
