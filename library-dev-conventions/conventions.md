@@ -81,6 +81,9 @@
 * References to other Vostok modules should only be added with `cm ref add` Cement command.
 * References to other NuGet packages which are then merged with ILRepack should be marked with `<PrivateAssets>all</PrivateAssets>` tag.
 
+##### Visibility
+* There should be no projects with access to internal classes other than unit tests project. That means no `[InternalsVisibleTo]` attributes pointing to assemblies from other modules.
+
 <br/>
 
 #### Tests project
@@ -204,4 +207,5 @@
 
 ### Change log
 
-25.07.2018: unit test projects should not target full framework when building on Linux.
+* 29.07.2018: main project internals should only be visible to corresponding unit test projects.
+* 25.07.2018: unit test projects should not target full framework when building on Linux.
