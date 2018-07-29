@@ -11,6 +11,7 @@
 [NuGet publishing](#nuget-publishing)<br/>
 [Publishing process](#publishing-process)<br/>
 [Continuous integration](#continuous-integration)<br/>
+[Change log](#change-log)<br/>
 
 <br/>
 
