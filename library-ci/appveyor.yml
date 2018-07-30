@@ -39,7 +39,7 @@ init:
       $needToProducePackages = $env:producePackages -eq "true"
       $needToPublishRelease = $hasReleaseTag -and $isMasterBranch
       $needToPublishPrerelease = $hasPrereleaseTag -or $isMasterBranch
-      $needToPatchVersion = $needToProducePackages -and $needToPublishPrerelease
+      $needToPatchVersion = $needToProducePackages -and $needToPublishPrerelease -and (-not $needToPublishRelease)
       $needToDeploy = $needToProducePackages -and ($needToPublishRelease -or $needToPublishPrerelease)
 
       Write-Host "Need to publish release = $needToPublishRelease"
