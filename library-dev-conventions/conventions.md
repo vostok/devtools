@@ -105,7 +105,7 @@
 
 ### Code-related practices
 * Should use [code style](https://github.com/vostok/devtools/tree/master/code-style-csharp) provided in `vostok.devtools` module.
-* Should include [JetBrains Annotations](https://www.jetbrains.com/help/resharper/Reference__Code_Annotation_Attributes.html) source as internal classes in a single file.
+* Should include [JetBrains Annotations](https://www.jetbrains.com/help/resharper/Reference__Code_Annotation_Attributes.html) as a link from [vostok.devtools/jetbrains-annotations](https://github.com/vostok/devtools/blob/master/jetbrains-annotations/JetBrainsAnnotations.cs). The link should be named `Annotations\JetBrainsAnnotations.cs`. See [library project sample](../library-project-sample) for an example.
 * Should decorate appropriate pieces of code with following JetBrains Annotations:
 	* `[CanBeNull]` and `[ItemCanBeNull]`
 	* `[NotNull]` and `[ItemNotNull]`
@@ -208,6 +208,7 @@
 
 ### Change log
 
+* 03.08.2018: JetBrainsAnnotations.cs should now be imported as a link.
 * 29.07.2018: added PackageIconUrl requirement.
 * 29.07.2018: main project internals should only be visible to corresponding unit test projects.
 * 25.07.2018: unit test projects should not target full framework when building on Linux.
