@@ -116,6 +116,18 @@
 * Every non-trivial class should be unit-tested.
 * Internal classes should be exposed to test project or another libraries with `InternalsVisibleTo` assembly attribute.
 
+#### Xml-doc conventions
+
+* Text of list items should be wrapped in a `<description>` tag. Example:
+```
+/// <list type="bullet">
+///     <item><description>a</description></item>
+///     <item><description>b</description></item>
+///     <item><description>c</description></item>
+/// </list>
+```
+* An em-dash(—) should be used where required by rules of punctuation. Do not replace it with hyphen(-).
+
 <br/>
 
 ### Versioning
@@ -208,6 +220,7 @@
 
 ### Change log
 
+* 03.08.2018: added first xml-doc conventions: about list items formatting and the use of em-dash
 * 03.08.2018: JetBrainsAnnotations.cs should now be imported as a link.
 * 29.07.2018: added PackageIconUrl requirement.
 * 29.07.2018: main project internals should only be visible to corresponding unit test projects.
