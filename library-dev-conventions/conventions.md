@@ -25,7 +25,7 @@
 
 * One important exception to the rule above is when an external dependency is only needed for internal consumption and is not exposed from public API in any way. In such cases it's acceptable to just merge this dependency into library with a tool such as ILRepack. References to merged dependencies should be marked private so that they are not listed in final package.  
 
-* Useful classes that are shared between multiple library projects but should not be exposed to consumers of these projects are put into [source libraries](https://github.com/vostok/devtools/blob/master/library-dev-conventions/src-libs-conventions.md). 
+* Useful classes that are shared between multiple library projects but should not be exposed to consumers of these projects are put into [source-only libraries](https://github.com/vostok/devtools/blob/master/library-dev-conventions/src-libs-conventions.md). 
 
 <br/>
 
