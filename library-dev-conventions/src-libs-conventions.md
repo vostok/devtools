@@ -8,6 +8,8 @@
 [Code-related practices](#code-related-practices)<br/>
 [Change log](#change-log)<br/>
 
+<br/>
+
 ### What is a source-only library?
 
 Sometimes there are classes that are needed in several libraries, but should not be exposed to consumers of those libraries. Such classes are grouped into source-only libraries: library projects with a Cement configuration in which all classes are marked internal and no build is performed. Dependent library projects then add links to the required source files from a source-only library instead of referencing an assembly.
