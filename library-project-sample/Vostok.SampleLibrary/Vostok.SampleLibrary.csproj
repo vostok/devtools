@@ -1,15 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   
+  <Import Project="..\..\vostok.devtools\library-common-props\Main-Project.props" />
   <Import Project="..\..\vostok.devtools\git-commit-to-assembly-title\Vostok.Tools.GitCommit2AssemblyTitle.props" />
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Configurations>Debug;Release</Configurations>
     <LangVersion>7.2</LangVersion>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <IncludeSymbols>true</IncludeSymbols>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -18,17 +16,10 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <FileVersion>$(Version)</FileVersion>
-    <AssemblyVersion>$(Version)</AssemblyVersion>
-    <PackageVersion>$(Version)</PackageVersion>
     <PackageReleaseNotes>TODO</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup>
-    <Authors>Vostok team</Authors>
-    <Company>SKB Kontur</Company>
-    <Product>Vostok</Product>
-    <Copyright>Copyright (c) 2017-2018 SKB Kontur</Copyright>
     <Title>TODO</Title>
     <Description>TODO</Description>
   </PropertyGroup>
@@ -36,15 +27,8 @@
   <PropertyGroup>
     <PackageProjectUrl>TODO</PackageProjectUrl>
     <PackageLicenseUrl>TODO</PackageLicenseUrl>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageTags>vostok</PackageTags>
-    <PackageIconUrl>https://raw.githubusercontent.com/vostok/devtools/master/assets/Vostok-icon.png</PackageIconUrl>
     <RepositoryUrl>TODO</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
   
-  <ItemGroup>
-    <Compile Include="..\..\vostok.devtools\jetbrains-annotations\JetBrainsAnnotations.cs" Link="Annotations\JetBrainsAnnotations.cs" />
-  </ItemGroup>
-
 </Project>

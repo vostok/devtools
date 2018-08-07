@@ -1,0 +1,32 @@
+<Project>
+
+  <PropertyGroup>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IncludeSymbols>true</IncludeSymbols>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <FileVersion>$(Version)</FileVersion>
+    <AssemblyVersion>$(Version)</AssemblyVersion>
+    <PackageVersion>$(Version)</PackageVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Authors>Vostok team</Authors>
+    <Company>SKB Kontur</Company>
+    <Product>Vostok</Product>
+    <Copyright>Copyright (c) 2017-2018 SKB Kontur</Copyright>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageIconUrl>https://raw.githubusercontent.com/vostok/devtools/master/assets/Vostok-icon.png</PackageIconUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\vostok.devtools\jetbrains-annotations\JetBrainsAnnotations.cs" Link="Annotations\JetBrainsAnnotations.cs" />
+  </ItemGroup>
+
+</Project>
