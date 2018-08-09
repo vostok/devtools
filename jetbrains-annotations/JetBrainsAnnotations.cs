@@ -110,4 +110,14 @@ namespace JetBrains.Annotations
 
         [CanBeNull] public string Comment { get; }
     }
+
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.Delegate | AttributeTargets.Field)]
+    internal sealed class ItemNotNullAttribute : Attribute
+    {
+    }
+
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.Delegate | AttributeTargets.Field)]
+    internal sealed class ItemCanBeNullAttribute : Attribute
+    {
+    }
 }
