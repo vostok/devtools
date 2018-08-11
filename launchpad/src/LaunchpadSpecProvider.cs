@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Newtonsoft.Json;
 
 namespace launchpad
 {
@@ -7,7 +8,8 @@ namespace launchpad
     {
         public LaunchpadSpec ProvideFrom(DirectoryInfo templateDirectory)
         {
-            throw new NotImplementedException();
+            var specStr = File.ReadAllText($"{templateDirectory.FullName}\\launchpad.json");
+            return JsonConvert.DeserializeObject<LaunchpadSpec>(specStr);
         }
     }
 }
