@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace launchpad
 {
@@ -8,6 +9,12 @@ namespace launchpad
     {
         public static void Main(string[] args)
         {
+            if (args.Length == 1 && args[0] == "version")
+            {
+                HandleVersionCommand();
+                return;
+            }
+
             if (args.Length == 1 && args[0] == "list")
             {
                 HandleListCommand();
@@ -64,6 +71,15 @@ namespace launchpad
 
             Console.Out.WriteLine();
             Console.Out.WriteLine("Done!");
+        }
+
+        private static void HandleVersionCommand()
+        {
+            var attribute = typeof (EntryPoint).Assembly.GetCustomAttribute(typeof (AssemblyInformationalVersionAttribute)) as AssemblyInformationalVersionAttribute;
+
+            var version = attribute?.InformationalVersion;
+
+            Console.Out.WriteLine(version);
         }
 
         private static void PrintHelp()

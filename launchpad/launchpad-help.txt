@@ -6,3 +6,6 @@ launchpad new <template name>
 
 launchpad list
 	Prints the list of all availabl template names.
+
+launchpad version
+	Prints installed tool version.
