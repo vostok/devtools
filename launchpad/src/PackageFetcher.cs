@@ -19,7 +19,12 @@ namespace launchpad
             logger = new NullLogger();
         }
 
-        public async Task FetchAsync(string packageName, string[] sources, DirectoryInfo targetDirectory)
+        public void Fetch(string packageName, string[] sources, string targetDirectory)
+        {
+            FetchAsync(packageName, sources, targetDirectory).GetAwaiter().GetResult();
+        }
+
+        public async Task FetchAsync(string packageName, string[] sources, string targetDirectory)
         {
             foreach (var source in sources)
             {
@@ -27,12 +32,12 @@ namespace launchpad
                 if (fetchResult.IsSuccessful)
                 {
                     var packageFileName = $"{fetchResult.Id}.nupkg";
-                    var packageFileDestination = Path.Combine(targetDirectory.FullName, packageFileName);
+                    var packageFileDestination = Path.Combine(targetDirectory, packageFileName);
 
-                    if (!Directory.Exists(targetDirectory.FullName))
-                        Directory.CreateDirectory(targetDirectory.FullName);
+                    if (!Directory.Exists(targetDirectory))
+                        Directory.CreateDirectory(targetDirectory);
 
-                    UnpackPackage(targetDirectory.FullName, packageFileDestination);
+                    UnpackPackage(targetDirectory, packageFileDestination);
                     return;
                 }
             }
@@ -40,7 +45,7 @@ namespace launchpad
             throw new Exception($"Package with name '{packageName}' not found");
         }
 
-        private async Task<(bool IsSuccessful, PackageIdentity Id)> DownloadPackageAsync(string packageName, string source, FileSystemInfo targetDirectory)
+        private async Task<(bool IsSuccessful, PackageIdentity Id)> DownloadPackageAsync(string packageName, string source, string targetDirectory)
         {
             var repository = factory.GetCoreV3(source);
             var resource = new RemoteV3FindPackageByIdResource(repository, HttpSource.Create(repository));
@@ -56,10 +61,10 @@ namespace launchpad
   
             var client = await resource.GetPackageDownloaderAsync(packageId, new SourceCacheContext(), logger, CancellationToken.None);
 
-            var packageFileDestination = Path.Combine(targetDirectory.FullName, $"{packageId}.nupkg");
+            var packageFileDestination = Path.Combine(targetDirectory, $"{packageId}.nupkg");
 
-            if (!Directory.Exists(targetDirectory.FullName))
-                Directory.CreateDirectory(targetDirectory.FullName);
+            if (!Directory.Exists(targetDirectory))
+                Directory.CreateDirectory(targetDirectory);
 
             return (await client.CopyNupkgFileToAsync(packageFileDestination, CancellationToken.None), packageId);
         }
