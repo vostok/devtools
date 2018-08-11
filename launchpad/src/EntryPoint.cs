@@ -62,7 +62,8 @@ namespace launchpad
                 tempDirectory.MoveContentsTo(Environment.CurrentDirectory);
             }
 
-            Console.Out.WriteLine("Done.");
+            Console.Out.WriteLine();
+            Console.Out.WriteLine("Done!");
         }
 
         private static void PrintHelp()
