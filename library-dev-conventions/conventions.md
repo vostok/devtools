@@ -206,7 +206,8 @@
 	* With two different dependency resolution mechanisms:
 		* From latest sources in Cement.
 		* From latest versions of NuGet packages (only when publishing a package).
-	* This leads to either 2 or 4 configurations (depending on whether to publish packages).
+	* Ubuntu builds are skipped for repositories that contain "windows" in their names.
+	* This leads to either 1, 2 or 4 configurations (depending on platform and whether to publish packages).
 
 * Tests are executed using all available runtimes:
 	* .NET Core and .NET Framework on Windows

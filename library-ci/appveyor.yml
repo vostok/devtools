@@ -19,6 +19,10 @@ environment:
 
 
 init:
+  # Skip Windows-only repositories on Linux
+  - ps: if ($env:APPVEYOR_REPO_NAME -like '*windows*' -and $isLinux) { Exit-AppveyorBuild }
+
+
   # Get rid of default AppVeyor build version (might want to pull a real one from .csproj later):
   - ps: |
       if ($env:APPVEYOR_REPO_TAG_NAME -ne $null) 
