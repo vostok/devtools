@@ -1,0 +1,12 @@
+{
+  "Variables": [
+    {
+      "Name": "ProjectName",
+      "Description": "A name of solution, main project and namespace. Example: 'Vostok.Logging.Abstractions'."
+    },
+    {
+      "Name": "RepositoryUrl",
+      "Description": "URL of library's repository on GitHub (needed for packaging metadata)."
+    }
+  ]
+}

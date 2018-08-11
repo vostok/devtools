@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.IO;
+using Newtonsoft.Json;
 
 namespace launchpad
 {
@@ -6,7 +7,9 @@ namespace launchpad
     {
         public LaunchpadConfig GetConfig()
         {
-            throw new NotImplementedException();
+            var fileContent = File.ReadAllText("launchpad-config.json");
+
+            return JsonConvert.DeserializeObject<LaunchpadConfig>(fileContent);
         }
     }
 }

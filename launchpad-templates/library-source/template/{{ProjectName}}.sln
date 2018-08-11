@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27428.2011
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vostok.SampleLibrary", "Vostok.SampleLibrary\Vostok.SampleLibrary.csproj", "{41337F4D-B146-48A0-A8B8-BAF3C5EBA514}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "{{ProjectName}}", "{{ProjectName}}\{{ProjectName}}.csproj", "{41337F4D-B146-48A0-A8B8-BAF3C5EBA514}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vostok.SampleLibrary.Tests", "Vostok.SampleLibrary.Tests\Vostok.SampleLibrary.Tests.csproj", "{87C54CC1-C3B8-4730-B55D-5DB6F9C3ABA3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "{{ProjectName}}.Tests", "{{ProjectName}}.Tests\{{ProjectName}}.Tests.csproj", "{87C54CC1-C3B8-4730-B55D-5DB6F9C3ABA3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

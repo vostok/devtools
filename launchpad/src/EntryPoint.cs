@@ -1,11 +1,25 @@
 ﻿using System;
+using System.IO;
+using System.Linq;
 
 namespace launchpad
 {
-    public static partial class EntryPoint
+    public static class EntryPoint
     {
         public static void Main(string[] args)
         {
+            if (args.Length == 1 && args[0] == "list")
+            {
+                HandleListCommand();
+                return;
+            }
+
+            if (args.Length == 2 && args[0] == "new")
+            {
+                HandleNewCommand(args[1]);
+                return;
+            }
+
             PrintHelp();
         }
 
@@ -15,13 +29,19 @@ namespace launchpad
 
             foreach (var definition in config.Definitions)
             {
-                Console.Out.WriteLine($"{definition.Name} from '{definition.PackageName}' package.");
+                Console.Out.WriteLine($"{definition.Name}");
+                Console.Out.WriteLine($"\t(from '{definition.PackageName}' package)");
             }
         }
 
         private static void HandleNewCommand(string templateName)
         {
             var config = new LaunchpadConfigProvider().GetConfig();
+            if (config.Definitions.All(d => d.Name != templateName))
+            {
+                Console.Out.WriteLine($"There's no template named '{templateName}'. Use 'list' command to view available ones.");
+                return;
+            }
 
             using (var tempDirectory = new TemporaryDirectory())
             {
@@ -30,14 +50,14 @@ namespace launchpad
                 var variablesFiller = new VariableFiller();
                 var templateProcessor = new TemplateProcessor();
 
-                packageFetcher.Fetch(templateName, config.NugetSources, tempDirectory.Info);
+                packageFetcher.Fetch(templateName, config.NugetSources, tempDirectory.FullPath);
 
-                var templateSpec = specProvider.ProvideFrom(tempDirectory.Info);
+                var templateSpec = specProvider.ProvideFrom(tempDirectory.FullPath);
                 var variables = variablesFiller.FillVariables(templateSpec.Variables);
 
-                templateProcessor.Process(tempDirectory.Info, variables);
+                templateProcessor.Process(tempDirectory.FullPath, variables);
 
-                // TODO(iloktionov): move everything from temp directory to Environment.CurrentDirectory
+                tempDirectory.MoveContentsTo(Environment.CurrentDirectory);
             }
 
             Console.Out.WriteLine("Done.");
@@ -45,7 +65,8 @@ namespace launchpad
 
         private static void PrintHelp()
         {
-            var assembly = typeof (EntryPoint);
+            Console.Out.WriteLine(File.ReadAllText("launchpad-help.txt"));
+            Console.Out.WriteLine();
         }
     }
 }

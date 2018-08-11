@@ -1,27 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using launchpad.extensions;
+using Stubble.Core;
 using Stubble.Core.Builders;
 
 namespace launchpad
 {
     internal class TemplateProcessor
     {
-        public void Process(DirectoryInfo directory, Dictionary<string, string> variables)
+        public void Process(string directoryPath, Dictionary<string, string> variables)
         {
             var stubble = new StubbleBuilder().Build();
 
             var stack = new Stack<FileSystemInfo>();
 
+            var directory = new DirectoryInfo(directoryPath);
+
             stack.Push(directory);
+            
             while (stack.Count > 0)
             {
                 var sysInfo = stack.Pop();
-                sysInfo.SubstituteName(stubble, variables);
 
-                var directoryInfo = sysInfo as DirectoryInfo;
-                if (directoryInfo != null)
+                SubstituteName(sysInfo, stubble, variables);
+
+                if (sysInfo is DirectoryInfo directoryInfo)
                 {
                     foreach (var systemInfo in directoryInfo.EnumerateFileSystemInfos())
                     {
@@ -29,8 +31,7 @@ namespace launchpad
                     }
                 }
 
-                var fileInfo = sysInfo as FileInfo;
-                if (fileInfo != null)
+                if (sysInfo is FileInfo fileInfo)
                 {
                     var substitutedText = stubble.Render(File.ReadAllText(fileInfo.FullName), variables);
                     File.WriteAllText(fileInfo.FullName, substitutedText);
@@ -38,6 +39,14 @@ namespace launchpad
             }
         }
 
-        
+        private static void SubstituteName(FileSystemInfo info, StubbleVisitorRenderer stubble, Dictionary<string, string> variables)
+        {
+            var substitutedPath = stubble.Render(info.FullName, variables);
+            if (substitutedPath.Equals(info.FullName))
+                return;
+
+            (info as DirectoryInfo)?.MoveTo(substitutedPath);
+            (info as FileInfo)?.MoveTo(substitutedPath);
+        }
     }
 }
