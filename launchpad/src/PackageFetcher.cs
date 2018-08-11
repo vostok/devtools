@@ -5,7 +5,7 @@ namespace launchpad
 {
     internal class PackageFetcher
     {
-        public void Fetch(string packageName, string[] sources, DirectoryInfo targetDirectory)
+        public void Fetch(string packageName, string[] sources, string targetDirectory)
         {
             throw new NotImplementedException();
         }

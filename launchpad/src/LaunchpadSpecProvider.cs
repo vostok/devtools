@@ -1,11 +1,10 @@
 ﻿using System;
-using System.IO;
 
 namespace launchpad
 {
     internal class LaunchpadSpecProvider
     {
-        public LaunchpadSpec ProvideFrom(DirectoryInfo templateDirectory)
+        public LaunchpadSpec ProvideFrom(string directory)
         {
             throw new NotImplementedException();
         }

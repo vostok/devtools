@@ -3,7 +3,7 @@ using System.IO;
 
 namespace launchpad
 {
-    public static partial class EntryPoint
+    public static class EntryPoint
     {
         public static void Main(string[] args)
         {
@@ -43,14 +43,14 @@ namespace launchpad
                 var variablesFiller = new VariableFiller();
                 var templateProcessor = new TemplateProcessor();
 
-                packageFetcher.Fetch(templateName, config.NugetSources, tempDirectory.Info);
+                packageFetcher.Fetch(templateName, config.NugetSources, tempDirectory.FullPath);
 
-                var templateSpec = specProvider.ProvideFrom(tempDirectory.Info);
+                var templateSpec = specProvider.ProvideFrom(tempDirectory.FullPath);
                 var variables = variablesFiller.FillVariables(templateSpec.Variables);
 
-                templateProcessor.Process(tempDirectory.Info, variables);
+                templateProcessor.Process(tempDirectory.FullPath, variables);
 
-                // TODO(iloktionov): move everything from temp directory to Environment.CurrentDirectory
+                tempDirectory.MoveContentsTo(Environment.CurrentDirectory);
             }
 
             Console.Out.WriteLine("Done.");
