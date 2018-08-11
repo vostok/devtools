@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 
 namespace launchpad
 {
@@ -28,13 +29,19 @@ namespace launchpad
 
             foreach (var definition in config.Definitions)
             {
-                Console.Out.WriteLine($"{definition.Name} from '{definition.PackageName}' package.");
+                Console.Out.WriteLine($"{definition.Name}");
+                Console.Out.WriteLine($"\t(from '{definition.PackageName}' package)");
             }
         }
 
         private static void HandleNewCommand(string templateName)
         {
             var config = new LaunchpadConfigProvider().GetConfig();
+            if (config.Definitions.All(d => d.Name != templateName))
+            {
+                Console.Out.WriteLine($"There's no template named '{templateName}'. Use 'list' command to view available ones.");
+                return;
+            }
 
             using (var tempDirectory = new TemporaryDirectory())
             {
