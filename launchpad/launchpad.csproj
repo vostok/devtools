@@ -4,20 +4,46 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <LangVersion>Latest</LangVersion>
-    <Version>1.0.0</Version>
-    <Authors>Vostok team</Authors>
-    <Product>launchpad</Product>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <DebugType>embedded</DebugType>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+    <Authors>Vostok team</Authors>
+    <Product>Vostok</Product>
+    <Title>Vostok repository bootstap tool.</Title>
+    <Copyright>Copyright (c) 2017-2018 SKB Kontur</Copyright>
+    <Description>Vostok repository bootstap tool.</Description>
+
     <IsPackable>true</IsPackable>
     <PackAsTool>true</PackAsTool>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>Vostok.Launchpad</PackageId>
     <PackageOutputPath>$(SolutionDir)\nupkg</PackageOutputPath>
+
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Version>0.0.2</Version>
+    <FileVersion>$(Version)</FileVersion>
+    <AssemblyVersion>$(Version)</AssemblyVersion>
+    <PackageVersion>$(Version)</PackageVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageProjectUrl>https://github.com/vostok/devtools</PackageProjectUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/vostok/devtools/master/assets/Vostok-icon.png</PackageIconUrl>
+    <PackageTags>vostok vostok.launchpad</PackageTags>
+    <RepositoryUrl>https://github.com/vostok/logging.devtools</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="help.txt" />
+    <Content Include="launchpad-config.json" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="launchpad-help.txt" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
 
   <ItemGroup>

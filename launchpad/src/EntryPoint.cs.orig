@@ -1,6 +1,9 @@
 ﻿using System;
 using System.IO;
+<<<<<<< HEAD
+=======
 using System.Linq;
+>>>>>>> origin/launchpad-proto
 
 namespace launchpad
 {
@@ -50,7 +53,11 @@ namespace launchpad
                 var variablesFiller = new VariableFiller();
                 var templateProcessor = new TemplateProcessor();
 
+<<<<<<< HEAD
+                packageFetcher.FetchAsync(templateName, config.NugetSources, tempDirectory.Info).GetAwaiter().GetResult();
+=======
                 packageFetcher.Fetch(templateName, config.NugetSources, tempDirectory.FullPath);
+>>>>>>> origin/launchpad-proto
 
                 var templateSpec = specProvider.ProvideFrom(tempDirectory.FullPath);
                 var variables = variablesFiller.FillVariables(templateSpec.Variables);

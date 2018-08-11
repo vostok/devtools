@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Vostok.SampleLibrary\Vostok.SampleLibrary.csproj" />
+    <ProjectReference Include="..\{{ProjectName}}\{{ProjectName}}.csproj" />
   </ItemGroup>
 
 </Project>

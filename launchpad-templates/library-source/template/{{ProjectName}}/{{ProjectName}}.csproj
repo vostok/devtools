@@ -25,10 +25,14 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageProjectUrl>TODO</PackageProjectUrl>
-    <PackageLicenseUrl>TODO</PackageLicenseUrl>
+    <PackageProjectUrl>{{RepositoryUrl}}</PackageProjectUrl>
+    <PackageLicenseUrl>{{RepositoryUrl}}/blob/master/LICENSE</PackageLicenseUrl>
     <PackageTags>vostok</PackageTags>
-    <RepositoryUrl>TODO</RepositoryUrl>
+    <RepositoryUrl>{{RepositoryUrl}}</RepositoryUrl>
   </PropertyGroup>
-  
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>TRACE;RELEASE;NETSTANDARD;NETSTANDARD2_0;MAKE_CLASSES_PUBLIC</DefineConstants>
+  </PropertyGroup>
+
 </Project>
