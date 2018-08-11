@@ -14,10 +14,15 @@
     <PackAsTool>true</PackAsTool>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageOutputPath>$(SolutionDir)\nupkg</PackageOutputPath>
+    <StartupObject>launchpad.EntryPoint</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="help.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Stubble.Core" Version="1.0.112" />
   </ItemGroup>
 
 </Project>
