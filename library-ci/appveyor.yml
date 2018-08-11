@@ -22,7 +22,7 @@ init:
   # Skip Windows-only repositories on Linux
   - ps: |
       if ($env:APPVEYOR_REPO_NAME -like '*windows*' -and $isLinux) { Exit-AppveyorBuild }
-      if ($env:APPVEYOR_REPO_NAME -like '*etw*' -and $isLinux) { Exit-AppveyorBuild } # TODO (alexkir, 11.08.2018) fix etw tests on Ubuntu
+      if ($env:APPVEYOR_REPO_NAME -like '*sys.metrics.etw*' -and $isLinux) { Exit-AppveyorBuild } # TODO (alexkir, 11.08.2018) fix etw tests on Ubuntu
 
 
   # Get rid of default AppVeyor build version (might want to pull a real one from .csproj later):
