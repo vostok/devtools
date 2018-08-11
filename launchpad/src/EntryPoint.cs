@@ -38,7 +38,7 @@ namespace launchpad
         {
             var config = new LaunchpadConfigProvider().GetConfig();
 
-            var templateDefinition = config.Definitions.FirstOrDefault(d => d.Name != templateName);
+            var templateDefinition = config.Definitions.FirstOrDefault(d => d.Name == templateName);
             if (templateDefinition == null)
             {
                 Console.Out.WriteLine($"There's no template named '{templateName}'. Use 'list' command to view available ones.");
@@ -67,7 +67,7 @@ namespace launchpad
 
         private static void PrintHelp()
         {
-            Console.Out.WriteLine(File.ReadAllText("launchpad-help.txt"));
+            Console.Out.WriteLine(File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "launchpad-help.txt")));
             Console.Out.WriteLine();
         }
     }

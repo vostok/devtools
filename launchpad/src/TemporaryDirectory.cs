@@ -33,7 +33,7 @@ namespace launchpad
 
             foreach (var subDirectory in info.GetDirectories())
             {
-                subDirectory.MoveTo(directory);
+                subDirectory.MoveTo(Path.Combine(directory, subDirectory.Name));
             }
 
             foreach (var file in info.GetFiles())
