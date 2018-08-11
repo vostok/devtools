@@ -36,7 +36,16 @@ namespace launchpad
             var highestVersion = versions.Max();
             var packageId = new PackageIdentity(packageName, highestVersion);
             var client = await resource.GetPackageDownloaderAsync(packageId, new SourceCacheContext(), new NullLogger(), CancellationToken.None);
-            return await client.CopyNupkgFileToAsync(targetDirectory.FullName, CancellationToken.None);
+            var packageFileName = $"{packageId}.nupkg";
+            var packageFileDestination = Path.Combine(targetDirectory.FullName, packageFileName);
+            if (!Directory.Exists(targetDirectory.FullName))
+                Directory.CreateDirectory(targetDirectory.FullName);
+            return await client.CopyNupkgFileToAsync(packageFileDestination, CancellationToken.None);
+        }
+
+        private void UnpackPackage(string packagePath)
+        {
+
         }
     }
 }
