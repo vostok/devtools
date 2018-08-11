@@ -7,6 +7,18 @@ namespace launchpad
     {
         public static void Main(string[] args)
         {
+            if (args.Length == 1 && args[0] == "list")
+            {
+                HandleListCommand();
+                return;
+            }
+
+            if (args.Length == 2 && args[0] == "new")
+            {
+                HandleNewCommand(args[1]);
+                return;
+            }
+
             PrintHelp();
         }
 
