@@ -1,0 +1,11 @@
+{
+  "NugetSources": [
+    "https://api.nuget.org/v3/index.json"
+  ],
+  "Definitions": [
+    {
+      "Name": "vostok-library",
+      "PackageName": "Vostok.Launchpad.Templates.Library"
+    }
+  ]
+}

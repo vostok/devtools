@@ -58,14 +58,8 @@ namespace launchpad
 
         private static void PrintHelp()
         {
-            var assembly = typeof (EntryPoint).Assembly;
-
-            using (var stream = assembly.GetManifestResourceStream("launchpad.help.txt"))
-            using (var reader = new StreamReader(stream))
-            {
-                Console.Out.WriteLine(reader.ReadToEnd());
-                Console.Out.WriteLine();
-            }
+            Console.Out.WriteLine(File.ReadAllText("launchpad-help.txt"));
+            Console.Out.WriteLine();
         }
     }
 }
