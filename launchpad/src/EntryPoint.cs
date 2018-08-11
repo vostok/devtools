@@ -10,15 +10,6 @@ namespace launchpad
             PrintHelp();
         }
 
-        private static void TestPackageFetcher()
-        {
-            var fetcher = new PackageFetcher();
-            const string packageName = "Vostok.Launchpad.Templates.Library";
-            const string nugetSourceUrl = "https://api.nuget.org/v3/index.json";
-            var tempDir = $"D:/temp/{Guid.NewGuid().ToString().Substring(0, 8)}";
-            fetcher.FetchAsync(packageName, new[] { nugetSourceUrl }, new DirectoryInfo(tempDir)).GetAwaiter().GetResult();
-        }
-
         private static void HandleListCommand()
         {
             var config = new LaunchpadConfigProvider().GetConfig();
