@@ -1,6 +1,6 @@
 ﻿using JetBrains.Annotations;
 
-namespace Vostok.SampleLibrary
+namespace {{ProjectName}}
 {
     /// <summary>
     /// A sample class.

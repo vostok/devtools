@@ -10,14 +10,31 @@
 
     <Authors>Vostok team</Authors>
     <Product>Vostok</Product>
-    <Version>0.0.1</Version>
+    <Title>Vostok repository bootstap tool.</Title>
+    <Copyright>Copyright (c) 2017-2018 SKB Kontur</Copyright>
+    <Description>Vostok repository bootstap tool.</Description>
 
     <IsPackable>true</IsPackable>
     <PackAsTool>true</PackAsTool>
     <PackageId>Vostok.Launchpad</PackageId>
     <PackageOutputPath>$(SolutionDir)\nupkg</PackageOutputPath>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
 
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Version>0.0.1</Version>
+    <FileVersion>$(Version)</FileVersion>
+    <AssemblyVersion>$(Version)</AssemblyVersion>
+    <PackageVersion>$(Version)</PackageVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageProjectUrl>https://github.com/vostok/devtools</PackageProjectUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/vostok/devtools/master/assets/Vostok-icon.png</PackageIconUrl>
+    <PackageTags>vostok vostok.launchpad</PackageTags>
+    <RepositoryUrl>https://github.com/vostok/logging.devtools</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <ItemGroup>
