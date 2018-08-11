@@ -37,7 +37,9 @@ namespace launchpad
         private static void HandleNewCommand(string templateName)
         {
             var config = new LaunchpadConfigProvider().GetConfig();
-            if (config.Definitions.All(d => d.Name != templateName))
+
+            var templateDefinition = config.Definitions.FirstOrDefault(d => d.Name != templateName);
+            if (templateDefinition == null)
             {
                 Console.Out.WriteLine($"There's no template named '{templateName}'. Use 'list' command to view available ones.");
                 return;
@@ -50,7 +52,7 @@ namespace launchpad
                 var variablesFiller = new VariableFiller();
                 var templateProcessor = new TemplateProcessor();
 
-                packageFetcher.Fetch(templateName, config.NugetSources, tempDirectory.FullPath);
+                packageFetcher.Fetch(templateDefinition.PackageName, config.NugetSources, tempDirectory.FullPath);
 
                 var templateSpec = specProvider.ProvideFrom(tempDirectory.FullPath);
                 var variables = variablesFiller.FillVariables(templateSpec.Variables);
