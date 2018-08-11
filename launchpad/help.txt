@@ -1,0 +1,8 @@
+Commands:
+
+launchpad new <template name>
+	Bootstraps a project from given template in current directory.
+	Prompts user interactively for variable values.
+
+launchpad ls
+	Prints the list of all availabl template names.

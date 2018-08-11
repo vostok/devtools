@@ -16,4 +16,8 @@
     <PackageOutputPath>$(SolutionDir)\nupkg</PackageOutputPath>
   </PropertyGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="help.txt" />
+  </ItemGroup>
+
 </Project>
