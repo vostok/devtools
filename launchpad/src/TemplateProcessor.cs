@@ -19,8 +19,13 @@ namespace launchpad
                 var sysInfo = stack.Pop();
                 var directoryInfo = sysInfo as DirectoryInfo;
                 if (directoryInfo != null)
-                {   
-                    directoryInfo.MoveTo(stubble.Render(directory.Name, variables));
+                {
+                    var substitutedPath = stubble.Render(directoryInfo.FullName, variables);
+                    if (!substitutedPath.Equals(directoryInfo.FullName))
+                    {
+                        directoryInfo.MoveTo(substitutedPath);
+                    }
+
                     foreach (var systemInfo in directoryInfo.EnumerateFileSystemInfos())
                     {
                         stack.Push(systemInfo);
@@ -29,9 +34,13 @@ namespace launchpad
                 var fileInfo = sysInfo as FileInfo;
                 if (fileInfo != null)
                 {
-                    fileInfo.MoveTo(stubble.Render(directory.Name, variables));
-                    stubble.Render(File.ReadAllText(fileInfo.DirectoryName), variables);
-                    
+                    var substitutedPath = stubble.Render(fileInfo.FullName, variables);
+                    if (!substitutedPath.Equals(fileInfo.FullName))
+                    {
+                        fileInfo.MoveTo(substitutedPath);
+                    }
+                    var substitutedText = stubble.Render(File.ReadAllText(fileInfo.FullName), variables);
+                    File.WriteAllText(substitutedPath, substitutedText);
                 }
             }
         }
