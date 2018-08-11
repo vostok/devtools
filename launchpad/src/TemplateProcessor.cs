@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using launchpad.extensions;
 using Stubble.Core.Builders;
 
 namespace launchpad
@@ -17,32 +18,26 @@ namespace launchpad
             while (stack.Count > 0)
             {
                 var sysInfo = stack.Pop();
+                sysInfo.SubstituteName(stubble, variables);
+
                 var directoryInfo = sysInfo as DirectoryInfo;
                 if (directoryInfo != null)
                 {
-                    var substitutedPath = stubble.Render(directoryInfo.FullName, variables);
-                    if (!substitutedPath.Equals(directoryInfo.FullName))
-                    {
-                        directoryInfo.MoveTo(substitutedPath);
-                    }
-
                     foreach (var systemInfo in directoryInfo.EnumerateFileSystemInfos())
                     {
                         stack.Push(systemInfo);
                     }
                 }
+
                 var fileInfo = sysInfo as FileInfo;
                 if (fileInfo != null)
                 {
-                    var substitutedPath = stubble.Render(fileInfo.FullName, variables);
-                    if (!substitutedPath.Equals(fileInfo.FullName))
-                    {
-                        fileInfo.MoveTo(substitutedPath);
-                    }
                     var substitutedText = stubble.Render(File.ReadAllText(fileInfo.FullName), variables);
-                    File.WriteAllText(substitutedPath, substitutedText);
+                    File.WriteAllText(fileInfo.FullName, substitutedText);
                 }
             }
         }
+
+        
     }
 }
