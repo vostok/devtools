@@ -82,7 +82,13 @@
 ##### References
 * References to other Vostok modules should only be added with `cm ref add` Cement command.
 * References to other NuGet packages which are then merged with ILRepack should be marked with `<PrivateAssets>all</PrivateAssets>` tag.
-* Links to shared classes from source-only libraries should be prefixed with `Commons\` without any deeper folder structure. For example: `<Compile Include="..\..\vostok.commons.helpers\Vostok.Commons.Helpers\Extensions\TaskExtensions.cs" Link="Commons\TaskExtensions.cs" />`
+* Links to shared classes from source-only libraries should be prefixed with `Commons\` without any deeper folder structure. For example: 
+```xml
+        <ItemGroup>
+	    <Compile Include="..\..\vostok.commons.helpers\Vostok.Commons.Helpers\Extensions\TaskExtensions.cs" Link="Commons\TaskExtensions.cs" />
+       <ItemGroup/>
+```
+
 
 ##### Visibility
 * There should be no projects with access to internal classes other than unit tests project. That means no `[InternalsVisibleTo]` attributes pointing to assemblies from other modules.
