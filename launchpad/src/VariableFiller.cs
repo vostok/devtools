@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace launchpad
 {
@@ -7,6 +8,9 @@ namespace launchpad
     {
         public Dictionary<string, string> FillVariables(IEnumerable<VariableDefinition> definitions)
         {
+            var logo = File.ReadAllText("logo");
+            Console.WriteLine(logo);
+
             var variables = new Dictionary<string, string>();
 
             foreach (var variableDefinition in definitions)
