@@ -8,14 +8,19 @@ namespace launchpad
         public Dictionary<string, string> FillVariables(IEnumerable<VariableDefinition> definitions)
         {
             var variables = new Dictionary<string, string>();
+
             foreach (var variableDefinition in definitions)
             {
-                if(!variables.TryAdd(variableDefinition.Name, ""))
-                    throw new ArgumentException($"Variable ${variableDefinition.Name} defined twice");
+                if(!variables.TryAdd(variableDefinition.Name, string.Empty))
+                    throw new ArgumentException($"Variable '${variableDefinition.Name}' is defined twice.");
 
-                Console.WriteLine($"Need {variableDefinition.Description} : ");
-                variables[variableDefinition.Name] = Console.ReadLine().ToString();
+                Console.Out.WriteLine($"Enter value for '{variableDefinition.Name}' ({variableDefinition.Description}):");
+
+                variables[variableDefinition.Name] = Console.ReadLine();
+
+                Console.Out.WriteLine();
             }
+
             return variables;
         }
     }
