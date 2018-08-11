@@ -8,8 +8,7 @@ namespace launchpad
     {
         public Dictionary<string, string> FillVariables(IEnumerable<VariableDefinition> definitions)
         {
-            var logo = File.ReadAllText("logo");
-            Console.WriteLine(logo);
+            Console.WriteLine(File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "launchpad-logo.txt")));
 
             var variables = new Dictionary<string, string>();
 

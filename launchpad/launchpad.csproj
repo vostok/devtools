@@ -42,6 +42,7 @@
   <ItemGroup>
     <Content Include="launchpad-config.json" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="launchpad-help.txt" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="launchpad-logo.txt" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
@@ -54,12 +55,6 @@
     <PackageReference Include="NuGet.ProjectModel" Version="4.7.0" />
     <PackageReference Include="Stubble.Core" Version="1.0.112" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="logo">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>
