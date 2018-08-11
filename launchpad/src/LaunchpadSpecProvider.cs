@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.IO;
+using Newtonsoft.Json;
 
 namespace launchpad
 {
@@ -6,7 +7,9 @@ namespace launchpad
     {
         public LaunchpadSpec ProvideFrom(string directory)
         {
-            throw new NotImplementedException();
+            var specContent = File.ReadAllText(Path.Combine(directory, "launchpad.json"));
+
+            return JsonConvert.DeserializeObject<LaunchpadSpec>(specContent);
         }
     }
 }
