@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -18,6 +18,16 @@
 
   <ItemGroup>
     <EmbeddedResource Include="help.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NuGet.Common" Version="4.7.0" />
+    <PackageReference Include="NuGet.Configuration" Version="4.7.0" />
+    <PackageReference Include="NuGet.Frameworks" Version="4.7.0" />
+    <PackageReference Include="NuGet.LibraryModel" Version="4.7.0" />
+    <PackageReference Include="NuGet.Packaging" Version="4.7.0" />
+    <PackageReference Include="NuGet.Packaging.Core" Version="4.7.0" />
+    <PackageReference Include="NuGet.ProjectModel" Version="4.7.0" />
   </ItemGroup>
 
 </Project>

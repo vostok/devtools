@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 namespace launchpad
 {
@@ -7,7 +6,7 @@ namespace launchpad
     {
         public void Fetch(string packageName, string[] sources, DirectoryInfo targetDirectory)
         {
-            throw new NotImplementedException();
+            
         }
     }
 }
