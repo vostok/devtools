@@ -30,7 +30,7 @@ namespace launchpad
                 var variablesFiller = new VariableFiller();
                 var templateProcessor = new TemplateProcessor();
 
-                packageFetcher.Fetch(templateName, config.NugetSources, tempDirectory.Info);
+                packageFetcher.FetchAsync(templateName, config.NugetSources, tempDirectory.Info).GetAwaiter().GetResult();
 
                 var templateSpec = specProvider.ProvideFrom(tempDirectory.Info);
                 var variables = variablesFiller.FillVariables(templateSpec.Variables);
