@@ -66,7 +66,7 @@ namespace launchpad
 
                 templateProcessor.Process(tempDirectory.FullPath, variables);
 
-                tempDirectory.MoveContentsTo(Environment.CurrentDirectory);
+                tempDirectory.CopyContentsTo(Environment.CurrentDirectory);
             }
 
             Console.Out.WriteLine();

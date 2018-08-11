@@ -27,18 +27,18 @@ namespace launchpad
             }
         }
 
-        public void MoveContentsTo(string directory)
+        public void CopyContentsTo(string directory)
         {
             info.Refresh();
 
             foreach (var subDirectory in info.GetDirectories(string.Empty, SearchOption.AllDirectories))
             {
-                Directory.CreateDirectory(Path.Combine(directory, subDirectory.Name));
+                Directory.CreateDirectory(Path.Combine(directory, Path.GetRelativePath(FullPath, subDirectory.FullName)));
             }
 
             foreach (var file in info.GetFiles(string.Empty, SearchOption.AllDirectories))
             {
-                file.CopyTo(Path.Combine(directory, file.Name));
+                file.CopyTo(Path.Combine(directory, Path.GetRelativePath(FullPath, file.FullName)));
             }
         }
     }
