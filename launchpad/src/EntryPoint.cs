@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace launchpad
 {
@@ -6,7 +7,17 @@ namespace launchpad
     {
         public static void Main(string[] args)
         {
-            PrintHelp();
+            TestPackageFatcher();
+            //PrintHelp();
+        }
+
+        private static void TestPackageFatcher()
+        {
+            var fetcher = new PackageFetcher();
+            const string packageName = "Vostok.Launchpad.Templates.Library";
+            const string nugetSourceUrl = "https://api.nuget.org/v3/index.json";
+            var tempDir = $"D:/temp{Guid.NewGuid().ToString().Substring(0, 8)}";
+            fetcher.FetchAsync(packageName, new[] { nugetSourceUrl }, new DirectoryInfo(tempDir)).GetAwaiter().GetResult();
         }
 
         private static void HandleListCommand()

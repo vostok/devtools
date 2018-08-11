@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,13 +23,20 @@ namespace launchpad
         {
             foreach (var source in sources)
             {
-                var fetchResult = await FetchAsync(packageName, source, targetDirectory);
-                if (fetchResult)
+                var fetchResult = await DownloadPackageAsync(packageName, source, targetDirectory);
+                if (fetchResult.Result)
+                {
+                    var packageFileName = $"{fetchResult.Id}.nupkg";
+                    var packageFileDestination = Path.Combine(targetDirectory.FullName, packageFileName);
+                    if (!Directory.Exists(targetDirectory.FullName))
+                        Directory.CreateDirectory(targetDirectory.FullName);
+                    UnpackPackage(packageFileDestination);
                     return;
+                }
             }
         }
 
-        private async Task<bool> FetchAsync(string packageName, string source, FileSystemInfo targetDirectory)
+        private async Task<(bool Result, PackageIdentity Id)> DownloadPackageAsync(string packageName, string source, FileSystemInfo targetDirectory)
         {
             var repository = factory.GetCoreV3(source);
             var resource = new RemoteV3FindPackageByIdResource(repository, HttpSource.Create(repository));
@@ -40,12 +48,12 @@ namespace launchpad
             var packageFileDestination = Path.Combine(targetDirectory.FullName, packageFileName);
             if (!Directory.Exists(targetDirectory.FullName))
                 Directory.CreateDirectory(targetDirectory.FullName);
-            return await client.CopyNupkgFileToAsync(packageFileDestination, CancellationToken.None);
+            return (await client.CopyNupkgFileToAsync(packageFileDestination, CancellationToken.None), packageId);
         }
 
-        private void UnpackPackage(string packagePath)
+        private static void UnpackPackage(string packagePath)
         {
-
+            ZipFile.ExtractToDirectory(packagePath, Path.GetDirectoryName(packagePath));
         }
     }
 }
