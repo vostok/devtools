@@ -14,7 +14,7 @@ namespace launchpad
                     throw new ArgumentException($"Variable ${variableDefinition.Name} defined twice");
 
                 Console.WriteLine($"Need {variableDefinition.Description} : ");
-                variables[variableDefinition.Name] = Console.ReadLine().ToString();
+                variables[variableDefinition.Name] = Console.ReadLine();
             }
             return variables;
         }

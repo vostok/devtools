@@ -31,14 +31,14 @@ namespace launchpad
         {
             info.Refresh();
 
-            foreach (var subDirectory in info.GetDirectories())
+            foreach (var subDirectory in info.GetDirectories(string.Empty, SearchOption.AllDirectories))
             {
-                subDirectory.MoveTo(Path.Combine(directory, subDirectory.Name));
+                Directory.CreateDirectory(Path.Combine(directory, subDirectory.Name));
             }
 
-            foreach (var file in info.GetFiles())
+            foreach (var file in info.GetFiles(string.Empty, SearchOption.AllDirectories))
             {
-                file.MoveTo(Path.Combine(directory, file.Name));
+                file.CopyTo(Path.Combine(directory, file.Name));
             }
         }
     }
