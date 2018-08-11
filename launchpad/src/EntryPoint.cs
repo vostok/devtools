@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace launchpad
 {
@@ -45,7 +46,14 @@ namespace launchpad
 
         private static void PrintHelp()
         {
-            var assembly = typeof (EntryPoint);
+            var assembly = typeof (EntryPoint).Assembly;
+
+            using (var stream = assembly.GetManifestResourceStream("launchpad.help.txt"))
+            using (var reader = new StreamReader(stream))
+            {
+                Console.Out.WriteLine(reader.ReadToEnd());
+                Console.Out.WriteLine();
+            }
         }
     }
 }
