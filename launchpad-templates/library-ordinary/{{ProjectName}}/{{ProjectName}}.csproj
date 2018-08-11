@@ -20,15 +20,15 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Title>TODO</Title>
-    <Description>TODO</Description>
+    <Title>{{ProjectName}}</Title>
+    <Description>{{ProjectName}}</Description>
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageProjectUrl>TODO</PackageProjectUrl>
-    <PackageLicenseUrl>TODO</PackageLicenseUrl>
+    <PackageProjectUrl>{{RepositoryUrl}}</PackageProjectUrl>
+    <PackageLicenseUrl>{{RepositoryUrl}}/blob/master/LICENSE</PackageLicenseUrl>
     <PackageTags>vostok</PackageTags>
-    <RepositoryUrl>TODO</RepositoryUrl>
+    <RepositoryUrl>{{RepositoryUrl}}</RepositoryUrl>
   </PropertyGroup>
   
 </Project>

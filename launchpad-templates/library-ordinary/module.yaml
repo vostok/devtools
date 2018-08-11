@@ -1,17 +1,17 @@
 notests *default:
   build:
-    target: Vostok.SampleLibrary.sln
+    target: {{ProjectName}}.sln
     configuration: NoTests
     tool:
       name: dotnet
 
   install:
-    - Vostok.SampleLibrary/bin/Release/netstandard2.0/Vostok.SampleLibrary.dll
+    - {{ProjectName}}/bin/Release/netstandard2.0/{{ProjectName}}.dll
 
   deps:
     - vostok.devtools
 
 full-build > notests:
   build:
-    target: Vostok.SampleLibrary.sln
+    target: {{ProjectName}}.sln
     configuration: Release
