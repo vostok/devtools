@@ -66,6 +66,8 @@ namespace launchpad
 
                 templateProcessor.Process(tempDirectory.FullPath, variables);
 
+                File.Delete(Path.Combine(tempDirectory.FullPath, "launchpad.json"));
+
                 tempDirectory.CopyContentsTo(Environment.CurrentDirectory);
             }
 
