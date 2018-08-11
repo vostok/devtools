@@ -16,6 +16,8 @@ namespace Vostok.Tools.GitCommit2AssemblyTitle
             void LogMessageFunction(string str, object[] args) => Log.LogMessage(str, args);
 
             var assemblyTitleContent = GetAssemblyTitleContent(LogMessageFunction, AssemblyVersion);
+            if (assemblyTitleContent == null)
+                return true;
 
             WriteAssemblyTitleContent(LogMessageFunction, assemblyTitleContent);
 
@@ -33,10 +35,16 @@ namespace Vostok.Tools.GitCommit2AssemblyTitle
             var gitCommitHash = GetGitCommitHash(log)?.Trim();
 
             if (string.IsNullOrEmpty(gitMessage))
+            {
                 log("Git commit message is empty.");
+                return null;
+            }
 
             if (string.IsNullOrEmpty(gitCommitHash))
+            {
                 log("Git commit hash is empty.");
+                return null;
+            }
 
             var titleBuilder = new StringBuilder();
             var contentBuilder = new StringBuilder();
