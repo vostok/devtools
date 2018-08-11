@@ -7,11 +7,10 @@ namespace launchpad
     {
         public static void Main(string[] args)
         {
-            TestPackageFatcher();
-            //PrintHelp();
+            PrintHelp();
         }
 
-        private static void TestPackageFatcher()
+        private static void TestPackageFetcher()
         {
             var fetcher = new PackageFetcher();
             const string packageName = "Vostok.Launchpad.Templates.Library";
