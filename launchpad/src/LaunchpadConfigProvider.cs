@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net.Http;
 using Newtonsoft.Json;
 
 namespace launchpad
@@ -10,27 +11,39 @@ namespace launchpad
 
         private const string EnvironmentVariableName = "LAUNCHPAD_CONFIG_PATH";
 
-        public void SetupConfigPath(string path)
-        {
-            Environment.SetEnvironmentVariable(EnvironmentVariableName, path, EnvironmentVariableTarget.User);
-        }
-
         public LaunchpadConfig GetConfig()
         {
-            var pathFromEnvironment = Environment.GetEnvironmentVariable(EnvironmentVariableName);
+            return JsonConvert.DeserializeObject<LaunchpadConfig>(ObtainConfigContent());
+        }
 
-            string fileContent;
+        public void SetupConfigSource(string source)
+        {
+            Environment.SetEnvironmentVariable(EnvironmentVariableName, source, EnvironmentVariableTarget.User);
+        }
 
-            if (!string.IsNullOrEmpty(pathFromEnvironment) && File.Exists(pathFromEnvironment))
+        public void ResetToDefaultConfig()
+        {
+            Environment.SetEnvironmentVariable(EnvironmentVariableName, null, EnvironmentVariableTarget.User);
+        }
+
+        private static string ObtainConfigContent()
+        {
+            var sourceFromEnvironment = Environment.GetEnvironmentVariable(EnvironmentVariableName);
+
+            if (!string.IsNullOrEmpty(sourceFromEnvironment))
             {
-                fileContent = File.ReadAllText(pathFromEnvironment);
-            }
-            else
-            {
-                fileContent = File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, DefaultConfigFileName));
+                if (Uri.TryCreate(sourceFromEnvironment, UriKind.Absolute, out var url) && url.Scheme.StartsWith("http"))
+                {
+                    return new HttpClient().GetStringAsync(url).GetAwaiter().GetResult();
+                }
+
+                if (File.Exists(sourceFromEnvironment))
+                {
+                    return File.ReadAllText(sourceFromEnvironment);
+                }
             }
 
-            return JsonConvert.DeserializeObject<LaunchpadConfig>(fileContent);
+            return File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, DefaultConfigFileName));
         }
     }
 }

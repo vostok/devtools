@@ -10,34 +10,41 @@ namespace launchpad
     {
         public static void Main(string[] args)
         {
-            if (args.Length == 1 && args[0] == "version")
+            if (args.Length == 0)
             {
-                HandleVersionCommand();
+                PrintHelp();
                 return;
             }
 
-            if (args.Length == 1 && args[0] == "config")
+            switch (args[0])
             {
-                HandleConfigCommand();
-                return;
-            }
+                case "version":
+                    HandleVersionCommand(); return;
 
-            if (args.Length == 1 && args[0] == "list")
-            {
-                HandleListCommand();
-                return;
-            }
+                case "config":
+                    HandleConfigCommand(); return;
 
-            if (args.Length == 2 && args[0] == "new")
-            {
-                HandleNewCommand(args[1]);
-                return;
-            }
+                case "list":
+                    HandleListCommand(); return;
 
-            if (args.Length == 2 && args[0] == "set-config")
-            {
-                HandleSetConfigCommand(args[1]);
-                return;
+                case "reset-config":
+                    HandleResetConfigCommand(); return;
+
+                case "set-config":
+                    if (args.Length == 2)
+                    {
+                        HandleSetConfigCommand(args[1]);
+                        return;
+                    }
+                    break;
+
+                case "new":
+                    if (args.Length == 2)
+                    {
+                        HandleNewCommand(args[1]);
+                        return;
+                    }
+                    break;
             }
 
             PrintHelp();
@@ -105,9 +112,14 @@ namespace launchpad
             }));
         }
 
-        private static void HandleSetConfigCommand(string configFilePath)
+        private static void HandleSetConfigCommand(string source)
         {
-            new LaunchpadConfigProvider().SetupConfigPath(configFilePath);
+            new LaunchpadConfigProvider().SetupConfigSource(source);
+        }
+
+        private static void HandleResetConfigCommand()
+        {
+            new LaunchpadConfigProvider().ResetToDefaultConfig();
         }
 
         private static void PrintHelp()
