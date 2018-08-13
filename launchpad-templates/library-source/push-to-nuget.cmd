@@ -1,3 +1,3 @@
 rmdir /S /Q nupkg
-dotnet build -c Release
+nuget pack pack.nuspec -OutputDirectory nupkg
 nuget push nupkg\*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey %1
