@@ -37,3 +37,4 @@ Always use SSH-based links from GitHub (those starting with `git@`) instead of h
     * Set `appveyor.yml` location to https://raw.githubusercontent.com/vostok/devtools/master/library-ci/appveyor.yml
     * Enable secure variables in pull requests
     * Add comma-separated tags (like 'logging' or 'configuration')
+  * Start a new build and see if it succeeds.
