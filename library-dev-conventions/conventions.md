@@ -25,7 +25,7 @@
 
 * One important exception to the rule above is when an external dependency is only needed for internal consumption and is not exposed from public API in any way. In such cases it's acceptable to just merge this dependency into library with a tool such as ILRepack. References to merged dependencies should be marked private so that they are not listed in final package.  
 
-* Useful classes that are shared between multiple library projects but should not be exposed to consumers of these projects are put into [source-only libraries](https://github.com/vostok/devtools/blob/master/library-dev-conventions/src-libs-conventions.md). 
+* Useful classes that are shared between multiple library projects but should not be exposed to consumers of these projects are put into [source-only libraries](src-libs-conventions.md). 
 
 <br/>
 
@@ -43,6 +43,8 @@
 * Library solution should contain 2 projects: the main one and a unit test project.
 * The main project should be named `Vostok.<Something>`.
 * The tests project should be named `Vostok.<Something>.Tests`.
+
+Most of the project-related requirements are automatically met when using a [Launchpad](../launchpad) template named `vostok-library`. See [template source](../launchpad-templates/library-ordinary/template) for details. 
 
 <br/>
 
@@ -98,7 +100,7 @@
 #### Tests project
 
 ##### Common
-* Should target `net471` and `netcoreapp2.1` on Windows and just `netcoreapp2.1` on Linux (see [library project sample](../library-project-sample) for example).
+* Should target `net471` and `netcoreapp2.1` on Windows and just `netcoreapp2.1` on Linux.
 * Should include Git commit info in assembly attributes using [git-commit-to-assembly-title](https://github.com/vostok/devtools/tree/master/git-commit-to-assembly-title) target from `vostok.devtools` module.
 
 ##### Packaging
@@ -113,7 +115,7 @@
 
 ### Code-related practices
 * Should use [code style](https://github.com/vostok/devtools/tree/master/code-style-csharp) provided in `vostok.devtools` module.
-* Should include [JetBrains Annotations](https://www.jetbrains.com/help/resharper/Reference__Code_Annotation_Attributes.html) as a link from [vostok.devtools/jetbrains-annotations](https://github.com/vostok/devtools/blob/master/jetbrains-annotations/JetBrainsAnnotations.cs). The link should be named `Annotations\JetBrainsAnnotations.cs`. See [library project sample](../library-project-sample) for an example.
+* Should include [JetBrains Annotations](https://www.jetbrains.com/help/resharper/Reference__Code_Annotation_Attributes.html) as a link from [vostok.devtools/jetbrains-annotations](https://github.com/vostok/devtools/blob/master/jetbrains-annotations/JetBrainsAnnotations.cs). The link should be named `Annotations\JetBrainsAnnotations.cs`.
 * Should decorate appropriate pieces of code with following JetBrains Annotations:
 	* `[CanBeNull]` and `[ItemCanBeNull]`
 	* `[NotNull]` and `[ItemNotNull]`
@@ -229,6 +231,7 @@
 
 ### Change log
 
+* 13.08.2018: replaced links to sample project with launchpad template reference.
 * 09.08.2018: added a rule about placing linked sources into `Commons\` folder
 * 03.08.2018: mentioned source-only libraries.
 * 03.08.2018: added first xml-doc conventions: about list items formatting and the use of em-dash
