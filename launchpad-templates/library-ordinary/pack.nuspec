@@ -7,6 +7,7 @@
     <authors>Vostok team</authors>
     <owners>Vostok team</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <iconUrl>https://raw.githubusercontent.com/vostok/devtools/master/assets/Vostok-icon.png</iconUrl>
     <description>A launchpad template for generating ordinary Vostok libraries.</description>
     <copyright>Copyright (c) 2017-2018 SKB Kontur</copyright>
     <tags>vostok vostok.launchpad</tags>
