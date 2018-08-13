@@ -110,6 +110,27 @@ Most of the project-related requirements are automatically met when using a [Lau
 * Should use NUnit3 as a main unit testing library.
 * Should use FluentAssertions for.. well, assertions.
 * Should use NSubstitute for mocks.
+* Should use BenchmarkDotNet for performance benchmarks.
+
+##### Test naming and placement
+* Test fixture for a class should be named by adding a suffix `_Tests` to the class name (`MyClass` + `MyClass_Tests`).
+* Benchmarks should be named by adding a suffix `_Benchmarks` to the class name (`MyClass` + `MyClass_Benchmarks`).
+* Smoke tests should be named by adding a suffix `_Tests_Smoke` to the class name (`MyClass` + `MyClass_Tests_Smoke`).
+* Tests folder structure should mirror corresponding structure of tested classes (`Helpers\MyClass` + `Helpers\MyClass_Tests`).
+* Tests for multiple classes should not be placed into a single file.
+* Test names should be formed using one of the following patterns:
+  * `{MethodName}_should_{verb for expected behaviour}`
+  * `{MethodName}_should_{verb for expected behaviour}_when_{condition description}`
+  * `{PropertyName}_should_{verb for expected behaviour}`
+  * `{PropertyName}_should_{verb for expected behaviour}_when_{condition description}`
+  * `Should_{verb for expected behaviour}`
+  * `Should_{verb for expected behaviour}_when_{condition description}`
+
+##### Test practices and bad smells
+* Tests should not rely on fixed-length pauses with `Thread.Sleep` or `Task.Delay`.
+* Tests should not rely on outcome of random operations (smoke tests are a notable exception to this rule).
+* Tests should not be long (anything measured in seconds is already a problem).
+* Smoke tests and benchmarks should be marked with `[Explicit]` attribute.
 
 <br/><br/>
 
@@ -231,6 +252,7 @@ Most of the project-related requirements are automatically met when using a [Lau
 
 ### Change log
 
+* 13.08.2018: added first conventions about tests naming and placement
 * 13.08.2018: replaced links to sample project with launchpad template reference.
 * 09.08.2018: added a rule about placing linked sources into `Commons\` folder
 * 03.08.2018: mentioned source-only libraries.
