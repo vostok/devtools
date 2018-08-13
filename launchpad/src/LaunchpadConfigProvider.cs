@@ -23,14 +23,14 @@ namespace launchpad
 
         public void ResetToDefaultConfig()
         {
-            Environment.SetEnvironmentVariable(EnvironmentVariableName, null, EnvironmentVariableTarget.User);
+            Environment.SetEnvironmentVariable(EnvironmentVariableName, " ", EnvironmentVariableTarget.User);
         }
 
         private static string ObtainConfigContent()
         {
             var sourceFromEnvironment = Environment.GetEnvironmentVariable(EnvironmentVariableName);
 
-            if (!string.IsNullOrEmpty(sourceFromEnvironment))
+            if (!string.IsNullOrWhiteSpace(sourceFromEnvironment))
             {
                 if (Uri.TryCreate(sourceFromEnvironment, UriKind.Absolute, out var url) && url.Scheme.StartsWith("http"))
                 {
