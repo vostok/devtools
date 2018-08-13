@@ -19,6 +19,8 @@ Always use SSH-based links from GitHub (those starting with `git@`) instead of h
 
 * Move to the module directory: `cd <module-name>`
 
+* Install or update [Launchpad](../launchpad) to latest version.
+
 * Bootstrap repository contents with one of the following launchpad templates:
   * `launchpad new vostok-library` for ordinary libraries
   * `launchpad new vostok-source-library` for source libraries
