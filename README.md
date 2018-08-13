@@ -3,6 +3,7 @@
 This module contains various tools, helpers and guidelines serving to ease/automate the development of Vostok .NET libraries:
 
 * [Library development conventions](library-dev-conventions/conventions.md) to govern dev and CI processes (also for [source-only libs](library-dev-conventions/src-libs-conventions.md)).
+* [Checklist](library-dev-conventions/how-to-create-new-library.md) for developers creating new libraries.
 * [Launchpad](launchpad) tool to ease bootstrapping of new repositories.
 * [Launchpad template](launchpad-templates/library-ordinary) for Vostok ordinary libraries
 * [Launchpad template](launchpad-templates/library-source) for Vostok source libraries
