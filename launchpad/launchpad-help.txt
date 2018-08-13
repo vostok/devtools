@@ -12,3 +12,7 @@ launchpad version
 
 launchpad config
 	Prints current configuration.
+
+launchpad set-config <config file path>
+	Instructs launchpad to read its config from file with given path.
+	This command sets a LAUNCHPAD_CONFIG_PATH env. variable for current user.

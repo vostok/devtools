@@ -34,6 +34,12 @@ namespace launchpad
                 return;
             }
 
+            if (args.Length == 2 && args[0] == "set-config")
+            {
+                HandleSetConfigCommand(args[1]);
+                return;
+            }
+
             PrintHelp();
         }
 
@@ -97,6 +103,11 @@ namespace launchpad
             {
                 Formatting = Formatting.Indented
             }));
+        }
+
+        private static void HandleSetConfigCommand(string configFilePath)
+        {
+            new LaunchpadConfigProvider().SetupConfigPath(configFilePath);
         }
 
         private static void PrintHelp()
