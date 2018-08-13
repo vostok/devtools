@@ -5,11 +5,18 @@ namespace launchpad
 {
     internal class LaunchpadSpecProvider
     {
+        private const string FileName = "launchpad.json";
+
         public LaunchpadSpec ProvideFrom(string directory)
         {
-            var specContent = File.ReadAllText(Path.Combine(directory, "launchpad.json"));
+            var specContent = File.ReadAllText(Path.Combine(directory, FileName));
 
             return JsonConvert.DeserializeObject<LaunchpadSpec>(specContent);
+        }
+
+        public void CleanupIn(string directory)
+        {
+            File.Delete(Path.Combine(directory, FileName));
         }
     }
 }

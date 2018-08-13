@@ -5,8 +5,12 @@ launchpad new <template-name>
 	Use 'list' command to view all available templates.
 	Prompts user interactively for variable values.
 
+launchpad process
+	Processes all files in current directory assuming that it contains an unpacked template.
+	It's primary use case is template development and testing.
+
 launchpad list
-	Prints the list of all availabl template names.
+	Prints the list of all available template names.
 
 launchpad version
 	Prints installed tool version.

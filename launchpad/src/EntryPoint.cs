@@ -27,6 +27,9 @@ namespace launchpad
                 case "list":
                     HandleListCommand(); return;
 
+                case "process":
+                    HandleProcessCommand(); return;
+
                 case "reset-config":
                     HandleResetConfigCommand(); return;
 
@@ -86,10 +89,25 @@ namespace launchpad
 
                 templateProcessor.Process(tempDirectory.FullPath, variables);
 
-                File.Delete(Path.Combine(tempDirectory.FullPath, "launchpad.json"));
+                specProvider.CleanupIn(tempDirectory.FullPath);
 
                 tempDirectory.CopyContentsTo(Environment.CurrentDirectory);
             }
+
+            Console.Out.WriteLine();
+            Console.Out.WriteLine("Done!");
+        }
+
+        private static void HandleProcessCommand()
+        {
+            var specProvider = new LaunchpadSpecProvider();
+            var variablesFiller = new VariableFiller();
+            var templateProcessor = new TemplateProcessor();
+
+            var templateSpec = specProvider.ProvideFrom(Environment.CurrentDirectory);
+            var variables = variablesFiller.FillVariables(templateSpec.Variables);
+
+            templateProcessor.Process(Environment.CurrentDirectory, variables);
 
             Console.Out.WriteLine();
             Console.Out.WriteLine("Done!");
