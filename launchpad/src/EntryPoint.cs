@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Newtonsoft.Json;
 
 namespace launchpad
 {
@@ -12,6 +13,12 @@ namespace launchpad
             if (args.Length == 1 && args[0] == "version")
             {
                 HandleVersionCommand();
+                return;
+            }
+
+            if (args.Length == 1 && args[0] == "config")
+            {
+                HandleConfigCommand();
                 return;
             }
 
@@ -82,6 +89,14 @@ namespace launchpad
             var version = attribute?.InformationalVersion;
 
             Console.Out.WriteLine(version);
+        }
+
+        private static void HandleConfigCommand()
+        {
+            Console.Out.WriteLine(JsonConvert.SerializeObject(new LaunchpadConfigProvider().GetConfig(), new JsonSerializerSettings
+            {
+                Formatting = Formatting.Indented
+            }));
         }
 
         private static void PrintHelp()

@@ -9,3 +9,6 @@ launchpad list
 
 launchpad version
 	Prints installed tool version.
+
+launchpad config
+	Prints current configuration.
