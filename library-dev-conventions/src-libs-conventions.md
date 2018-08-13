@@ -14,9 +14,9 @@ Sometimes there are classes that are needed in several libraries, but should not
 
 In case the code in a source-only library is considered useful by itself, which is almost always, the library is built and published to NuGet like a usual Vostok library.
 
-Source-only libraries are developed in much the same way as the usual [Vostok libraries](https://github.com/vostok/devtools/blob/master/library-dev-conventions/conventions.md), so this document only covers things that are different for source-only libraries.
+Source-only libraries are developed in much the same way as the usual [Vostok libraries](conventions.md), so this document only covers things that are different for source-only libraries.
 
-A sample project can be found [here](https://github.com/vostok/devtools/tree/master/src-library-project-sample).
+A [Launchpad](../launchpad/readme.md) template can be found [here](../launchpad-templates/library-source). It's package is called [Vostok.Launchpad.Templates.SourceLibrary](https://www.nuget.org/packages/Vostok.Launchpad.Templates.SourceLibrary).
 
 ### Cement module requirements
 * Every Cement module should have 3 configurations defined in `module.yaml`:
@@ -45,3 +45,4 @@ A sample project can be found [here](https://github.com/vostok/devtools/tree/mas
 
 ### Change log
 
+* 13.08.2018: replaced sample project link with launchpad template.
