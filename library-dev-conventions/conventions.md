@@ -172,6 +172,8 @@ Most of the project-related requirements are automatically met when using a [Lau
 
 ### Git workflow
 
+**Force push is not allowed in any circumstances!**
+
 #### Branches
 * Main module's branch is `master`. Only stable and tested code should get into `master`, because that's what Cement users always consume. The only exception to this rule is early stage of development (prior to version `1.0.0`).
 
@@ -252,6 +254,7 @@ Most of the project-related requirements are automatically met when using a [Lau
 
 ### Change log
 
+* 14.08.2018: forbade force push
 * 13.08.2018: added first conventions about tests naming and placement
 * 13.08.2018: replaced links to sample project with launchpad template reference.
 * 09.08.2018: added a rule about placing linked sources into `Commons\` folder
