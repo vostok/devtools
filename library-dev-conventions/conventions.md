@@ -35,6 +35,16 @@
 	* `full-build` which inherits from `notests` and includes unit tests.
 * The build tool in `module.yaml` should be explicitly set to `dotnet`.
 * Install section of `module.yaml` should point to a binary built in release mode.
+* Install section of `module.yaml` should also contain references to other Сement modules and NuGet packages whose contents are exposed from public APIs.
+	* Case 1: module `logging.serilog` exposes an implementation of `ILog` from `vostok.logging.abstractions`, so its install section should contain `module vostok.logging.abstractions`.
+	* Case 2: module `logging.serilog` exposes a class constructed from Serilog's `ILogger`, so its install section should contain `nuget Serilog/2.7.1`.
+	* Example of full install section:
+```
+  install:
+    - Vostok.Logging.Serilog/bin/Release/netstandard2.0/Vostok.Logging.Serilog.dll
+    - module vostok.logging.abstractions
+    - nuget Serilog/2.7.1
+```
 
 <br/>
 
@@ -254,6 +264,7 @@ Most of the project-related requirements are automatically met when using a [Lau
 
 ### Change log
 
+* 15.08.2018: documented additional requirement to Cement module install section
 * 14.08.2018: forbade force push
 * 13.08.2018: added first conventions about tests naming and placement
 * 13.08.2018: replaced links to sample project with launchpad template reference.
