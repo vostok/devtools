@@ -12,7 +12,7 @@ Note that repository name should not start with `vostok` prefix (it comes from o
 
 * Select a name for Cement module. It should be in lowercase and start with a common `vostok` prefix (like `vostok.logging.abstractions`).
 
-* Create a Cement module with following command: `cm module add <repo-url> --package=vostok`. 
+* Create a Cement module with following command: `cm module add <module-name> <repo-url> --package=vostok`. 
 Always use SSH-based links from GitHub (those starting with `git@`) instead of https links.
 
 * Fetch the Cement module: `cm get <module-name>`
@@ -28,6 +28,8 @@ Always use SSH-based links from GitHub (those starting with `git@`) instead of h
     * `ProjectName`: this is a name of solution, project and NuGet package (like `Vostok.Logging.Abstractions`).
     * `RepositoryUrl`: this is a link to library's GitHub repository (like https://github.com/vostok/logging.abstractions)
     
+* Update cement dependencies: `cm update-deps <module-name>`
+
 * Ensure that created project builds with a `dotnet build` command and push it to `master` branch.
 
 * Setup CI on AppVeyor:
