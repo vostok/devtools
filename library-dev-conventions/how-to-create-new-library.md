@@ -8,7 +8,7 @@ Most of the requirements described in there are automated by [Launchpad](../laun
 * Create a new repository in [Vostok organization](https://github.com/vostok) on GitHub. 
 Note that repository name should not start with `vostok` prefix (it comes from organization name).
 
-* Create an empty `master` branch in new repository.
+* Create an empty `master` branch in new repository on github
 
 * Select a name for Cement module. It should be in lowercase and start with a common `vostok` prefix (like `vostok.logging.abstractions`).
 
