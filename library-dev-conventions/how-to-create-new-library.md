@@ -12,8 +12,7 @@ Note that repository name should not start with `vostok` prefix (it comes from o
 
 * Select a name for Cement module. It should be in lowercase and start with a common `vostok` prefix (like `vostok.logging.abstractions`).
 
-* Create a Cement module with following command: `cm module add <module-name> <repo-url> --package=vostok`. 
-Always use SSH-based links from GitHub (those starting with `git@`) instead of https links.
+* Create a Cement module with following command: `cm module add <module-name> <https-repo-url> --pushurl=<ssh-repo-url> --package=vostok`. Here `<https-repo-url>` refers to a repository URL like https://github.com/vostok/devtools.git and `<ssh-repo-url>` is like git@github.com:vostok/devtools.git
 
 * Fetch the Cement module: `cm get <module-name>`
 
