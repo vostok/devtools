@@ -31,7 +31,7 @@ Currently, our code style enforces the following file layout:
 
 * Finalizers.
 
-* Grouped by access modifier: all public, all internal, all protected, all private:
+* Grouped by access modifier: all public, all protected, all internal, all private:
 
     - static properties
 
