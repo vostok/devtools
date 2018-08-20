@@ -30,6 +30,8 @@ A [Launchpad](../launchpad/readme.md) template can be found [here](../launchpad-
 
 * Should define symbol `MAKE_CLASSES_PUBLIC` in Release configuration.
 
+* Cannot reference code from other source libraries.
+
 ### Code-related practices
 * Every class or interface comprising library's public API must be marked internal unless the special compiler switch is set:
 ```
@@ -45,4 +47,5 @@ A [Launchpad](../launchpad/readme.md) template can be found [here](../launchpad-
 
 ### Change log
 
+* 20.08.2018: source libs cannot reference other source libs
 * 13.08.2018: replaced sample project link with launchpad template.
