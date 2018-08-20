@@ -144,16 +144,22 @@ test_script:
   - ps: |
 
       # Locate tests project folder:
-      $testProjectFolder = Get-ChildItem "." | Where-Object { $_.PSIsContainer -and $_.Name.EndsWith(".Tests")} | Select-Object -First 1 | % { $_.FullName }
+      $testProjectFolder = Get-ChildItem "." | Where-Object { $_.PSIsContainer -and $_.Name.EndsWith(".Tests") } | Select-Object -First 1 | % { $_.FullName }
 
-      # Add a reference to an external AppVeyor logger to test project:
-      dotnet add "$testProjectFolder" package Appveyor.TestLogger
-      
-      # Run 'dotnet test' command there:
-      dotnet test -c Release --test-adapter-path:. --logger "AppVeyor" "$testProjectFolder"
-
-      # Fail build if there were any failed tests:
-      if ($LASTEXITCODE -ne 0) { throw "There were some failed tests." }
+      if ($testProjectFolder) {
+        
+        # Add a reference to an external AppVeyor logger to test project:
+        dotnet add "$testProjectFolder" package Appveyor.TestLogger
+        
+        # Run 'dotnet test' command there:
+        dotnet test -c Release --test-adapter-path:. --logger "AppVeyor" "$testProjectFolder"
+        
+        # Fail build if there were any failed tests:
+        if ($LASTEXITCODE -ne 0) { throw "There were some failed tests." }
+      } else {
+        
+        Write-Host "There are no tests to run."
+      }
 
 
 after_test:
