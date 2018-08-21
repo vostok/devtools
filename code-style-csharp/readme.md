@@ -31,7 +31,7 @@ Currently, our code style enforces the following file layout:
 
 * Finalizers.
 
-* Grouped by access modifier: all public, all protected, all internal, all private:
+* Methods/properties/indexers/operators are grouped by access modifier, then groups are placed in order: public, protected, internal, private. Inside each group the order is as follows:
 
     - static properties
 
