@@ -1,0 +1,18 @@
+notests *default:
+  build:
+    target: {{ProjectName}}.sln
+    configuration: NoTests
+
+  install:
+    - {{ProjectName}}\bin\Release\{{ProjectName}}.dll
+
+full-build > notests:    
+  build:
+    target: {{ProjectName}}.sln
+    configuration: Release
+
+full-build-with-docs > full-build:
+  build:
+    target: {{ProjectName}}.sln
+    configuration: Release
+    parameters: "/p:DocumentationFile={{ProjectName}}.xml"
