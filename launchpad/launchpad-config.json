@@ -10,6 +10,10 @@
     {
       "Name": "vostok-source-library",
       "PackageName": "Vostok.Launchpad.Templates.SourceLibrary"
+    },
+    {
+      "Name": "vostok-legacy-library",
+      "PackageName": "Vostok.Launchpad.Templates.LegacyLibrary"
     }
   ]
 }
