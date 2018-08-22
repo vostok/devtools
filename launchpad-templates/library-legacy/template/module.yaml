@@ -1,4 +1,7 @@
 notests *default:
+  deps:
+    - vostok.devtools
+
   build:
     target: {{ProjectName}}.sln
     configuration: NoTests
