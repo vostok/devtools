@@ -10,13 +10,14 @@ namespace launchpad
     {
         public static void Main(string[] args)
         {
-            if (args.Length == 0)
+            var parameters = new ConsoleParameters(args);
+            if (parameters.MainParametersCount == 0)
             {
                 PrintHelp();
                 return;
             }
 
-            switch (args[0])
+            switch (parameters.GetMainValue(0))
             {
                 case "version":
                     HandleVersionCommand(); return;
@@ -34,17 +35,17 @@ namespace launchpad
                     HandleResetConfigCommand(); return;
 
                 case "set-config":
-                    if (args.Length == 2)
+                    if (parameters.MainParametersCount == 2)
                     {
-                        HandleSetConfigCommand(args[1]);
+                        HandleSetConfigCommand(parameters.GetMainValue(1));
                         return;
                     }
                     break;
 
                 case "new":
-                    if (args.Length == 2)
+                    if (parameters.MainParametersCount == 2)
                     {
-                        HandleNewCommand(args[1]);
+                        HandleNewCommand(parameters.GetMainValue(1));
                         return;
                     }
                     break;
