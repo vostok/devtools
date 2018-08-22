@@ -20,6 +20,8 @@ namespace launchpad
             while (stack.Count > 0)
             {
                 var sysInfo = stack.Pop();
+                if (sysInfo.Attributes.HasFlag(FileAttributes.Hidden))
+                    continue;
 
                 SubstituteName(sysInfo, stubble, variables);
 
