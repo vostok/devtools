@@ -38,7 +38,7 @@
   </ItemGroup>
   
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
-    <ILRepackExecutable>$(MSBuildThisFileDirectory)..\..\vostok.devtools.ilrepack.bin\net40\ILRepack.exe</ILRepackExecutable>
+    <ILRepackExecutable>$(MSBuildThisFileDirectory)..\..\..\vostok.devtools.ilrepack.bin\net40\ILRepack.exe</ILRepackExecutable>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
