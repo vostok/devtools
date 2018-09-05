@@ -56,7 +56,7 @@
 
   <Target Name="RepackAssemblies" AfterTargets="Build" Condition="'$(Configuration)' == 'Release' Or '$(Configuration)' == 'NoTests'">
     <ItemGroup>
-      <MergeAssemblies Include="$(ProjectDir)$(OutputPath)publish\$(AssemblyName).dll" />
+      <MergeAssemblies Include="$(ProjectDir)$(OutputPath)$(AssemblyName).dll" />
       <MergeAssemblies Include="$(PubDir)System.*.dll" />
       <MergeAssemblies Include="$(PubDir)Microsoft.CodeAnalysis*.dll" />
     </ItemGroup>
