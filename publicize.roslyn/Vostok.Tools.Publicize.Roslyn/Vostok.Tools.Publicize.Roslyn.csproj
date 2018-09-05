@@ -50,7 +50,8 @@
   </Target>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release' Or '$(Configuration)' == 'NoTests'">
-    <PubDir>$(ProjectDir)bin\Publish\$(TargetFramework)\publish\</PubDir>
+    <PubDirWithoutSlash>$(ProjectDir)bin\Publish\$(TargetFramework)\publish</PubDirWithoutSlash>
+    <PubDir>$(PubDirWithoutSlash)\</PubDir>
   </PropertyGroup>
 
   <Target Name="RepackAssemblies" AfterTargets="Build" Condition="'$(Configuration)' == 'Release' Or '$(Configuration)' == 'NoTests'">
@@ -59,7 +60,7 @@
       <MergeAssemblies Include="$(PubDir)System.*.dll" />
       <MergeAssemblies Include="$(PubDir)Microsoft.CodeAnalysis*.dll" />
     </ItemGroup>
-    <Exec Command="$(ILRepackExecutable) /internalize /log:$(ProjectDir)$(OutputPath)ilrepack.log /lib:&quot;$(PubDir)&quot; /out:$(ProjectDir)../$(AssemblyName).v1.dll @(MergeAssemblies->'%(RelativeDir)%(FileName)%(Extension)', ' ')" />
+    <Exec Command="$(ILRepackExecutable) /internalize /log:$(ProjectDir)$(OutputPath)ilrepack.log /lib:&quot;$(PubDirWithoutSlash)&quot; /out:$(ProjectDir)../$(AssemblyName).v1.dll @(MergeAssemblies->'%(RelativeDir)%(FileName)%(Extension)', ' ')" />
   </Target>
 
 </Project>
