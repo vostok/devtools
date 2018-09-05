@@ -156,6 +156,7 @@ Most of the project-related requirements are automatically met when using a [Lau
 * Every class or interface comprising library's public API should be supplied with xml-docs.
 * Every non-trivial class should be unit-tested.
 * Internal classes should be exposed to test project or another libraries with `InternalsVisibleTo` assembly attribute.
+* All awaited asynchronous calls must be configured with `.ConfigureAwait(false)`.
 
 #### Xml-doc conventions
 
@@ -264,6 +265,7 @@ Most of the project-related requirements are automatically met when using a [Lau
 
 ### Change log
 
+* 05.09.2018: added a reminder about .ConfigureAwait(false)
 * 15.08.2018: documented additional requirement to Cement module install section
 * 14.08.2018: forbade force push
 * 13.08.2018: added first conventions about tests naming and placement
