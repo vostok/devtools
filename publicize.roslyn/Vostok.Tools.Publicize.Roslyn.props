@@ -16,7 +16,7 @@
   <Target Name="PublicizeRoslynBuild" BeforeTargets="PublicizeRoslynTarget" Condition="!Exists('$(PublicizeRoslynTaskAssembly)')">
     <Exec Command="dotnet publish -c NoTests" WorkingDirectory="$(MSBuildThisFileDirectory)"/>
   </Target>
-
+  
   <Target Name="PublicizeRoslynTarget" BeforeTargets="BeforeBuild">
     
     <PublicizeRoslyn

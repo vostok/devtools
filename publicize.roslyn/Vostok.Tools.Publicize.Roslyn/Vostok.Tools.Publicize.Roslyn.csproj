@@ -37,7 +37,15 @@
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.8.166" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="2.9.0" />
   </ItemGroup>
+  
+  <PropertyGroup Condition="'$(OS)' == 'Windows'">
+    <ILRepackExecutable>$(MSBuildThisFileDirectory)..\..\vostok.devtools.ilrepack.bin\net40\ILRepack.exe</ILRepackExecutable>
+  </PropertyGroup>
 
+  <PropertyGroup Condition="'$(OS)' != 'Windows'">
+    <ILRepackExecutable>dotnet $(MSBuildThisFileDirectory)../../../vostok.devtools.ilrepack.bin/netcoreapp2.1/ILRepack.Core.dll</ILRepackExecutable>
+  </PropertyGroup>
+  
   <Target Name="Publishing" BeforeTargets="RepackAssemblies" Condition="'$(Configuration)' == 'Release' Or '$(Configuration)' == 'NoTests'">
     <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet publish -c Publish" />
   </Target>
@@ -48,11 +56,11 @@
 
   <Target Name="RepackAssemblies" AfterTargets="Build" Condition="'$(Configuration)' == 'Release' Or '$(Configuration)' == 'NoTests'">
     <ItemGroup>
-      <MergeAssemblies Include="$(ProjectDir)$(OutputPath)$(AssemblyName).dll" />
+      <MergeAssemblies Include="$(ProjectDir)$(OutputPath)publish\$(AssemblyName).dll" />
       <MergeAssemblies Include="$(PubDir)System.*.dll" />
       <MergeAssemblies Include="$(PubDir)Microsoft.CodeAnalysis*.dll" />
     </ItemGroup>
-    <Exec Command="&quot;$(ILRepack)&quot; /internalize /log:$(ProjectDir)$(OutputPath)ilrepack.log /out:$(ProjectDir)..\$(AssemblyName).v1.dll @(MergeAssemblies->'%(RelativeDir)%(FileName)%(Extension)', ' ')" />
+    <Exec Command="$(ILRepackExecutable) /internalize /log:$(ProjectDir)$(OutputPath)ilrepack.log /lib:&quot;$(PubDir)&quot; /out:$(ProjectDir)../$(AssemblyName).v1.dll @(MergeAssemblies->'%(RelativeDir)%(FileName)%(Extension)', ' ')" />
   </Target>
 
 </Project>
