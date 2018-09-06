@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using JetBrains.Annotations;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Microsoft.CodeAnalysis;
@@ -21,20 +22,21 @@ namespace Vostok.Tools.Publicize.Roslyn
         /// <returns></returns>
         public override bool Execute()
         {
-            var rewriter = new Rewriter(PublicApiAttributes);
+            var rewriter = new Rewriter(PublicApiAttributes, Log.LogMessage);
             var destinationAsPath = new Uri(DestinationDirectory).AbsolutePath;
             if (!destinationAsPath.EndsWith("/"))
                 destinationAsPath += "/";
             var projDir = new Uri(Path.GetFullPath(ProjectDirectory));
             foreach (var file in SourceFiles)
             {
-                Log.LogMessage(file);
                 var relativePath = projDir.MakeRelativeUri(new Uri(Path.GetFullPath(file)));
                 var destination = Path.Combine(destinationAsPath, relativePath.ToString());
-                Log.LogMessage(destination);
-                var text = Publicizer.Process(File.ReadAllText(file), rewriter);
+                var before = File.ReadAllText(file);
+                var after = Publicizer.Process(before, rewriter);
                 Directory.CreateDirectory(Path.GetDirectoryName(destination));
-                File.WriteAllText(destination, text, Encoding.UTF8);
+                if (!string.Equals(before, after, StringComparison.Ordinal))
+                    Log.LogMessage("Successfully publicized members in file '{0}'", relativePath);
+                File.WriteAllText(destination, after, Encoding.UTF8);
             }
 
             return true;
@@ -58,12 +60,15 @@ namespace Vostok.Tools.Publicize.Roslyn
         [Required] public string[] PublicApiAttributes { get; set; }
     }
 
+    [StringFormatMethod("format")]
+    delegate void Logger(string format, params object[] args);
+
     internal static class Publicizer
     {
         public static string Process(string sourceText, Rewriter rewriter=null)
         {
             var tree = CSharpSyntaxTree.ParseText(sourceText, new CSharpParseOptions(LanguageVersion.Latest));
-            var newNode = (rewriter ?? new Rewriter(new[] {"PublicAPI"})).Visit(tree.GetRoot());
+            var newNode = (rewriter ?? new Rewriter(new[] {"PublicAPI"}, Console.WriteLine)).Visit(tree.GetRoot());
             return newNode.ToString();
         }
     }
@@ -71,16 +76,19 @@ namespace Vostok.Tools.Publicize.Roslyn
     internal class Rewriter : CSharpSyntaxRewriter
     {
         private readonly string[] publicApiAttributes;
+        private readonly Logger logger;
 
-        public Rewriter(string[] publicApiAttributes)
+        public Rewriter(string[] publicApiAttributes, Logger logger)
         {
             this.publicApiAttributes = publicApiAttributes;
+            this.logger = logger;
         }
 
         public override SyntaxNode VisitMethodDeclaration(MethodDeclarationSyntax node)
         {
             if (!ShouldPublicize(node.AttributeLists))
                 return base.VisitMethodDeclaration(node);
+            logger("Publicize method '{0}'", node.Identifier.Text);
             return node
                 .WithModifiers(MakePublic(node.Modifiers));
         }
@@ -89,6 +97,7 @@ namespace Vostok.Tools.Publicize.Roslyn
         {
             if (!ShouldPublicize(node.AttributeLists))
                 return base.VisitConstructorDeclaration(node);
+            logger("Publicize constructor '{0}'", node.Identifier.Text);
             return node
                 .WithModifiers(MakePublic(node.Modifiers));
         }
@@ -97,6 +106,7 @@ namespace Vostok.Tools.Publicize.Roslyn
         {
             if (!ShouldPublicize(node.AttributeLists))
                 return base.VisitPropertyDeclaration(node);
+            logger("Publicize property '{0}'", node.Identifier.Text);
             return node
                 .WithModifiers(MakePublic(node.Modifiers));
         }
@@ -105,6 +115,7 @@ namespace Vostok.Tools.Publicize.Roslyn
         {
             if (!ShouldPublicize(node.AttributeLists))
                 return base.VisitEventDeclaration(node);
+            logger("Publicize event '{0}'", node.Identifier.Text);
             return node
                 .WithModifiers(MakePublic(node.Modifiers));
         }
@@ -113,6 +124,7 @@ namespace Vostok.Tools.Publicize.Roslyn
         {
             if (!ShouldPublicize(node.AttributeLists))
                 return base.VisitDelegateDeclaration(node);
+            logger("Publicize delegate '{0}'", node.Identifier.Text);
             return node
                 .WithModifiers(MakePublic(node.Modifiers));
         }
@@ -121,6 +133,7 @@ namespace Vostok.Tools.Publicize.Roslyn
         {
             if (!ShouldPublicize(node.AttributeLists))
                 return base.VisitConversionOperatorDeclaration(node);
+            logger("Publicize conversion operator '{0}'", node.OperatorKeyword.Text);
             return node
                 .WithModifiers(MakePublic(node.Modifiers));
         }
@@ -137,6 +150,7 @@ namespace Vostok.Tools.Publicize.Roslyn
         {
             if (!ShouldPublicize(node.AttributeLists))
                 return base.VisitClassDeclaration(node);
+            logger("Publicize class '{0}'", node.Identifier.Text);
             return node
                 .WithModifiers(MakePublic(node.Modifiers));
         }
@@ -145,6 +159,7 @@ namespace Vostok.Tools.Publicize.Roslyn
         {
             if (!ShouldPublicize(node.AttributeLists))
                 return base.VisitStructDeclaration(node);
+            logger("Publicize struct '{0}'", node.Identifier.Text);
             return node
                 .WithModifiers(MakePublic(node.Modifiers));
         }
@@ -153,11 +168,12 @@ namespace Vostok.Tools.Publicize.Roslyn
         {
             if (!ShouldPublicize(node.AttributeLists))
                 return base.VisitInterfaceDeclaration(node);
+            logger("Publicize interface '{0}'", node.Identifier.Text);
             return node
                 .WithModifiers(MakePublic(node.Modifiers));
         }
 
-        private SyntaxTokenList MakePublic(SyntaxTokenList list)
+        private static SyntaxTokenList MakePublic(SyntaxTokenList list)
         {
             var firstToken = list.FirstOrDefault();
 
