@@ -29,7 +29,7 @@ init:
   - ps: |
       if ($env:APPVEYOR_REPO_TAG_NAME -ne $null) 
       { 
-        Update-AppveyorBuild -Version "$env:APPVEYOR_REPO_TAG_NAME" 
+        Update-AppveyorBuild -Version "$env:APPVEYOR_REPO_TAG_NAME-$env:APPVEYOR_BUILD_NUMBER" 
       }
       else 
       {
