@@ -1,6 +1,7 @@
 
 full-build:
   deps:
+    - vostok.devtools.ilrepack.bin
 
   build:
     target: None

@@ -28,25 +28,19 @@ A [Launchpad](../launchpad/readme.md) template can be found [here](../launchpad-
 
 #### Main project
 
-* Should define symbol `MAKE_CLASSES_PUBLIC` in Release configuration.
-
 * Cannot reference code from any other libraries.
 
 ### Code-related practices
-* Every class or interface comprising library's public API must be marked internal unless the special compiler switch is set:
+* Every class or interface comprising library's public API must be marked internal and has `[PublicAPI]` attribute:
 ```
     [PublicAPI]
-#if MAKE_CLASSES_PUBLIC
-    public
-#else
-    internal
-#endif
-    class SampleClass
+    internal class SampleClass { }
 ```
-
+* Members with `[PublicAPI]` attribute are made public during build with code preprocessing [MsBuild task](../publicize.roslyn/)
 
 ### Change log
 
 * 22.08.2018: source libs cannot reference any other libs
 * 20.08.2018: source libs cannot reference other source libs
 * 13.08.2018: replaced sample project link with launchpad template.
+* 06.09.2019: conditional compilation for publicize replaced by code preprocessing

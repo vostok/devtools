@@ -26,7 +26,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\vostok.devtools\jetbrains-annotations\JetBrainsAnnotations.cs" Link="Annotations\JetBrainsAnnotations.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\jetbrains-annotations\JetBrainsAnnotations.cs" Link="Annotations\JetBrainsAnnotations.cs" />
   </ItemGroup>
 
 </Project>
