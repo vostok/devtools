@@ -13,7 +13,6 @@
 
   <PropertyGroup>
     <VersionPrefix>0.0.1</VersionPrefix>
-    <VersionSuffix></VersionSuffix>
   </PropertyGroup>
 
   <PropertyGroup>
