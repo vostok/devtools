@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
+using NuGet.Configuration;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Protocol;
@@ -26,6 +27,8 @@ namespace launchpad
 
         public async Task FetchAsync(string packageName, string[] sources, string targetDirectory)
         {
+            sources = EnrichWithLocalSources(sources);
+
             foreach (var source in sources)
             {
                 var fetchResult = await DownloadPackageAsync(packageName, source, targetDirectory);
@@ -83,6 +86,23 @@ namespace launchpad
             }
 
             File.Delete(packagePath);
+        }
+
+        private static string[] EnrichWithLocalSources(string[] sources)
+        {
+            try
+            {
+                var newSources = SettingsUtility
+                    .GetEnabledSources(Settings.LoadDefaultSettings(Environment.CurrentDirectory))
+                    .Where(source => source.IsHttp)
+                    .Select(source => source.SourceUri.ToString());
+
+                return sources.Union(newSources, StringComparer.OrdinalIgnoreCase).ToArray();
+            }
+            catch
+            {
+                return sources;
+            }
         }
 
         private const string ContentFiles = "contentFiles";
