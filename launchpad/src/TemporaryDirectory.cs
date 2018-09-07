@@ -38,7 +38,7 @@ namespace launchpad
 
             foreach (var file in info.GetFiles(string.Empty, SearchOption.AllDirectories))
             {
-                file.CopyTo(Path.Combine(directory, Path.GetRelativePath(FullPath, file.FullName)));
+                file.CopyTo(Path.Combine(directory, Path.GetRelativePath(FullPath, file.FullName)), true);
             }
         }
     }
