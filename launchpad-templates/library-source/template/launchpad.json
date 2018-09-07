@@ -7,6 +7,10 @@
     {
       "Name": "RepositoryUrl",
       "Description": "URL of library's repository on GitHub (needed for packaging metadata)."
+    },
+    {
+      "Name": "RepositoryName",
+      "Description": "Name of library's repository on GitHub (needed for repo badges, do not include 'vostok' prefix)."
     }
   ]
 }
