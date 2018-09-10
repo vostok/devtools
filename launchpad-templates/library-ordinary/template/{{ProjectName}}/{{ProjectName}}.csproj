@@ -15,10 +15,6 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageReleaseNotes>TODO</PackageReleaseNotes>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <Title>{{ProjectName}}</Title>
     <Description>{{ProjectName}}</Description>
   </PropertyGroup>

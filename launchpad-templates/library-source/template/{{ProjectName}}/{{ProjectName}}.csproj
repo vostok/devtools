@@ -16,10 +16,6 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageReleaseNotes>TODO</PackageReleaseNotes>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <Title>TODO</Title>
     <Description>TODO</Description>
   </PropertyGroup>
