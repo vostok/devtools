@@ -76,7 +76,6 @@ Most of the project-related requirements are automatically met when using a [Lau
 * Packages with symbols should be generated during packing.
 * There should be no separate `.nuspec` file. All packaging metadata should be kept in `.csproj`.
 * Following packaging metadata should be correctly filled and maintained in `.csproj`:
-	* `PackageReleaseNotes` with release changelog
 	* `Authors` = `Vostok team`
 	* `Product` = `Vostok`
 	* `Company` = `SKB Kontur`
@@ -90,6 +89,8 @@ Most of the project-related requirements are automatically met when using a [Lau
 	* `PackageRequireLicenseAcceptance` = `false`
 	* `PackageIconUrl` = `https://raw.githubusercontent.com/vostok/devtools/master/assets/Vostok-icon.png`
 	* `PackageTags` = `vostok vostok.<library name>`
+
+* Package release notes should be maintained in a `CHANGELOG.md` file in the repository root and included to csproj as a `PackageReleaseNotes` property during build.
 
 ##### References
 * References to other Vostok modules should only be added with `cm ref add` Cement command.
@@ -265,6 +266,7 @@ Most of the project-related requirements are automatically met when using a [Lau
 
 ### Change log
 
+* 10.09.2018: take package release notes from CHANGELOG.md file
 * 05.09.2018: added a reminder about .ConfigureAwait(false)
 * 15.08.2018: documented additional requirement to Cement module install section
 * 14.08.2018: forbade force push
