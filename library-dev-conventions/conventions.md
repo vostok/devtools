@@ -1,17 +1,29 @@
 ## Vostok library development conventions
-<br/>
 
 ### Table of contents
-[Module granularity](#module-granularity)<br/>
-[Cement module requirements](#cement-module-requirements)<br/>
-[Project requirements](#project-requirements)<br/>
-[Code-related practices](#code-related-practices)<br/>
-[Versioning](#versioning)<br/>
-[Git workflow](#git-workflow)<br/>
-[NuGet publishing](#nuget-publishing)<br/>
-[Publishing process](#publishing-process)<br/>
-[Continuous integration](#continuous-integration)<br/>
-[Change log](#change-log)<br/>
+* [Module granularity](#module-granularity)
+* [Cement module requirements](#cement-module-requirements)
+* [Project requirements](#project-requirements)
+	* [Main project](#main-project)
+		* [Common](#common)
+		* [Versioning](#versioning)
+		* [Packaging](#packaging)
+		* [Changelog](#changelog)
+		* [References](#references)
+		* [Visibility](#visibility)
+	* [Tests project](#tests-project)
+		* [Common](#common)
+		* [Packaging](#packaging)
+		* [Testing tools](#testing-tools)
+		* [Test naming and placement](#test-naming-and-placement)
+		* [Test practices and bad smells](#test-practices-and-bad-smells)
+* [Code-related practices](#code-related-practices)
+* [Versioning](#versioning)
+* [Git workflow](#git-workflow)
+* [NuGet publishing](#nuget-publishing)
+* [Publishing process](#publishing-process)
+* [Continuous integration](#continuous-integration)
+* [Change log](#change-log)
 
 <br/>
 
@@ -90,7 +102,34 @@ Most of the project-related requirements are automatically met when using a [Lau
 	* `PackageIconUrl` = `https://raw.githubusercontent.com/vostok/devtools/master/assets/Vostok-icon.png`
 	* `PackageTags` = `vostok vostok.<library name>`
 
-* Package release notes should be maintained in a `CHANGELOG.md` file in the repository root and included to csproj as a `PackageReleaseNotes` property during build.
+##### Changelog
+* Package release notes should be maintained in a `CHANGELOG.md` file in the repository root and included to csproj as a `PackageReleaseNotes` property during build. Change log file should be structured in following way:
+	* An H2 header with version and date for each release. Example: `## 0.1.1 (10.09.2018):`.
+	* All the changes should be categorized into following groups using H3 headers:
+		* `Features` for anything brand new.
+		* `Bugfixes` for, well, bugfixes.
+		* `Enhancements` for anything that does not fall into previous groups.
+	* Changes in each group should be organized a list.
+	* Changes that address existing GitHub issue should be augmeneted with issue links.
+	
+Example of a well-formed changelog file:
+```
+## 0.1.1 (10.09.2018):
+
+### Bugfixes
+
+* FileLog now creates all the directories on the way to log file (https://github.com/vostok/logging.file/issues/5)
+
+### Enhancements
+
+* RollingUpdateCooldown was renamed to FileSettingsUpdateCooldown to indicate that it's not exclusively purposed for rolling settings.
+
+
+## 0.1.0 (06-09-2018): 
+
+Initial prerelease.
+```
+	
 
 ##### References
 * References to other Vostok modules should only be added with `cm ref add` Cement command.
