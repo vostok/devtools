@@ -110,10 +110,10 @@ install:
   - sh: dotnet tool install --add-source ../vostok.devtools/dotnetcementrefs/nupkg -g dotnetcementrefs
 
   # Build and install 'configureawaitfalse' CLI tool:
-  - cmd: pushd ..\vostok.devtools\configureawaitfalse && dotnet build -c Release && popd
-  - cmd: dotnet tool install --add-source ..\vostok.devtools\configureawaitfalse/nupkg -g configureawaitfalse
-  - sh: pushd ../vostok.devtools/configureawaitfalse && dotnet build -c Release && popd
-  - sh: dotnet tool install --add-source ../vostok.devtools/configureawaitfalse/nupkg -g configureawaitfalse
+  - cmd: pushd ..\vostok.devtools\configure-await-false && dotnet build -c Release && popd
+  - cmd: dotnet tool install --add-source ..\vostok.devtools\configure-await-false/nupkg -g configureawaitfalse
+  - sh: pushd ../vostok.devtools/configure-await-false && dotnet build -c Release && popd
+  - sh: dotnet tool install --add-source ../vostok.devtools/configure-await-false/nupkg -g configureawaitfalse
 
 
 before_build:
