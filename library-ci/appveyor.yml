@@ -109,8 +109,28 @@ install:
   - sh: pushd ../vostok.devtools/dotnetcementrefs && dotnet build -c Release && popd
   - sh: dotnet tool install --add-source ../vostok.devtools/dotnetcementrefs/nupkg -g dotnetcementrefs
 
+  # Build and install 'configureawaitfalse' CLI tool:
+  - cmd: pushd ..\vostok.devtools\configureawaitfalse && dotnet build -c Release && popd
+  - cmd: dotnet tool install --add-source ..\vostok.devtools\configureawaitfalse/nupkg -g configureawaitfalse
+  - sh: pushd ../vostok.devtools/configureawaitfalse && dotnet build -c Release && popd
+  - sh: dotnet tool install --add-source ../vostok.devtools/configureawaitfalse/nupkg -g configureawaitfalse
+
 
 before_build:
+  - ps: |
+
+      # Check C# source code for 'await' expressions without ConfigureAwait(false):
+
+      Foreach ($dir in Get-ChildItem "." | Where-Object { $_.PSIsContainer -and -not $_.Name.EndsWith(".Tests") }) 
+      {
+        Write-Host "Checking '$dir.FullName' directory for unconfigured awaits in source code.."
+
+        dotnetversionsuffix $dir.FullName
+
+         # Fail build if there were any unconfigured awaits:
+        if ($LASTEXITCODE -ne 0) { throw "There were some unconfigured awaits in source code." }
+      }
+
   - ps: |
 
       # Add version suffix to project if we are in a prerelease build. 
