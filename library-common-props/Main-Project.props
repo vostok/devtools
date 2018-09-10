@@ -29,4 +29,14 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\jetbrains-annotations\JetBrainsAnnotations.cs" Link="Annotations\JetBrainsAnnotations.cs" />
   </ItemGroup>
 
+  <Target Name="ReadReleaseNotesFromFile" BeforeTargets="BeforeBuild">
+    <ReadLinesFromFile File="../CHANGELOG.md">
+      <Output TaskParameter="Lines" ItemName="ReleaseNotesFromFile" />
+    </ReadLinesFromFile>
+  </Target>
+
+  <PropertyGroup>
+    <PackageReleaseNotes>@(ReleaseNotesFromFile, '%0a%0d')</PackageReleaseNotes>
+  </PropertyGroup>
+
 </Project>
