@@ -125,7 +125,7 @@ before_build:
       {
         Write-Host "Checking '$dir.FullName' directory for unconfigured awaits in source code.."
 
-        dotnetversionsuffix $dir.FullName
+        configureawaitfalse $dir.FullName
 
          # Fail build if there were any unconfigured awaits:
         if ($LASTEXITCODE -ne 0) { throw "There were some unconfigured awaits in source code." }
