@@ -31,7 +31,7 @@ A [Launchpad](../launchpad/readme.md) template can be found [here](../launchpad-
 * Cannot reference code from any other libraries.
 
 ### Code-related practices
-* Every class or interface comprising library's public API must be marked internal and has `[PublicAPI]` attribute:
+* Every class or interface comprising library's public API must be marked internal and have `[PublicAPI]` attribute:
 ```
     [PublicAPI]
     internal class SampleClass { }
