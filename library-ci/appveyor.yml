@@ -123,7 +123,7 @@ before_build:
 
       Foreach ($dir in Get-ChildItem "." | Where-Object { $_.PSIsContainer -and -not $_.Name.EndsWith(".Tests") }) 
       {
-        Write-Host "Checking '$dir.FullName' directory for unconfigured awaits in source code.."
+        Write-Host "Checking '$($dir.FullName)' directory for unconfigured awaits in source code.."
 
         configureawaitfalse $dir.FullName
 
