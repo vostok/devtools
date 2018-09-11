@@ -35,7 +35,8 @@ public static class Program
             }
         }
 
-        throw new Exception($"{failedResults} await(s) without 'ConfigureAwait(false)' were found.");
+        if (failedResults > 0)
+            throw new Exception($"{failedResults} await(s) without 'ConfigureAwait(false)' were found.");
     }
 
     private static IEnumerable<CheckResult> Check(string sourceCode)
