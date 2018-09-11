@@ -6,19 +6,19 @@
 
   <UsingTask TaskName="Vostok.Tools.Publicize.Roslyn.PublicizeRoslyn" AssemblyFile="$(PublicizeRoslynTaskAssembly)" />
 
-  <ItemGroup>
-    <PublicizeCs Include="**\*.cs" />
-    <PublicizeCs Remove="bin\**\*.cs" />
-    <PublicizeCs Remove="obj\**\*.cs" />
-    <PublicizeCs Remove="Properties\**\*.cs" />
-  </ItemGroup>
-  
   <Target Name="PublicizeRoslynBuild" BeforeTargets="PublicizeRoslynTarget" Condition="!Exists('$(PublicizeRoslynTaskAssembly)')">
     <Exec Command="dotnet publish -c NoTests" WorkingDirectory="$(MSBuildThisFileDirectory)"/>
   </Target>
   
   <Target Name="PublicizeRoslynTarget" BeforeTargets="BeforeBuild">
     
+    <ItemGroup>
+      <PublicizeCs Include="**\*.cs" />
+      <PublicizeCs Remove="bin\**\*.cs" />
+      <PublicizeCs Remove="obj\**\*.cs" />
+      <PublicizeCs Remove="Properties\**\*.cs" />
+    </ItemGroup>
+
     <PublicizeRoslyn
         ProjectDirectory="$(ProjectDir)"
         SourceFiles="@(PublicizeCs)"
