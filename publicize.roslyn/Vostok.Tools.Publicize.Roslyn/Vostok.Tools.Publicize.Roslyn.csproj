@@ -60,7 +60,7 @@
       <MergeAssemblies Include="$(PubDir)System.*.dll" />
       <MergeAssemblies Include="$(PubDir)Microsoft.CodeAnalysis*.dll" />
     </ItemGroup>
-    <Exec Command="$(ILRepackExecutable) /internalize /log:$(ProjectDir)$(OutputPath)ilrepack.log /lib:&quot;$(PubDirWithoutSlash)&quot; /out:$(ProjectDir)../$(AssemblyName).v1.dll @(MergeAssemblies->'%(RelativeDir)%(FileName)%(Extension)', ' ')" />
+    <Exec Command="$(ILRepackExecutable) /internalize /log:&quot;$(ProjectDir)$(OutputPath)ilrepack.log&quot; /lib:&quot;$(PubDirWithoutSlash)&quot; /out:&quot;$(ProjectDir)../$(AssemblyName).v1.dll&quot; @(MergeAssemblies->'%(RelativeDir)%(FileName)%(Extension)', ' ')" />
   </Target>
 
 </Project>
