@@ -38,11 +38,11 @@
   </ItemGroup>
   
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
-    <ILRepackExecutable>$(MSBuildThisFileDirectory)..\..\..\vostok.devtools.ilrepack.bin\net40\ILRepack.exe</ILRepackExecutable>
+    <ILRepackExecutable>"$(MSBuildThisFileDirectory)..\..\..\vostok.devtools.ilrepack.bin\net40\ILRepack.exe"</ILRepackExecutable>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
-    <ILRepackExecutable>dotnet $(MSBuildThisFileDirectory)../../../vostok.devtools.ilrepack.bin/netcoreapp2.1/ILRepack.Core.dll</ILRepackExecutable>
+    <ILRepackExecutable>dotnet "$(MSBuildThisFileDirectory)../../../vostok.devtools.ilrepack.bin/netcoreapp2.1/ILRepack.Core.dll"</ILRepackExecutable>
   </PropertyGroup>
   
   <Target Name="Publishing" BeforeTargets="RepackAssemblies" Condition="'$(Configuration)' == 'Release' Or '$(Configuration)' == 'NoTests'">
