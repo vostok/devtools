@@ -30,7 +30,7 @@ namespace Vostok.Tools.Publicize.Roslyn
             foreach (var file in SourceFiles)
             {
                 var relativePath = projDir.MakeRelativeUri(new Uri(Path.GetFullPath(file)));
-                var destination = Path.Combine(destinationAsPath, relativePath.ToString());
+                var destination = Uri.UnescapeDataString(Path.Combine(destinationAsPath, relativePath.ToString()));
                 var before = File.ReadAllText(file);
                 var after = Publicizer.Process(before, rewriter);
                 Directory.CreateDirectory(Path.GetDirectoryName(destination));
