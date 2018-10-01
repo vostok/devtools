@@ -50,8 +50,7 @@ namespace launchpad
 
         private async Task<(bool IsSuccessful, PackageIdentity Id)> DownloadPackageAsync(string packageName, string source, string targetDirectory)
         {
-            var repository = factory.GetCoreV3(source);
-            var resource = new RemoteV3FindPackageByIdResource(repository, HttpSource.Create(repository));
+            var resource = GetFindPackageByIdResource(source);
 
             var versions = (await resource.GetAllVersionsAsync(packageName, new NullSourceCacheContext(), logger, CancellationToken.None)).ToArray();
             if (versions.Length == 0)
@@ -70,6 +69,20 @@ namespace launchpad
                 Directory.CreateDirectory(targetDirectory);
 
             return (await client.CopyNupkgFileToAsync(packageFileDestination, CancellationToken.None), packageId);
+        }
+
+        private FindPackageByIdResource GetFindPackageByIdResource(string source)
+        {
+            if (source.Contains("api/v2"))
+            {
+                var repository = factory.GetCoreV2(new PackageSource(source));
+                return new RemoteV2FindPackageByIdResource(repository.PackageSource, HttpSource.Create(repository));
+            }
+            else
+            {
+                var repository = factory.GetCoreV3(source);
+                return new RemoteV3FindPackageByIdResource(repository, HttpSource.Create(repository));
+            }
         }
 
         private void UnpackPackage(string extractDirectory, string packagePath)
