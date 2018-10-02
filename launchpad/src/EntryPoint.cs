@@ -69,10 +69,9 @@ namespace launchpad
         {
             var config = new LaunchpadConfigProvider().GetConfig();
 
-            var templateDefinition = config.Definitions.FirstOrDefault(d => d.Name == templateName);
-            if (templateDefinition == null)
+            var packageName = GetPackageNameOrNull(templateName, config);
+            if (packageName == null)
             {
-                Console.Out.WriteLine($"There's no template named '{templateName}'. Use 'list' command to view available ones.");
                 return;
             }
 
@@ -83,7 +82,7 @@ namespace launchpad
                 var variablesFiller = new VariableFiller();
                 var templateProcessor = new TemplateProcessor();
 
-                packageFetcher.Fetch(templateDefinition.PackageName, config.NugetSources, tempDirectory.FullPath);
+                packageFetcher.Fetch(packageName, config.NugetSources, tempDirectory.FullPath);
 
                 var templateSpec = specProvider.ProvideFrom(tempDirectory.FullPath);
                 var variables = variablesFiller.FillVariables(templateSpec.Variables);
@@ -97,6 +96,24 @@ namespace launchpad
 
             Console.Out.WriteLine();
             Console.Out.WriteLine("Done!");
+        }
+
+        private static string GetPackageNameOrNull(string templateName, LaunchpadConfig config)
+        {
+            var templateDefinition = config.Definitions.FirstOrDefault(d => d.Name == templateName);
+            if (templateDefinition != null)
+            {
+                return templateDefinition.PackageName;
+            }
+
+            const string nugetPrefix = "nuget::";
+            if (templateName.StartsWith(nugetPrefix))
+            {
+                return templateName.Remove(0, nugetPrefix.Length);
+            }
+
+            Console.Out.WriteLine($"There's no template named '{templateName}'. Use 'list' command to view available ones. Also you can specify nuget package directly like this: 'nuget::Vostok.Launchpad.Templates.Library'.");
+            return null;
         }
 
         private static void HandleProcessCommand()
