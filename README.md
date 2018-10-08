@@ -11,3 +11,5 @@ This module contains various tools, helpers and guidelines serving to ease/autom
 * [GitCommit2AssemblyTitle](git-commit-to-assembly-title) build target to enrich assemblies with Git info.
 * [dotnetcementrefs](dotnetcementrefs) CLI tool for .NET Core 2.1 to convert Cement references into NuGet package references.
 * [dotnetversionsuffix](dotnetversionsuffix) CLI tool for .NET Core 2.1 to patch project versions during CI.
+* [configure-await-false](configure-await-false) CLI tool for .NET Core 2.1 to verify that awaits in library code are configured.
+* [publicize.roslyn](publicize.roslyn) build target to publicize types in source libraries.
