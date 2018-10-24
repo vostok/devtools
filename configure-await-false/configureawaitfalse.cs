@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -48,9 +48,27 @@ public static class Program
             if (item.IsKind(SyntaxKind.AwaitExpression))
             {
                 var awaitNode = (AwaitExpressionSyntax) item.AsNode();
+                
+                if (IsYieldAwaitable(awaitNode))
+                    continue;
+
                 yield return CheckNode(awaitNode);
             }
         }
+    }
+
+    private static bool IsYieldAwaitable(AwaitExpressionSyntax awaitNode)
+    {
+        if (!(awaitNode.Expression is InvocationExpressionSyntax invocation))
+            return false;
+
+        if (!(invocation.Expression is MemberAccessExpressionSyntax memberAccess))
+            return false;
+
+        var code = memberAccess.ToString();
+
+        return code.EndsWith(".Task.Yield", StringComparison.Ordinal) ||
+               code.Equals("Task.Yield", StringComparison.Ordinal);
     }
 
     private static CheckResult CheckNode(AwaitExpressionSyntax awaitNode)
