@@ -200,6 +200,7 @@ Initial prerelease.
 
 #### Xml-doc conventions
 
+* Docs for constructors should link to the doc of their class, e. g. `/// <inheritdoc cref="MyClass"/>`.
 * Text of list items should be wrapped in a `<description>` tag. Example:
 ```
 /// <list type="bullet">
@@ -305,6 +306,7 @@ Initial prerelease.
 
 ### Change log
 
+* 07.11.2018: added a suggestion about xml-docs for ctors
 * 10.09.2018: take package release notes from CHANGELOG.md file
 * 05.09.2018: added a reminder about .ConfigureAwait(false)
 * 15.08.2018: documented additional requirement to Cement module install section
