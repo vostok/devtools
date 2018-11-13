@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Net;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Definition;
 using Microsoft.Build.Evaluation;
@@ -42,6 +43,12 @@ public static class Program
 
         foreach (var projectFile in projectFiles)
         {
+            if (!File.Exists(projectFile))
+            {
+                Console.Out.WriteLine($"Project file '{projectFile}' doesn't exists.");
+                continue;
+            }
+            
             Console.Out.WriteLine($"Working with project '{Path.GetFileName(projectFile)}'..");
 
             var project = Project.FromFile(projectFile, new ProjectOptions
