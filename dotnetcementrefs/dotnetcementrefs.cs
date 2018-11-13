@@ -62,6 +62,12 @@ public static class Program
 
     private static void HandleProject(ProjectInSolution solutionProject, ISet<string> allProjectsInSolution)
     {
+        if (!File.Exists(solutionProject.AbsolutePath))
+        {
+            Console.Out.WriteLine($"Project '{solutionProject.AbsolutePath}' doesn't exists.");
+            return;
+        }
+    
         Console.Out.WriteLine($"Working with project '{solutionProject.ProjectName}'..");
 
         var project = Project.FromFile(solutionProject.AbsolutePath, new ProjectOptions
