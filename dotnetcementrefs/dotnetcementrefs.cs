@@ -75,6 +75,12 @@ public static class Program
             LoadSettings = ProjectLoadSettings.IgnoreMissingImports
         });
 
+        if (ShouldIgnore(project))
+        {
+            Console.Out.WriteLine($"Ignore project  '{solutionProject.ProjectName}' due to DotnetCementRefsExclude property in csproj.");
+            return;
+        }
+
         var cementReferences = FindCementReferences(project, allProjectsInSolution);
         if (!cementReferences.Any())
         {
@@ -113,6 +119,15 @@ public static class Program
 
         return !string.IsNullOrWhiteSpace(suffix);
     }
+
+    private static bool ShouldIgnore(Project project)
+    {
+        return project
+            .Properties
+            .Any(item => item.Name == "DotnetCementRefsExclude" &&
+                         item.EvaluatedValue == "true");
+    }
+
 
     private static ProjectItem[] FindCementReferences(Project project, ISet<string> localProjects)
     {
