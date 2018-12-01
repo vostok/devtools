@@ -46,6 +46,14 @@ namespace Vostok.Tools.Publicize.Roslyn.Tests
                         [PublicAPI]
                         public void M() {}
                 }"
+            ),
+            (
+                @"using System;
+                    [PublicAPI] internal enum A {V1, V2}
+                }",
+                @"using System;
+                    [PublicAPI] public enum A {V1, V2}
+                }"
             )
         };
         

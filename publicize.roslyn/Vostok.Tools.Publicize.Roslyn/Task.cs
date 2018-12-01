@@ -173,6 +173,15 @@ namespace Vostok.Tools.Publicize.Roslyn
                 .WithModifiers(MakePublic(node.Modifiers));
         }
 
+        public override SyntaxNode VisitEnumDeclaration(EnumDeclarationSyntax node)
+        {
+            if (!ShouldPublicize(node.AttributeLists))
+                return base.VisitEnumDeclaration(node);
+            logger("Publicize enum '{0}'", node.Identifier.Text);
+            return node
+                .WithModifiers(MakePublic(node.Modifiers));
+        }
+
         private static SyntaxTokenList MakePublic(SyntaxTokenList list)
         {
             var firstToken = list.FirstOrDefault();
