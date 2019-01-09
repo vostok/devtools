@@ -40,10 +40,11 @@ init:
   # Determine whether we'll need to deploy to NuGet
   - ps: |
       $isMasterBranch = $env:APPVEYOR_REPO_BRANCH -eq "master"
+      $isReleaseBranch = $env:APPVEYOR_REPO_BRANCH.StartsWith("release/")
       $hasReleaseTag = $env:APPVEYOR_REPO_TAG_NAME -ne $null -and $env:APPVEYOR_REPO_TAG_NAME.StartsWith("release/")
       $hasPrereleaseTag = $env:APPVEYOR_REPO_TAG_NAME -ne $null -and $env:APPVEYOR_REPO_TAG_NAME.StartsWith("prerelease/")
       $needToProducePackages = $env:producePackages -eq "true"
-      $needToPublishRelease = $hasReleaseTag -and $isMasterBranch
+      $needToPublishRelease = $hasReleaseTag -and ($isMasterBranch -or $isReleaseBranch)
       $needToPublishPrerelease = $hasPrereleaseTag -or $isMasterBranch
       $needToPatchVersion = $needToProducePackages -and $needToPublishPrerelease -and (-not $needToPublishRelease)
       $needToDeploy = $needToProducePackages -and ($needToPublishRelease -or $needToPublishPrerelease)
