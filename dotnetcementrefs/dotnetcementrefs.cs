@@ -67,12 +67,6 @@ public static class Program
             Console.Out.WriteLine($"Project '{solutionProject.AbsolutePath}' doesn't exists.");
             return;
         }
-
-        if (solutionProject.ProjectName.EndsWith(".Tests"))
-        {
-            Console.Out.WriteLine($"Project '{solutionProject.ProjectName}' is tests project. Skip it.");
-            return;
-        }
     
         Console.Out.WriteLine($"Working with project '{solutionProject.ProjectName}'..");
 
