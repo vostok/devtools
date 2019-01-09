@@ -78,8 +78,8 @@ install:
   - sh: alias cm='mono ~/bin/dotnet/cm.exe'
   - cmd: set PATH=%USERPROFILE%\bin\dotnet;%PATH%
 
-  # Update Cement to latest version and display it:
-  - cm self-update
+  # Update Cement to latest version and display it (iloktionov: temporarily disabled it on Jan. 9, 2019 due to instability):
+  # - cm self-update
   - cm --version
 
   # Init parent directory to become Cement-tracked:
