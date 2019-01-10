@@ -17,7 +17,7 @@ git tag release/1.2.4
 git push origin release/1.2.4
 ```
 
-6. Pushing the tag should have started a special build on Appveyor. Let it finish and ensure there were no failures. Check that a NuGet package with proper version and dependencies was published to [nuget.org](nuget.org).
+6. Pushing the tag should have started a special build on Appveyor. Let it finish and ensure there were no failures. Check that a NuGet package with proper version and dependencies was published to [nuget.org](https://nuget.org).
 
 7. Increment the version number in library .csproj and push the changes to `master`. This is needed in order to ensure that future prerelease versions are newer than the release you've just published. Cancel the Appveyor build triggered by this change.
 
