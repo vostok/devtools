@@ -1,5 +1,5 @@
 image:
-  - Ubuntu1804
+  - Ubuntu
   - Visual Studio 2017
 
 
@@ -92,6 +92,7 @@ install:
   - cmd: appveyor-tools\secure-file -decrypt id_rsa.enc -secret %sshKeyEncryptionSecret%
   - cmd: move /Y id_rsa  %USERPROFILE%\.ssh\
   - sh: ./appveyor-tools/secure-file -decrypt id_rsa.enc -secret $sshKeyEncryptionSecret
+  - sh: ls ~
   - sh: mv -f id_rsa ~/.ssh/
   - sh: sudo chmod 600 ~/.ssh/id_rsa
 
