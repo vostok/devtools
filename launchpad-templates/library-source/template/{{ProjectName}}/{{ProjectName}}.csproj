@@ -16,8 +16,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Title>TODO</Title>
-    <Description>TODO</Description>
+    <Title>{{ProjectName}}</Title>
+    <Description>{{ProjectName}}</Description>
   </PropertyGroup>
 
   <PropertyGroup>
