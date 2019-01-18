@@ -19,7 +19,7 @@ public static class Program
     {
         var workingDirectory = args.Length > 0 ? args[0] : Environment.CurrentDirectory;
 
-        Console.Out.WriteLine($"Converting cement references to NuGet package references for all projects of solutions located in '{workingDirectory}'.");
+        Console.Out.WriteLine($"Releases vostok library located in '{workingDirectory}'.");
 
         var solutionFiles = Directory.GetFiles(workingDirectory, "*.sln");        
         
