@@ -16,7 +16,9 @@ public static class Program
 {
     public static void Main(string[] args)
     {
-        var workingDirectory = args.Length > 0 ? args[0] : Environment.CurrentDirectory;
+        var positionalArgs = args.Where(x => !x.StartsWith("-")).ToArray();
+        var workingDirectory = positionalArgs.Length > 0 ? positionalArgs[0] : Environment.CurrentDirectory;
+        var sourceUrls = new[] {"https://api.nuget.org/v3/index.json"}.Concat(ParseSources(args)).ToArray();
 
         Console.Out.WriteLine($"Converting cement references to NuGet package references for all projects of solutions located in '{workingDirectory}'.");
 
@@ -32,11 +34,20 @@ public static class Program
 
         foreach (var solutionFile in solutionFiles)
         {
-            HandleSolution(solutionFile);
+            HandleSolution(solutionFile, sourceUrls);
         }
     }
 
-    private static void HandleSolution(string solutionFile)
+    private static IEnumerable<string> ParseSources(string[] args)
+    {
+        const string arg = "--source:";
+
+        return args
+            .Where(x => x.StartsWith(arg))
+            .Select(x => x.Substring(arg.Length).Trim());
+    }
+
+    private static void HandleSolution(string solutionFile, string[] sourceUrls)
     {
         var solution = SolutionFile.Parse(solutionFile);
         var solutionName = Path.GetFileName(solutionFile);
@@ -56,11 +67,11 @@ public static class Program
 
         foreach (var solutionProject in solution.ProjectsInOrder)
         {
-            HandleProject(solutionProject, allProjectsInSolution);
+            HandleProject(solutionProject, allProjectsInSolution, sourceUrls);
         }
     }
 
-    private static void HandleProject(ProjectInSolution solutionProject, ISet<string> allProjectsInSolution)
+    private static void HandleProject(ProjectInSolution solutionProject, ISet<string> allProjectsInSolution, string[] sourceUrls)
     {
         if (!File.Exists(solutionProject.AbsolutePath))
         {
@@ -105,7 +116,7 @@ public static class Program
 
         foreach (var reference in cementReferences)
         {
-            HandleReference(project, reference, allowPrereleasePackages);
+            HandleReference(project, reference, allowPrereleasePackages, sourceUrls);
         }
 
         project.Save();
@@ -138,14 +149,14 @@ public static class Program
             .ToArray();
     }
 
-    private static void HandleReference(Project project, ProjectItem reference, bool allowPrereleasePackages)
+    private static void HandleReference(Project project, ProjectItem reference, bool allowPrereleasePackages, string[] sourceUrls)
     {
         project.RemoveItem(reference);
 
         Console.Out.WriteLine($"Removed cement reference to '{reference.EvaluatedInclude}'.");
 
         var packageName = reference.EvaluatedInclude;
-        var packageVersion = GetLatestNugetVersion(packageName, allowPrereleasePackages);
+        var packageVersion = GetLatestNugetVersion(packageName, allowPrereleasePackages, sourceUrls);
 
         Console.Out.WriteLine($"Latest version of NuGet package '{packageName}' is '{packageVersion}'");
 
@@ -158,13 +169,22 @@ public static class Program
         Console.Out.WriteLine();
     }
 
-    private static NuGetVersion GetLatestNugetVersion(string package, bool includePrerelease)
+    private static NuGetVersion GetLatestNugetVersion(string package, bool includePrerelease, string[] sourceUrls)
+    {
+        foreach (var source in sourceUrls)
+        {
+            var latestVersion = GetLatestNugetVersion(package, includePrerelease, source);
+            if (latestVersion != null)
+                return latestVersion;
+        }
+
+        throw new Exception($"No versions of package '{package}' were found on '{string.Join(", ", sourceUrls)}'.");
+    }
+    private static NuGetVersion GetLatestNugetVersion(string package, bool includePrerelease, string sourceUrl)
     {
         var providers = new List<Lazy<INuGetResourceProvider>>();
 
         providers.AddRange(Repository.Provider.GetCoreV3());
-
-        var sourceUrl = "https://api.nuget.org/v3/index.json";
 
         var packageSource = new PackageSource(sourceUrl);
 
@@ -179,9 +199,8 @@ public static class Program
             .Select(data => data.Identity.Version)
             .ToArray();
 
-        if (!versions.Any())
-            throw new Exception($"No versions of package '{package}' were found on '{sourceUrl}'.");
-
-        return versions.Max();
+        return versions.Any()
+            ? versions.Max()
+            : null;
     }
 }
