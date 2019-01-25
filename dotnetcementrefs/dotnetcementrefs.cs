@@ -155,10 +155,6 @@ public static class Program
     private static void HandleReference(Project project, ProjectItem reference, bool allowPrereleasePackages,
         string[] sourceUrls, bool failOnNotFound)
     {
-        project.RemoveItem(reference);
-
-        Console.Out.WriteLine($"Removed cement reference to '{reference.EvaluatedInclude}'.");
-
         var packageName = reference.EvaluatedInclude;
         var packageVersion = GetLatestNugetVersion(packageName, allowPrereleasePackages, sourceUrls);
 
@@ -170,6 +166,10 @@ public static class Program
         }
 
         Console.Out.WriteLine($"Latest version of NuGet package '{packageName}' is '{packageVersion}'");
+
+        project.RemoveItem(reference);
+
+        Console.Out.WriteLine($"Removed cement reference to '{reference.EvaluatedInclude}'.");
 
         project.AddItem("PackageReference", packageName, new[]
         {
