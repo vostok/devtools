@@ -18,7 +18,8 @@ public static class Program
     {
         var positionalArgs = args.Where(x => !x.StartsWith("-")).ToArray();
         var workingDirectory = positionalArgs.Length > 0 ? positionalArgs[0] : Environment.CurrentDirectory;
-        var sourceUrls = new[] {"https://api.nuget.org/v3/index.json"}.Concat(ParseSources(args)).ToArray();
+        var sourceUrls = new[] {"https://api.nuget.org/v3/index.json"}.Concat(GetArgsByKey(args, "--sources")).ToArray();
+        var failOnNotFound = !args.Contains("--ignoreMissingPackages");
 
         Console.Out.WriteLine($"Converting cement references to NuGet package references for all projects of solutions located in '{workingDirectory}'.");
 
@@ -34,20 +35,18 @@ public static class Program
 
         foreach (var solutionFile in solutionFiles)
         {
-            HandleSolution(solutionFile, sourceUrls);
+            HandleSolution(solutionFile, sourceUrls, failOnNotFound);
         }
     }
 
-    private static IEnumerable<string> ParseSources(string[] args)
+    private static IEnumerable<string> GetArgsByKey(string[] args, string key)
     {
-        const string arg = "--source:";
-
         return args
-            .Where(x => x.StartsWith(arg))
-            .Select(x => x.Substring(arg.Length).Trim());
+            .Where(x => x.StartsWith(key))
+            .Select(x => x.Substring(key.Length).Trim());
     }
 
-    private static void HandleSolution(string solutionFile, string[] sourceUrls)
+    private static void HandleSolution(string solutionFile, string[] sourceUrls, bool failOnNotFound)
     {
         var solution = SolutionFile.Parse(solutionFile);
         var solutionName = Path.GetFileName(solutionFile);
@@ -67,11 +66,15 @@ public static class Program
 
         foreach (var solutionProject in solution.ProjectsInOrder)
         {
-            HandleProject(solutionProject, allProjectsInSolution, sourceUrls);
+            HandleProject(solutionProject, allProjectsInSolution, sourceUrls, failOnNotFound);
         }
     }
 
-    private static void HandleProject(ProjectInSolution solutionProject, ISet<string> allProjectsInSolution, string[] sourceUrls)
+    private static void HandleProject(
+        ProjectInSolution solutionProject,
+        ISet<string> allProjectsInSolution,
+        string[] sourceUrls,
+        bool failOnNotFound)
     {
         if (!File.Exists(solutionProject.AbsolutePath))
         {
@@ -116,7 +119,7 @@ public static class Program
 
         foreach (var reference in cementReferences)
         {
-            HandleReference(project, reference, allowPrereleasePackages, sourceUrls);
+            HandleReference(project, reference, allowPrereleasePackages, sourceUrls, failOnNotFound);
         }
 
         project.Save();
@@ -149,7 +152,8 @@ public static class Program
             .ToArray();
     }
 
-    private static void HandleReference(Project project, ProjectItem reference, bool allowPrereleasePackages, string[] sourceUrls)
+    private static void HandleReference(Project project, ProjectItem reference, bool allowPrereleasePackages,
+        string[] sourceUrls, bool failOnNotFound)
     {
         project.RemoveItem(reference);
 
@@ -157,6 +161,13 @@ public static class Program
 
         var packageName = reference.EvaluatedInclude;
         var packageVersion = GetLatestNugetVersion(packageName, allowPrereleasePackages, sourceUrls);
+
+        if (packageVersion == null)
+        {
+            if (failOnNotFound)
+                throw new Exception($"No versions of package '{packageName}' were found on '{string.Join(", ", sourceUrls)}'.");
+            return;
+        }
 
         Console.Out.WriteLine($"Latest version of NuGet package '{packageName}' is '{packageVersion}'");
 
@@ -178,8 +189,9 @@ public static class Program
                 return latestVersion;
         }
 
-        throw new Exception($"No versions of package '{package}' were found on '{string.Join(", ", sourceUrls)}'.");
+        return null;
     }
+
     private static NuGetVersion GetLatestNugetVersion(string package, bool includePrerelease, string sourceUrl)
     {
         var providers = new List<Lazy<INuGetResourceProvider>>();
