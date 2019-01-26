@@ -16,14 +16,11 @@ public static class Program
 {
     public static void Main(string[] args)
     {
-        var positionalArgs = args.Where(x => !x.StartsWith("-")).ToArray();
-        var workingDirectory = positionalArgs.Length > 0 ? positionalArgs[0] : Environment.CurrentDirectory;
-        var sourceUrls = new[] {"https://api.nuget.org/v3/index.json"}.Concat(GetArgsByKey(args, "--sources")).ToArray();
-        var failOnNotFound = !args.Contains("--ignoreMissingPackages");
+        var parameters = new Parameters(args);
+        
+        Console.Out.WriteLine($"Converting cement references to NuGet package references for all projects of solutions located in '{parameters.WorkingDirectory}'.");
 
-        Console.Out.WriteLine($"Converting cement references to NuGet package references for all projects of solutions located in '{workingDirectory}'.");
-
-        var solutionFiles = Directory.GetFiles(workingDirectory, "*.sln");
+        var solutionFiles = Directory.GetFiles(parameters.WorkingDirectory, "*.sln");
         if (solutionFiles.Length == 0)
         {
             Console.Out.WriteLine("No solution files found.");
@@ -35,18 +32,18 @@ public static class Program
 
         foreach (var solutionFile in solutionFiles)
         {
-            HandleSolution(solutionFile, sourceUrls, failOnNotFound);
+            HandleSolution(solutionFile, parameters);
         }
     }
 
     private static IEnumerable<string> GetArgsByKey(string[] args, string key)
-    {
+    {        
         return args
             .Where(x => x.StartsWith(key))
             .Select(x => x.Substring(key.Length).Trim());
     }
 
-    private static void HandleSolution(string solutionFile, string[] sourceUrls, bool failOnNotFound)
+    private static void HandleSolution(string solutionFile, Parameters parameters)
     {
         var solution = SolutionFile.Parse(solutionFile);
         var solutionName = Path.GetFileName(solutionFile);
@@ -66,15 +63,14 @@ public static class Program
 
         foreach (var solutionProject in solution.ProjectsInOrder)
         {
-            HandleProject(solutionProject, allProjectsInSolution, sourceUrls, failOnNotFound);
+            HandleProject(solutionProject, allProjectsInSolution, parameters);
         }
     }
 
     private static void HandleProject(
         ProjectInSolution solutionProject,
         ISet<string> allProjectsInSolution,
-        string[] sourceUrls,
-        bool failOnNotFound)
+        Parameters parameters)
     {
         if (!File.Exists(solutionProject.AbsolutePath))
         {
@@ -95,7 +91,7 @@ public static class Program
             return;
         }
 
-        var cementReferences = FindCementReferences(project, allProjectsInSolution);
+        var cementReferences = FindCementReferences(project, allProjectsInSolution, parameters.CementReferencePrefixes);
         if (!cementReferences.Any())
         {
             Console.Out.WriteLine($"No cement references found in project {solutionProject.ProjectName}.");
@@ -119,7 +115,7 @@ public static class Program
 
         foreach (var reference in cementReferences)
         {
-            HandleReference(project, reference, allowPrereleasePackages, sourceUrls, failOnNotFound);
+            HandleReference(project, reference, allowPrereleasePackages, parameters);
         }
 
         project.Save();
@@ -143,25 +139,24 @@ public static class Program
     }
 
 
-    private static ProjectItem[] FindCementReferences(Project project, ISet<string> localProjects)
+    private static ProjectItem[] FindCementReferences(Project project, ISet<string> localProjects, string[] cementRefPrefixes)
     {
         return project.Items
             .Where(item => item.ItemType == "Reference")
-            .Where(item => item.EvaluatedInclude.StartsWith("Vostok."))
+            .Where(item => cementRefPrefixes.Any(x => item.EvaluatedInclude.StartsWith(x)))
             .Where(item => !localProjects.Contains(item.EvaluatedInclude))
             .ToArray();
     }
 
-    private static void HandleReference(Project project, ProjectItem reference, bool allowPrereleasePackages,
-        string[] sourceUrls, bool failOnNotFound)
+    private static void HandleReference(Project project, ProjectItem reference, bool allowPrereleasePackages, Parameters parameters)
     {
         var packageName = reference.EvaluatedInclude;
-        var packageVersion = GetLatestNugetVersion(packageName, allowPrereleasePackages, sourceUrls);
+        var packageVersion = GetLatestNugetVersion(packageName, allowPrereleasePackages, parameters.SourceUrls);
 
         if (packageVersion == null)
         {
-            if (failOnNotFound)
-                throw new Exception($"No versions of package '{packageName}' were found on '{string.Join(", ", sourceUrls)}'.");
+            if (parameters.FailOnNotFoundPackage)
+                throw new Exception($"No versions of package '{packageName}' were found on '{string.Join(", ", parameters.SourceUrls)}'.");
             return;
         }
 
@@ -214,5 +209,22 @@ public static class Program
         return versions.Any()
             ? versions.Max()
             : null;
+    }
+
+    private class Parameters
+    {
+        public string WorkingDirectory { get; }
+        public string[] SourceUrls { get; }
+        public string[] CementReferencePrefixes { get; }
+        public bool FailOnNotFoundPackage { get; }
+
+        public Parameters(string[] args)
+        {
+            var positionalArgs = args.Where(x => !x.StartsWith("-")).ToArray();
+            WorkingDirectory = positionalArgs.Length > 0 ? positionalArgs[0] : Environment.CurrentDirectory;
+            SourceUrls = new[] {"https://api.nuget.org/v3/index.json"}.Concat(GetArgsByKey(args, "--source:")).ToArray();
+            CementReferencePrefixes = new[] {"Vostok."}.Concat(GetArgsByKey(args, "--refPrefix:")).ToArray();
+            FailOnNotFoundPackage = !args.Contains("--ignoreMissingPackages");
+        }
     }
 }
