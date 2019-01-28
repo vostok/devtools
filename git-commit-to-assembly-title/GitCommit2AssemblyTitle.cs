@@ -89,7 +89,28 @@ namespace Vostok.Tools.GitCommit2AssemblyTitle
 
             log("{0} updated", assemblyTitleFileName);
 
-            File.WriteAllText(assemblyTitleFileName, newContent);
+            const int attempts = 10;
+            
+            var random = new Random(Guid.NewGuid().GetHashCode());
+                
+            for (var i = 1; ; ++i)
+            {
+                try
+                {
+                    File.WriteAllText(assemblyTitleFileName, newContent);
+                    return;
+                }
+                catch (IOException)
+                {
+                    log($"File {assemblyTitleFileName} is locked.");
+                    
+                    if (i == attempts)
+                        throw;
+                    
+                    log("Wait...");
+                    Thread.Sleep(random.Next(600, 1200));
+                }
+            }
         }
 
         private static string GetCommandOutput(string command, string args, LogMessageFunction log)
