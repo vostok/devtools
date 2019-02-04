@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Net;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Definition;
 using Microsoft.Build.Evaluation;
@@ -10,13 +9,16 @@ public static class Program
 {
     public static void Main(string[] args)
     {
+        var versionPart = args.Contains("--prefix") ? "prefix" : "suffix";
+        var csProjProperty = args.Contains("--prefix") ? "VersionPrefix" : "VersionSuffix";
+
         if (args.Length < 0)
-            throw new Exception("Missing required argument: version suffix.");
+            throw new Exception($"Missing required argument: version {versionPart}.");
 
         var versionSuffix = args[0];
         var workingDirectory = args.Length > 1 ? args[1] : Environment.CurrentDirectory;
 
-        Console.Out.WriteLine($"Setting version suffix '{versionSuffix}' for all projects of solutions located in '{workingDirectory}'.");
+        Console.Out.WriteLine($"Setting version {versionPart} '{versionSuffix}' for all projects of solutions located in '{workingDirectory}'.");
 
         var solutionFiles = Directory.GetFiles(workingDirectory, "*.sln");
         if (solutionFiles.Length == 0)
@@ -56,7 +58,7 @@ public static class Program
                 LoadSettings = ProjectLoadSettings.IgnoreMissingImports
             });
 
-            project.SetProperty("VersionSuffix", versionSuffix);
+            project.SetProperty(csProjProperty, versionSuffix);
             project.Save();
         }
     }
