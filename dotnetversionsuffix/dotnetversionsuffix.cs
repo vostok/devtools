@@ -12,6 +12,8 @@ public static class Program
         var versionPart = args.Contains("--prefix") ? "prefix" : "suffix";
         var csProjProperty = args.Contains("--prefix") ? "VersionPrefix" : "VersionSuffix";
 
+        args = args.Where(x => !x.StartsWith("--")).ToArray();
+
         if (args.Length < 0)
             throw new Exception($"Missing required argument: version {versionPart}.");
 
