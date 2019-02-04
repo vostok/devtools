@@ -1,8 +1,0 @@
-{
-  "Variables": [
-    {
-      "Name": "ProjectName",
-      "Description": "A name of solution, main project and namespace. Example: 'Vostok.Logging.Kontur.Legacy'."
-    }
-  ]
-}
