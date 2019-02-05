@@ -99,6 +99,7 @@ namespace JetBrains.Annotations
     }
 
     [MeansImplicitUse(ImplicitUseTargetFlags.WithMembers)]
+    [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
     internal sealed class PublicAPIAttribute : Attribute
     {
         public PublicAPIAttribute() { }
