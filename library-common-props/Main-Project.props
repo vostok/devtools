@@ -25,8 +25,18 @@
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <NoWarn>1701;1702;1591</NoWarn>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)..\jetbrains-annotations\JetBrainsAnnotations.cs" Link="Annotations\JetBrainsAnnotations.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\module.yaml" Link = "Auxiliary\module.yaml"/>
+    <None Include="..\CHANGELOG.md" Link = "Auxiliary\changelog.md"/>
+    <None Include="..\README.md" Link = "Auxiliary\readme.md"/>
   </ItemGroup>
 
   <Target Name="ReadReleaseNotesFromFile" BeforeTargets="BeforeBuild">
