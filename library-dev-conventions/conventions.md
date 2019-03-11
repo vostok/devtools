@@ -103,24 +103,16 @@ Most of the project-related requirements are automatically met when using a [Lau
 	* `PackageTags` = `vostok vostok.<library name>`
 
 ##### Changelog
-* Package release notes should be maintained in a `CHANGELOG.md` file in the repository root and included to csproj as a `PackageReleaseNotes` property during build. Change log file should be structured in following way:
+* Package release notes should be maintained in a `CHANGELOG.md` file in the repository root. Link to this file should be included to csproj as a `PackageReleaseNotes` property during build. Change log file should be structured in following way:
 	* An H2 header with version and date for each release. Example: `## 0.1.1 (10.09.2018):`.
-	* All the changes should be categorized into following groups using H3 headers:
-		* `Features` for anything brand new.
-		* `Bugfixes` for, well, bugfixes.
-		* `Enhancements` for anything that does not fall into previous groups.
-	* Changes in each group should be organized a list.
+	* Changes for each version should be organized as a list.
 	* Changes that address existing GitHub issue should be augmeneted with issue links.
 	
 Example of a well-formed changelog file:
 ```
 ## 0.1.1 (10.09.2018):
 
-### Bugfixes
-
 * FileLog now creates all the directories on the way to log file (https://github.com/vostok/logging.file/issues/5)
-
-### Enhancements
 
 * RollingUpdateCooldown was renamed to FileSettingsUpdateCooldown to indicate that it's not exclusively purposed for rolling settings.
 
