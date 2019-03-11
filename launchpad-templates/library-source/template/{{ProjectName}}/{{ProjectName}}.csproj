@@ -24,6 +24,7 @@
     <PackageProjectUrl>{{RepositoryUrl}}</PackageProjectUrl>
     <PackageLicenseUrl>{{RepositoryUrl}}/blob/master/LICENSE</PackageLicenseUrl>
     <PackageTags>vostok {{AdditionalTags}}</PackageTags>
+    <PackageReleaseNotes>{{RepositoryUrl}}/blob/master/CHANGELOG.md</PackageReleaseNotes>
     <RepositoryUrl>{{RepositoryUrl}}</RepositoryUrl>
   </PropertyGroup>
 
