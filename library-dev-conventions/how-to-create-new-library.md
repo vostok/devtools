@@ -23,9 +23,7 @@ Note that repository name should not start with `vostok` prefix (it comes from o
 * Bootstrap repository contents with one of the following launchpad templates:
   * `launchpad new vostok-library` for ordinary libraries
   * `launchpad new vostok-source-library` for source libraries
-  * You will be prompted for two variable values:
-    * `ProjectName`: this is a name of solution, project and NuGet package (like `Vostok.Logging.Abstractions`).
-    * `RepositoryUrl`: this is a link to library's GitHub repository (like https://github.com/vostok/logging.abstractions)
+  * You will be prompted for multiple variables. Follow the provided descriptions to choose correct values.
     
 * Update cement dependencies: `cm update-deps <module-name>`
 
