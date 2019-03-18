@@ -1,6 +1,9 @@
 ﻿using System;
 
-// ReSharper disable CheckNamespace
+// ReSharper disable All
+
+// You can find all available annotations here
+// https://github.com/dittodhole/dotnet-Source.JetBrains.Annotations/blob/develop/src/content/JetBrains.Annotations.cs
 
 namespace JetBrains.Annotations
 {
@@ -22,7 +25,7 @@ namespace JetBrains.Annotations
         Members = 2,
         WithMembers = Itself | Members
     }
-
+    
     [AttributeUsage(
         AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property |
         AttributeTargets.Delegate | AttributeTargets.Field | AttributeTargets.Event |
