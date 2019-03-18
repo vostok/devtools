@@ -1,12 +1,15 @@
 ﻿using System;
 
-// ReSharper disable All
-
 // You can find all available annotations here
 // https://github.com/dittodhole/dotnet-Source.JetBrains.Annotations/blob/develop/src/content/JetBrains.Annotations.cs
 
+// Annotations are added on-demand
+// Feel free to add specific annotation if you need it
+
 // Note that some annotations differ from original source
 // These cases are indicated with a separate //vostok comment
+
+// ReSharper disable All
 
 namespace JetBrains.Annotations
 {
