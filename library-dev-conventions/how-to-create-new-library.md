@@ -29,12 +29,6 @@ Note that repository name should not start with `vostok` prefix (it comes from o
 
 * Ensure that created project builds with a `dotnet build` command and push it to `master` branch.
 
-* Fill library descriptions:
-  * README.md: add a short description of what this library does
-  * .csproj: fill `Description` tag for package with something meaningful
-  * .csproj: add `vostok.*` package tag (like `vostok.configuration`)
-
-
 * Setup CI on AppVeyor:
   * Login to [AppVeyor](https://ci.appveyor.com/projects) via GitHub (select 'vostok' from available accounts).
   * Create a new project and select corresponding GitHub repository for it.
