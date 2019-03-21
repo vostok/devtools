@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 public static class Program
 {
-    private const string ConfigureAwaitIdentifier = "ConfigureAwait";
+    private const string TaskCompletionSourceIdentifier = "TaskCompletionSource";
 
     private static readonly CSharpParseOptions ParseOptions = new CSharpParseOptions(LanguageVersion.Latest, DocumentationMode.None);
 
@@ -25,9 +25,9 @@ public static class Program
             {
                 foreach (var result in Check(File.ReadAllText(file.FullName)))
                 {
-                    if (!result.HasConfigureAwaitFalse)
+                    if (!result.HasTaskCreationOptionsArgument)
                     {
-                        Console.Out.WriteLine("Error: missing 'ConfigureAwait(false)' in file '{0}' at line {1}.", file.Name, result.Location.GetMappedLineSpan().StartLinePosition.Line);
+                        Console.Out.WriteLine("Error: 'TaskCompletionSource' creation without configured 'TaskCreationOptions.RunContinuationsAsynchronously' in file '{0}' at line {1}.", file.Name, result.Location.GetMappedLineSpan().StartLinePosition.Line);
 
                         failedResults++;
                     }
@@ -35,92 +35,84 @@ public static class Program
             }
         }
 
-        if (failedResults > 0)
-            throw new Exception($"{failedResults} await(s) without 'ConfigureAwait(false)' were found.");
+        var message = $"\n{failedResults} 'TaskCompletionSource' creation without configured 'TaskCreationOptions.RunContinuationsAsynchronously' were found.";
+        Console.WriteLine(message);
+        //if (failedResults > 0)
+        //    throw new Exception(message);
     }
 
     private static IEnumerable<CheckResult> Check(string sourceCode)
     {
+        var aliases = new List<string>() {TaskCompletionSourceIdentifier};
         var tree = CSharpSyntaxTree.ParseText(sourceCode, ParseOptions);
 
         foreach (var item in tree.GetRoot().DescendantNodesAndTokens())
         {
-            if (item.IsKind(SyntaxKind.AwaitExpression))
+            if (item.IsKind(SyntaxKind.UsingDirective))
             {
-                var awaitNode = (AwaitExpressionSyntax) item.AsNode();
-                
-                if (IsYieldAwaitable(awaitNode))
+                TryAddAlias((UsingDirectiveSyntax) item, aliases);
+            }
+
+            if (item.IsKind(SyntaxKind.ObjectCreationExpression))
+            {
+                var creation = (ObjectCreationExpressionSyntax) item.AsNode();
+
+                if (!IsTaskCompletionSourceCreation(creation, aliases))
                     continue;
 
-                yield return CheckNode(awaitNode);
+                yield return new CheckResult(HasTaskCreationOptionsArgument(creation.ArgumentList), creation.GetLocation());
             }
         }
     }
 
-    private static bool IsYieldAwaitable(AwaitExpressionSyntax awaitNode)
+    private static void TryAddAlias(UsingDirectiveSyntax item, List<string> aliases)
     {
-        if (!(awaitNode.Expression is InvocationExpressionSyntax invocation))
-            return false;
+        if (item.Alias == null)
+            return;
 
-        if (!(invocation.Expression is MemberAccessExpressionSyntax memberAccess))
-            return false;
+        var name = item.Alias.Name.Identifier.Text;
+        if (!(item.Name is QualifiedNameSyntax nameSyntax))
+            return;
 
-        var code = memberAccess.ToString();
-
-        return code.EndsWith(".Task.Yield", StringComparison.Ordinal) ||
-               code.Equals("Task.Yield", StringComparison.Ordinal);
+        if (IsTaskCompletionSourceIdentifier(nameSyntax.Right.Identifier))
+            aliases.Add(name);
     }
 
-    private static CheckResult CheckNode(AwaitExpressionSyntax awaitNode)
+    private static bool IsTaskCompletionSourceCreation(ObjectCreationExpressionSyntax creation, List<string> aliases)
     {
-        var possibleConfigureAwait = FindExpressionForConfigureAwait(awaitNode);
-        var good = possibleConfigureAwait != null && IsConfigureAwait(possibleConfigureAwait.Expression) && HasFalseArgument(possibleConfigureAwait.ArgumentList);
-        return new CheckResult(good, awaitNode.GetLocation());
+        if (creation.Type is GenericNameSyntax generic)
+            return IsTaskCompletionSourceIdentifier(generic.Identifier);
+
+        if (creation.Type is IdentifierNameSyntax nameSyntax)
+            return aliases.Contains(nameSyntax.Identifier.Text);
+
+        return false;
     }
 
-    private static InvocationExpressionSyntax FindExpressionForConfigureAwait(SyntaxNode node)
+    private static bool IsTaskCompletionSourceIdentifier(SyntaxToken token) =>
+        token.Text == TaskCompletionSourceIdentifier;
+
+    private static bool HasTaskCreationOptionsArgument(ArgumentListSyntax argumentList)
     {
-        foreach (var item in node.ChildNodes())
+        foreach (var arg in argumentList.Arguments)
         {
-            if (item is InvocationExpressionSyntax syntax)
-                return syntax;
-
-            return FindExpressionForConfigureAwait(item);
+            var str = arg.Expression.ToString();
+            if (str.Contains("TaskCreationOptions"))
+                return true;
         }
-        return null;
-    }
 
-    private static bool IsConfigureAwait(ExpressionSyntax expression)
-    {
-        if (!(expression is MemberAccessExpressionSyntax memberAccess))
-            return false;
-
-        if (!memberAccess.Name.Identifier.Text.Equals(ConfigureAwaitIdentifier, StringComparison.Ordinal))
-            return false;
-
-        return true;
-    }
-
-    private static bool HasFalseArgument(ArgumentListSyntax argumentList)
-    {
-        if (argumentList.Arguments.Count != 1)
-            return false;
-
-        if (!argumentList.Arguments[0].Expression.IsKind(SyntaxKind.FalseLiteralExpression))
-            return false;
-
-        return true;
+        return false;
     }
 
     private class CheckResult
     {
-        public CheckResult(bool hasConfigureAwaitFalse, Location location)
+        public CheckResult(bool hasTaskCreationOptionsArgument, Location location)
         {
-            HasConfigureAwaitFalse = hasConfigureAwaitFalse;
+            HasTaskCreationOptionsArgument = hasTaskCreationOptionsArgument;
             Location = location;
         }
 
-        public bool HasConfigureAwaitFalse { get; }
+        public bool HasTaskCreationOptionsArgument { get; }
 
         public Location Location { get; }
     }
