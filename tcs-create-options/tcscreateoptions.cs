@@ -35,7 +35,7 @@ public static class Program
             }
         }
 
-        var message = $"\n{failedResults} 'TaskCompletionSource' creation without configured 'TaskCreationOptions.RunContinuationsAsynchronously' were found.";
+        var message = $"\n{failedResults} 'TaskCompletionSource' creations without configured 'TaskCreationOptions.RunContinuationsAsynchronously' were found.";
         Console.WriteLine(message);
         //if (failedResults > 0)
         //    throw new Exception(message);

@@ -7,6 +7,6 @@ dotnet tool install --add-source nupkg -g tcscreateoptions
 Usage example:
 
 tcscreateoptions <directory>
-	Recursively scans all *.cs files in given <directory> and prints any 'TaskCompletionSource' creation 
-	without configured 'TaskCreationOptions'. Fails in the end if any incorrect awaits were found. 
+	Recursively scans all *.cs files in given <directory> and prints any 'TaskCompletionSource' creations 
+	without configured 'TaskCreationOptions'. Fails in the end if any incorrect creations were found. 
 

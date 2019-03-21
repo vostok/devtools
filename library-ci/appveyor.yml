@@ -117,6 +117,12 @@ install:
   - sh: pushd ../vostok.devtools/configure-await-false && dotnet build -c Release && popd
   - sh: dotnet tool install --add-source ../vostok.devtools/configure-await-false/nupkg -g configureawaitfalse
 
+  # Build and install 'tcscreateoptions' CLI tool:
+  - cmd: pushd ..\vostok.devtools\tcs-create-options && dotnet build -c Release && popd
+  - cmd: dotnet tool install --add-source ..\vostok.devtools\tcs-create-options/nupkg -g tcscreateoptions
+  - sh: pushd ../vostok.devtools/tcs-create-options && dotnet build -c Release && popd
+  - sh: dotnet tool install --add-source ../vostok.devtools/tcs-create-options/nupkg -g tcscreateoptions
+
 
 before_build:
   - ps: |
@@ -131,6 +137,20 @@ before_build:
 
          # Fail build if there were any unconfigured awaits:
         if ($LASTEXITCODE -ne 0) { throw "There were some unconfigured awaits in source code." }
+      }
+
+  - ps: |
+
+      # Check C# source code for 'TaskCompletionSource' creations without configured 'TaskCreationOptions':
+
+      Foreach ($dir in Get-ChildItem "." | Where-Object { $_.PSIsContainer -and -not $_.Name.EndsWith(".Tests") }) 
+      {
+        Write-Host "Checking '$($dir.FullName)' directory for unconfigured TaskCompletionSource creations in source code.."
+
+        tcscreateoptions $dir.FullName
+
+         # Fail build if there were any unconfigured TaskCompletionSource creations:
+        if ($LASTEXITCODE -ne 0) { throw "There were some unconfigured TaskCompletionSource creations in source code." }
       }
 
   - ps: |
