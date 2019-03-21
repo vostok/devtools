@@ -61,7 +61,8 @@ public static class Program
     
         Console.Out.WriteLine($"Working with project '{solutionProject.ProjectName}'..");
 
-        var project = Project.FromFile(solutionProject.AbsolutePath, new ProjectOptions
+        var projectRoot = ProjectRootElement.Open(solutionProject.AbsolutePath, ProjectCollection.GlobalProjectCollection, true);
+        var project = Project.FromProjectRootElement(projectRoot, new ProjectOptions
         {
             LoadSettings = ProjectLoadSettings.IgnoreMissingImports
         });
