@@ -1,6 +1,6 @@
 This document establishes a set of best practices related to development of clients for HTTP microservices using Vostok libraries. 
 
-An example of client that conforms to these practices is [HerculesTimelineClient](https://github.com/vostok/hercules.client/blob/master/Vostok.Hercules.Client/HerculesTimelineClient.cs).
+An example of a client that implements these practices is [HerculesTimelineClient](https://github.com/vostok/hercules.client/blob/master/Vostok.Hercules.Client/HerculesTimelineClient.cs).
 
 ### General
 
