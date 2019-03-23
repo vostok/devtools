@@ -1,14 +1,5 @@
 ﻿using System;
 
-// You can find all available annotations here
-// https://github.com/dittodhole/dotnet-Source.JetBrains.Annotations/blob/develop/src/content/JetBrains.Annotations.cs
-
-// Annotations are added on-demand
-// Feel free to add specific annotation if you need it
-
-// Note that some annotations differ from original source
-// These cases are indicated with a separate //vostok comment
-
 // ReSharper disable All
 
 namespace JetBrains.Annotations
@@ -44,7 +35,7 @@ namespace JetBrains.Annotations
         /// <summary>Entity marked with attribute and all its members considered used.</summary>
         WithMembers = Itself | Members
     }
-    
+
     /// <summary>
     /// Indicates that the value of the marked element could be <c>null</c> sometimes,
     /// so the check for <c>null</c> is necessary before its usage.
@@ -61,7 +52,9 @@ namespace JetBrains.Annotations
         AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property |
         AttributeTargets.Delegate | AttributeTargets.Field | AttributeTargets.Event |
         AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.GenericParameter)]
-    internal sealed class CanBeNullAttribute : Attribute { }
+    internal sealed class CanBeNullAttribute : Attribute
+    {
+    }
 
     /// <summary>
     /// Indicates that the value of the marked element could never be <c>null</c>.
@@ -75,7 +68,9 @@ namespace JetBrains.Annotations
         AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property |
         AttributeTargets.Delegate | AttributeTargets.Field | AttributeTargets.Event |
         AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.GenericParameter)]
-    internal sealed class NotNullAttribute : Attribute { }
+    internal sealed class NotNullAttribute : Attribute
+    {
+    }
 
     /// <summary>
     /// Indicates that the marked method builds string by format pattern and (optional) arguments.
@@ -103,7 +98,8 @@ namespace JetBrains.Annotations
             FormatParameterName = formatParameterName;
         }
 
-        [NotNull] public string FormatParameterName { get; private set; }
+        [NotNull]
+        public string FormatParameterName { get; private set; }
     }
 
     /// <summary>
@@ -114,13 +110,19 @@ namespace JetBrains.Annotations
     internal sealed class UsedImplicitlyAttribute : Attribute
     {
         public UsedImplicitlyAttribute()
-            : this(ImplicitUseKindFlags.Default, ImplicitUseTargetFlags.Default) { }
+            : this(ImplicitUseKindFlags.Default, ImplicitUseTargetFlags.Default)
+        {
+        }
 
         public UsedImplicitlyAttribute(ImplicitUseKindFlags useKindFlags)
-            : this(useKindFlags, ImplicitUseTargetFlags.Default) { }
+            : this(useKindFlags, ImplicitUseTargetFlags.Default)
+        {
+        }
 
         public UsedImplicitlyAttribute(ImplicitUseTargetFlags targetFlags)
-            : this(ImplicitUseKindFlags.Default, targetFlags) { }
+            : this(ImplicitUseKindFlags.Default, targetFlags)
+        {
+        }
 
         public UsedImplicitlyAttribute(ImplicitUseKindFlags useKindFlags, ImplicitUseTargetFlags targetFlags)
         {
@@ -145,8 +147,9 @@ namespace JetBrains.Annotations
     /// }
     /// </code></example>
     [AttributeUsage(AttributeTargets.Method)]
-    internal sealed class PureAttribute : Attribute { }
-
+    internal sealed class PureAttribute : Attribute
+    {
+    }
 
     /// <summary>
     /// Should be used on attributes and causes ReSharper to not mark symbols marked with such attributes
@@ -156,13 +159,19 @@ namespace JetBrains.Annotations
     internal sealed class MeansImplicitUseAttribute : Attribute
     {
         public MeansImplicitUseAttribute()
-            : this(ImplicitUseKindFlags.Default, ImplicitUseTargetFlags.Default) { }
+            : this(ImplicitUseKindFlags.Default, ImplicitUseTargetFlags.Default)
+        {
+        }
 
         public MeansImplicitUseAttribute(ImplicitUseKindFlags useKindFlags)
-            : this(useKindFlags, ImplicitUseTargetFlags.Default) { }
+            : this(useKindFlags, ImplicitUseTargetFlags.Default)
+        {
+        }
 
         public MeansImplicitUseAttribute(ImplicitUseTargetFlags targetFlags)
-            : this(ImplicitUseKindFlags.Default, targetFlags) { }
+            : this(ImplicitUseKindFlags.Default, targetFlags)
+        {
+        }
 
         public MeansImplicitUseAttribute(ImplicitUseKindFlags useKindFlags, ImplicitUseTargetFlags targetFlags)
         {
@@ -170,9 +179,11 @@ namespace JetBrains.Annotations
             TargetFlags = targetFlags;
         }
 
-        [UsedImplicitly] public ImplicitUseKindFlags UseKindFlags { get; private set; }
+        [UsedImplicitly]
+        public ImplicitUseKindFlags UseKindFlags { get; private set; }
 
-        [UsedImplicitly] public ImplicitUseTargetFlags TargetFlags { get; private set; }
+        [UsedImplicitly]
+        public ImplicitUseTargetFlags TargetFlags { get; private set; }
     }
 
     /// <summary>
@@ -183,16 +194,19 @@ namespace JetBrains.Annotations
     [AttributeUsage(AttributeTargets.All, AllowMultiple = true)] //vostok allows multiple here to support partial-class case
     internal sealed class PublicAPIAttribute : Attribute
     {
-        public PublicAPIAttribute() { }
+        public PublicAPIAttribute()
+        {
+        }
 
         public PublicAPIAttribute([NotNull] string comment)
         {
             Comment = comment;
         }
 
-        [CanBeNull] public string Comment { get; private set; }
+        [CanBeNull]
+        public string Comment { get; private set; }
     }
-    
+
     /// <summary>
     /// Can be appplied to symbols of types derived from IEnumerable as well as to symbols of Task
     /// and Lazy classes to indicate that the value of a collection item, of the Task.Result property
@@ -201,7 +215,9 @@ namespace JetBrains.Annotations
     [AttributeUsage(
         AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property |
         AttributeTargets.Delegate | AttributeTargets.Field)]
-    internal sealed class ItemNotNullAttribute : Attribute { }
+    internal sealed class ItemNotNullAttribute : Attribute
+    {
+    }
 
     /// <summary>
     /// Can be appplied to symbols of types derived from IEnumerable as well as to symbols of Task
@@ -211,8 +227,10 @@ namespace JetBrains.Annotations
     [AttributeUsage(
         AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property |
         AttributeTargets.Delegate | AttributeTargets.Field)]
-    internal sealed class ItemCanBeNullAttribute : Attribute { }
-    
+    internal sealed class ItemCanBeNullAttribute : Attribute
+    {
+    }
+
     /// <summary>
     /// For a parameter that is expected to be one of the limited set of values.
     /// Specify fields of which type should be used as values for this parameter.
@@ -227,6 +245,14 @@ namespace JetBrains.Annotations
             Name = name;
         }
 
-        [NotNull] public string Name { get; private set; }
+        [NotNull]
+        public string Name { get; private set; }
     }
-}
+} // You can find all available annotations here
+// https://github.com/dittodhole/dotnet-Source.JetBrains.Annotations/blob/develop/src/content/JetBrains.Annotations.cs
+
+// Annotations are added on-demand
+// Feel free to add specific annotation if you need it
+
+// Note that some annotations differ from original source
+// These cases are indicated with a separate //vostok comment
