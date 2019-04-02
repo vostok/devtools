@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.Build.Construction;
@@ -9,31 +10,35 @@ public static class Program
 {
     public static void Main(string[] args)
     {
-        var versionPart = args.Contains("--prefix") ? "prefix" : "suffix";
-        var csProjProperty = args.Contains("--prefix") ? "VersionPrefix" : "VersionSuffix";
+        var parameters = new Parameters(args);
+        
+        Console.Out.WriteLine(
+            $"Setting version {parameters.VersionPart} '{parameters.VersionValue}' for all projects of solutions located in '{parameters.WorkingDirectory}'.");
 
-        args = args.Where(x => !x.StartsWith("--")).ToArray();
-
-        if (args.Length < 0)
-            throw new Exception($"Missing required argument: version {versionPart}.");
-
-        var versionValue = args[0];
-        var workingDirectory = args.Length > 1 ? args[1] : Environment.CurrentDirectory;
-
-        Console.Out.WriteLine($"Setting version {versionPart} '{versionValue}' for all projects of solutions located in '{workingDirectory}'.");
-
-        var solutionFiles = Directory.GetFiles(workingDirectory, "*.sln");
+        var solutionFiles = Directory.GetFiles(parameters.WorkingDirectory, "*.sln");
         if (solutionFiles.Length == 0)
         {
             Console.Out.WriteLine("No solution files found.");
             return;
         }
 
-        Console.Out.WriteLine($"Found solution files: {Environment.NewLine}\t{string.Join(Environment.NewLine + "\t", solutionFiles)}");
+        Console.Out.WriteLine(
+            $"Found solution files: {Environment.NewLine}\t{string.Join(Environment.NewLine + "\t", solutionFiles)}");
 
-        var projectFiles = solutionFiles
-            .Select(SolutionFile.Parse)
-            .SelectMany(solution => solution.ProjectsInOrder)
+        foreach (var solutionFile in solutionFiles)
+            HandleSolution(solutionFile, parameters);
+    }
+
+    private static void HandleSolution(string solutionFile, Parameters parameters)
+    {
+        var parsedSolution = SolutionFile.Parse(solutionFile);
+                
+        Console.Out.WriteLine($"Working with '{solutionFile}.");
+        Console.Out.WriteLine($"Working with '{parameters.SolutionConfiguration}' solution configuration.");
+
+        var projects = FilterProjectsByConfiguration(parsedSolution.ProjectsInOrder, parameters.SolutionConfiguration);
+
+        var projectFiles = projects
             .Select(project => project.AbsolutePath)
             .ToArray();
 
@@ -43,7 +48,8 @@ public static class Program
             return;
         }
 
-        Console.Out.WriteLine($"Found project files: {Environment.NewLine}\t{string.Join(Environment.NewLine + "\t", projectFiles)}");
+        Console.Out.WriteLine(
+            $"Found project files: {Environment.NewLine}\t{string.Join(Environment.NewLine + "\t", projectFiles)}");
 
         foreach (var projectFile in projectFiles)
         {
@@ -52,7 +58,7 @@ public static class Program
                 Console.Out.WriteLine($"Project file '{projectFile}' doesn't exists.");
                 continue;
             }
-            
+
             Console.Out.WriteLine($"Working with project '{Path.GetFileName(projectFile)}'..");
 
             var project = Project.FromFile(projectFile, new ProjectOptions
@@ -60,8 +66,56 @@ public static class Program
                 LoadSettings = ProjectLoadSettings.IgnoreMissingImports
             });
 
-            project.SetProperty(csProjProperty, versionValue);
+            project.SetProperty(parameters.CsProjProperty, parameters.VersionValue);
             project.Save();
+        }
+    }
+
+    private static IEnumerable<ProjectInSolution> FilterProjectsByConfiguration(
+        IEnumerable<ProjectInSolution> projects,
+        string configuration)
+    {
+        var keyPrefix = configuration + "|";
+
+        foreach (var project in projects)
+        {
+            var configurations = project.ProjectConfigurations;
+            var enabledConfigurations = configurations.Where(x => x.Value.IncludeInBuild);
+
+            if (enabledConfigurations.Any(x => x.Key.StartsWith(keyPrefix, StringComparison.OrdinalIgnoreCase)))
+                yield return project;
+        }
+    }
+
+    private class Parameters
+    {
+        public string VersionPart { get; }
+        public string CsProjProperty { get; }
+        public string VersionValue { get; }
+        public string WorkingDirectory { get; }
+        public string SolutionConfiguration { get; }
+
+        public Parameters(string[] args)
+        {
+            VersionPart = args.Contains("--prefix") ? "prefix" : "suffix";
+            CsProjProperty = args.Contains("--prefix") ? "VersionPrefix" : "VersionSuffix";
+
+            var positionalArgs = args.Where(x => !x.StartsWith("--")).ToArray();
+
+            if (positionalArgs.Length <= 0)
+                throw new Exception($"Missing required argument: version {VersionPart}.");
+
+            VersionValue = positionalArgs[0];
+            WorkingDirectory = positionalArgs.Length > 1 ? positionalArgs[1] : Environment.CurrentDirectory;
+            SolutionConfiguration =
+                GetArgsByKey(args, "--solutionConfiguration:").FirstOrDefault() ?? "Release";
+        }
+
+        private static IEnumerable<string> GetArgsByKey(string[] args, string key)
+        {
+            return args
+                .Where(x => x.StartsWith(key))
+                .Select(x => x.Substring(key.Length).Trim());
         }
     }
 }
