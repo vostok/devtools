@@ -17,8 +17,9 @@ public static class Program
     public static void Main(string[] args)
     {
         var parameters = new Parameters(args);
-        
-        Console.Out.WriteLine($"Converting cement references to NuGet package references for all projects of solutions located in '{parameters.WorkingDirectory}'.");
+
+        Console.Out.WriteLine(
+            $"Converting cement references to NuGet package references for all projects of solutions located in '{parameters.WorkingDirectory}'.");
 
         var solutionFiles = Directory.GetFiles(parameters.WorkingDirectory, "*.sln");
         if (solutionFiles.Length == 0)
@@ -27,7 +28,8 @@ public static class Program
             return;
         }
 
-        Console.Out.WriteLine($"Found solution files: {Environment.NewLine}\t{string.Join(Environment.NewLine + "\t", solutionFiles)}");
+        Console.Out.WriteLine(
+            $"Found solution files: {Environment.NewLine}\t{string.Join(Environment.NewLine + "\t", solutionFiles)}");
         Console.Out.WriteLine();
 
         foreach (var solutionFile in solutionFiles)
@@ -37,7 +39,7 @@ public static class Program
     }
 
     private static IEnumerable<string> GetArgsByKey(string[] args, string key)
-    {        
+    {
         return args
             .Where(x => x.StartsWith(key))
             .Select(x => x.Substring(key.Length).Trim());
@@ -48,22 +50,44 @@ public static class Program
         var solution = SolutionFile.Parse(solutionFile);
         var solutionName = Path.GetFileName(solutionFile);
 
-        if (!solution.ProjectsInOrder.Any())
+        Console.Out.WriteLine($"Working with '{parameters.SolutionConfiguration}' solution configuration.");
+
+        var projects = FilterProjectsByConfiguration(solution.ProjectsInOrder, parameters.SolutionConfiguration)
+            .ToArray();
+
+        if (!projects.Any())
         {
             Console.Out.WriteLine($"No projects found in solution {solutionName}.");
             return;
         }
 
-        Console.Out.WriteLine($"Found projects in solution {solutionName}: {Environment.NewLine}\t{string.Join(Environment.NewLine + "\t", solution.ProjectsInOrder.Select(project => project.AbsolutePath))}");
+        Console.Out.WriteLine(
+            $"Found projects in solution {solutionName}: {Environment.NewLine}\t{string.Join(Environment.NewLine + "\t", projects.Select(project => project.AbsolutePath))}");
         Console.Out.WriteLine();
 
-        var allProjectsInSolution = solution.ProjectsInOrder
+        var allProjectsInSolution = projects
             .Select(p => p.ProjectName)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var solutionProject in solution.ProjectsInOrder)
+        foreach (var solutionProject in projects)
         {
             HandleProject(solutionProject, allProjectsInSolution, parameters);
+        }
+    }
+
+    private static IEnumerable<ProjectInSolution> FilterProjectsByConfiguration(
+        IEnumerable<ProjectInSolution> projects,
+        string configuration)
+    {
+        var keyPrefix = configuration + "|";
+
+        foreach (var project in projects)
+        {
+            var configurations = project.ProjectConfigurations;
+            var enabledConfigurations = configurations.Where(x => x.Value.IncludeInBuild);
+
+            if (enabledConfigurations.Any(x => x.Key.StartsWith(keyPrefix, StringComparison.OrdinalIgnoreCase)))
+                yield return project;
         }
     }
 
@@ -77,7 +101,7 @@ public static class Program
             Console.Out.WriteLine($"Project '{solutionProject.AbsolutePath}' doesn't exists.");
             return;
         }
-    
+
         Console.Out.WriteLine($"Working with project '{solutionProject.ProjectName}'..");
 
         var project = Project.FromFile(solutionProject.AbsolutePath, new ProjectOptions
@@ -87,7 +111,8 @@ public static class Program
 
         if (ShouldIgnore(project))
         {
-            Console.Out.WriteLine($"Ignore project  '{solutionProject.ProjectName}' due to DotnetCementRefsExclude property in csproj.");
+            Console.Out.WriteLine(
+                $"Ignore project  '{solutionProject.ProjectName}' due to DotnetCementRefsExclude property in csproj.");
             return;
         }
 
@@ -98,17 +123,20 @@ public static class Program
             return;
         }
 
-        Console.Out.WriteLine($"Found cement references in {solutionProject.ProjectName}: {Environment.NewLine}\t{string.Join(Environment.NewLine + "\t", cementReferences.Select(item => item.EvaluatedInclude))}");
+        Console.Out.WriteLine(
+            $"Found cement references in {solutionProject.ProjectName}: {Environment.NewLine}\t{string.Join(Environment.NewLine + "\t", cementReferences.Select(item => item.EvaluatedInclude))}");
         Console.Out.WriteLine();
 
         var allowPrereleasePackages = HasPrereleaseVersionSuffix(project, out var versionSuffix);
         if (allowPrereleasePackages)
         {
-            Console.Out.WriteLine($"Will allow prerelease versions in package references due to prerelease version suffix '{versionSuffix}'.");
+            Console.Out.WriteLine(
+                $"Will allow prerelease versions in package references due to prerelease version suffix '{versionSuffix}'.");
         }
         else
         {
-            Console.Out.WriteLine("Won't allow prerelease versions in package due to stable version of the project itself.");
+            Console.Out.WriteLine(
+                "Won't allow prerelease versions in package due to stable version of the project itself.");
         }
 
         Console.Out.WriteLine();
@@ -139,7 +167,8 @@ public static class Program
     }
 
 
-    private static ProjectItem[] FindCementReferences(Project project, ISet<string> localProjects, string[] cementRefPrefixes)
+    private static ProjectItem[] FindCementReferences(Project project, ISet<string> localProjects,
+        string[] cementRefPrefixes)
     {
         return project.Items
             .Where(item => item.ItemType == "Reference")
@@ -148,7 +177,8 @@ public static class Program
             .ToArray();
     }
 
-    private static void HandleReference(Project project, ProjectItem reference, bool allowPrereleasePackages, Parameters parameters)
+    private static void HandleReference(Project project, ProjectItem reference, bool allowPrereleasePackages,
+        Parameters parameters)
     {
         var packageName = reference.EvaluatedInclude;
         var packageVersion = GetLatestNugetVersion(packageName, allowPrereleasePackages, parameters.SourceUrls);
@@ -156,7 +186,8 @@ public static class Program
         if (packageVersion == null)
         {
             if (parameters.FailOnNotFoundPackage)
-                throw new Exception($"No versions of package '{packageName}' were found on '{string.Join(", ", parameters.SourceUrls)}'.");
+                throw new Exception(
+                    $"No versions of package '{packageName}' were found on '{string.Join(", ", parameters.SourceUrls)}'.");
             return;
         }
 
@@ -199,7 +230,8 @@ public static class Program
 
         var metadataResource = sourceRepository.GetResource<PackageMetadataResource>();
 
-        var versions = metadataResource.GetMetadataAsync(package, includePrerelease, false, new SourceCacheContext(), new NullLogger(), CancellationToken.None)
+        var versions = metadataResource.GetMetadataAsync(package, includePrerelease, false, new SourceCacheContext(),
+                new NullLogger(), CancellationToken.None)
             .GetAwaiter()
             .GetResult()
             .Where(data => data.Identity.Id == package)
@@ -214,6 +246,7 @@ public static class Program
     private class Parameters
     {
         public string WorkingDirectory { get; }
+        public string SolutionConfiguration { get; }
         public string[] SourceUrls { get; }
         public string[] CementReferencePrefixes { get; }
         public bool FailOnNotFoundPackage { get; }
@@ -222,9 +255,11 @@ public static class Program
         {
             var positionalArgs = args.Where(x => !x.StartsWith("-")).ToArray();
             WorkingDirectory = positionalArgs.Length > 0 ? positionalArgs[0] : Environment.CurrentDirectory;
-            SourceUrls = new[] {"https://api.nuget.org/v3/index.json"}.Concat(GetArgsByKey(args, "--source:")).ToArray();
+            SourceUrls = new[] {"https://api.nuget.org/v3/index.json"}.Concat(GetArgsByKey(args, "--source:"))
+                .ToArray();
             CementReferencePrefixes = new[] {"Vostok."}.Concat(GetArgsByKey(args, "--refPrefix:")).ToArray();
             FailOnNotFoundPackage = !args.Contains("--ignoreMissingPackages");
+            SolutionConfiguration = GetArgsByKey(args, "--solutionConfiguration:").FirstOrDefault() ?? "Release";
         }
     }
 }
