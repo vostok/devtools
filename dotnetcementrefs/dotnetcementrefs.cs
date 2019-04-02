@@ -181,6 +181,10 @@ public static class Program
         Parameters parameters)
     {
         var packageName = reference.EvaluatedInclude;
+        
+        if (packageName.Contains(","))
+            throw new Exception($"Fix reference format for '{packageName}'.");
+        
         var packageVersion = GetLatestNugetVersion(packageName, allowPrereleasePackages, parameters.SourceUrls);
 
         if (packageVersion == null)
