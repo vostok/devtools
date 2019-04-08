@@ -184,13 +184,21 @@ public static class Program
         
         if (packageName.Contains(","))
             throw new Exception($"Fix reference format for '{packageName}'.");
+
+        if (parameters.ReferencesToRemove.Contains(packageName))
+        {
+            Console.Out.WriteLine($"Removed cement reference to '{reference.EvaluatedInclude}'.");
+            project.RemoveItem(reference);
+            return;
+        }
         
         var packageVersion = GetLatestNugetVersion(packageName, allowPrereleasePackages, parameters.SourceUrls);
 
         if (packageVersion == null)
         {
-            if (parameters.ReferencesToRemove.Any(x => packageName.StartsWith(x)))
+            if (parameters.MissingReferencesToRemove.Any(x => packageName.StartsWith(x)))
             {
+                Console.Out.WriteLine($"Removed cement reference to '{reference.EvaluatedInclude}'.");
                 project.RemoveItem(reference);
                 return;
             }
@@ -259,7 +267,7 @@ public static class Program
         public string SolutionConfiguration { get; }
         public string[] SourceUrls { get; }
         public string[] CementReferencePrefixes { get; }
-        
+        public string[] MissingReferencesToRemove { get; }
         public string[] ReferencesToRemove { get; }
         public bool FailOnNotFoundPackage { get; }
 
@@ -270,7 +278,8 @@ public static class Program
             SourceUrls = new[] {"https://api.nuget.org/v3/index.json"}.Concat(GetArgsByKey(args, "--source:"))
                 .ToArray();
             CementReferencePrefixes = new[] {"Vostok."}.Concat(GetArgsByKey(args, "--refPrefix:")).ToArray();
-            ReferencesToRemove = GetArgsByKey(args, "--removeMissing:").ToArray();
+            MissingReferencesToRemove = GetArgsByKey(args, "--removeMissing:").ToArray();
+            ReferencesToRemove = GetArgsByKey(args, "--remove:").ToArray();
             FailOnNotFoundPackage = !args.Contains("--ignoreMissingPackages");
             SolutionConfiguration = GetArgsByKey(args, "--solutionConfiguration:").FirstOrDefault() ?? "Release";
         }
