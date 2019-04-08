@@ -189,6 +189,12 @@ public static class Program
 
         if (packageVersion == null)
         {
+            if (parameters.ReferencesToRemove.Any(x => packageName.StartsWith(x)))
+            {
+                project.RemoveItem(reference);
+                return;
+            }
+            
             if (parameters.FailOnNotFoundPackage)
                 throw new Exception(
                     $"No versions of package '{packageName}' were found on '{string.Join(", ", parameters.SourceUrls)}'.");
@@ -253,6 +259,8 @@ public static class Program
         public string SolutionConfiguration { get; }
         public string[] SourceUrls { get; }
         public string[] CementReferencePrefixes { get; }
+        
+        public string[] ReferencesToRemove { get; }
         public bool FailOnNotFoundPackage { get; }
 
         public Parameters(string[] args)
@@ -262,6 +270,7 @@ public static class Program
             SourceUrls = new[] {"https://api.nuget.org/v3/index.json"}.Concat(GetArgsByKey(args, "--source:"))
                 .ToArray();
             CementReferencePrefixes = new[] {"Vostok."}.Concat(GetArgsByKey(args, "--refPrefix:")).ToArray();
+            ReferencesToRemove = GetArgsByKey(args, "--removeMissing:").ToArray();
             FailOnNotFoundPackage = !args.Contains("--ignoreMissingPackages");
             SolutionConfiguration = GetArgsByKey(args, "--solutionConfiguration:").FirstOrDefault() ?? "Release";
         }
