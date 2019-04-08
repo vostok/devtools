@@ -185,7 +185,7 @@ public static class Program
         if (packageName.Contains(","))
             throw new Exception($"Fix reference format for '{packageName}'.");
 
-        if (parameters.ReferencesToRemove.Contains(packageName))
+        if (parameters.ReferencesToRemove.Contains(packageName, StringComparer.OrdinalIgnoreCase))
         {
             Console.Out.WriteLine($"Removed cement reference to '{reference.EvaluatedInclude}'.");
             project.RemoveItem(reference);
