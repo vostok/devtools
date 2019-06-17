@@ -37,8 +37,8 @@ public static class Program
 
         var message = $"\n{failedResults} 'TaskCompletionSource' creations without configured 'TaskCreationOptions.RunContinuationsAsynchronously' were found.";
         if (failedResults > 0)
-            Console.WriteLine(message);
-            //throw new Exception(message);
+            //Console.WriteLine(message);
+            throw new Exception(message);
     }
 
     private static IEnumerable<CheckResult> Check(string sourceCode)
