@@ -89,7 +89,8 @@ install:
   - cmd: pushd .. && cm init && popd
 
   # Fetch 'vostok.devtools' module:
-  - pushd .. && cm get vostok.devtools && popd
+  - sh: pushd .. && mono ~/bin/dotnet/cm.exe get vostok.devtools && popd
+  - cmd: pushd .. && cm get vostok.devtools && popd
 
   # Build and install 'dotnetversionsuffix' CLI tool:
   - cmd: pushd ..\vostok.devtools\dotnetversionsuffix && dotnet build -c Release && popd
@@ -168,8 +169,10 @@ before_build:
 
 
 build_script:
-  - cm update-deps 
-  - cm build-deps 
+  - cmd: cm update-deps 
+  - cmd: cm build-deps 
+  - sh: mono ~/bin/dotnet/cm.exe update-deps 
+  - sh: mono ~/bin/dotnet/cm.exe build-deps 
   - dotnet restore
   - dotnet build -c Release
 
