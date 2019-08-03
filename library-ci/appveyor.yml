@@ -81,7 +81,8 @@ install:
 
   # Update Cement to latest version and display it (iloktionov: temporarily disabled it on Jan. 9, 2019 due to instability):
   # - cm self-update
-  - cm --version
+  - sh: mono ~/bin/dotnet/cm.exe --version
+  - cmd: cm --version
 
   # Init parent directory to become Cement-tracked:
   - pushd .. && cm init && popd
