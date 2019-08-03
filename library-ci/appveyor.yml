@@ -86,16 +86,6 @@ install:
   # Init parent directory to become Cement-tracked:
   - pushd .. && cm init && popd
 
-  # Install SSH key to access Vostok repositories:
-  - ps: Invoke-WebRequest "https://github.com/vostok/devtools/raw/master/library-ci/id_rsa.enc" -Out "id_rsa.enc"
-  - ps: iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/appveyor/secure-file/master/install.ps1'))
-  - cmd: appveyor-tools\secure-file -decrypt id_rsa.enc -secret %sshKeyEncryptionSecret%
-  - cmd: move /Y id_rsa  %USERPROFILE%\.ssh\
-  - sh: ./appveyor-tools/secure-file -decrypt id_rsa.enc -secret $sshKeyEncryptionSecret
-  - sh: mkdir -p ~/.ssh/
-  - sh: mv -f id_rsa ~/.ssh/
-  - sh: sudo chmod 600 ~/.ssh/id_rsa
-
   # Fetch 'vostok.devtools' module:
   - pushd .. && cm get vostok.devtools && popd
 

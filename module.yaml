@@ -1,10 +1,11 @@
-
-full-build:
-  deps:
-    - vostok.devtools.ilrepack.bin
-
+src:
   build:
     target: None
     configuration: None
 
-  artifacts:
+full-build:
+  deps:
+    - vostok.devtools.ilrepack.bin
+  build:
+    target: None
+    configuration: None
