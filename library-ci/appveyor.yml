@@ -85,7 +85,8 @@ install:
   - cmd: cm --version
 
   # Init parent directory to become Cement-tracked:
-  - pushd .. && cm init && popd
+  - sh: pushd .. && mono ~/bin/dotnet/cm.exe init && popd
+  - cmd: pushd .. && cm init && popd
 
   # Fetch 'vostok.devtools' module:
   - pushd .. && cm get vostok.devtools && popd
