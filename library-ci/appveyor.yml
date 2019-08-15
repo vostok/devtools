@@ -188,6 +188,8 @@ test_script:
         # Add a reference to an external AppVeyor logger to test project:
         # dotnet add "$testProjectFolder" package Appveyor.TestLogger
         
+        appveyor AddTest "TTT" -Framework "executor://nunit3testexecutor/" -Filename "Temp.Tests.dll" -Outcome "Passed" -Duration "37" -StdOut "2019-08-15 14:11:28,214 INFO  Test2 0\n2019-08-15 14:11:28,249 INFO  Test2 1\n2019-08-15 14:11:28,249 INFO  Test2 2\n2019-08-15 14:11:28,249 INFO  Test2 3\n2019-08-15 14:11:28,249 INFO  Test2 4\n2019-08-15 14:11:28,249 INFO  Test2 5\n2019-08-15 14:11:28,249 INFO  Test2 6\n2019-08-15 14:11:28,249 INFO  Test2 7\n2019-08-15 14:11:28,249 INFO  Test2 8\n2019-08-15 14:11:28,249 INFO  Test2 9\n\n"
+        
         # Run 'dotnet test' command there:
         dotnet test -c Release --test-adapter-path:. --logger "AppVeyor" "$testProjectFolder"
         
