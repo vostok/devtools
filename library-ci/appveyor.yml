@@ -186,7 +186,7 @@ test_script:
       if ($testProjectFolder) {
         
         # Add a reference to an external AppVeyor logger to test project:
-        dotnet add reference ../../vostok.devtools/library-ci/logger/Appveyor.TestLogger.csproj
+        dotnet add reference "../../vostok.devtools/library-ci/logger/Appveyor.TestLogger.csproj" "$testProjectFolder"
         
         # Run 'dotnet test' command there:
         dotnet test -c Release --test-adapter-path:. --logger "AppVeyor" "$testProjectFolder"
