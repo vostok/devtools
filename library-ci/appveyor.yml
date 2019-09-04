@@ -119,6 +119,15 @@ install:
 
 before_build:
   - ps: |
+  
+        # Setup dotnet tool:
+  
+        dotnet --info
+        dotnet --version 
+        dotnet new globaljson --sdk-version 2.2.401 --force
+        dotnet --version 
+        
+  - ps: |
 
       # Check C# source code for 'await' expressions without ConfigureAwait(false):
 
