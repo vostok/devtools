@@ -1,5 +1,5 @@
 image:
-  - Ubuntu
+  - Previous Ubuntu
   - Visual Studio 2017
 
 
@@ -122,10 +122,10 @@ before_build:
   
         # Setup dotnet tool:
   
-        dotnet --info
-        dotnet --version 
-        dotnet new globaljson --sdk-version 2.2.401 --force
-        dotnet --version 
+        # dotnet --info
+        # dotnet --version 
+        # dotnet new globaljson --sdk-version 2.2.401 --force
+        # dotnet --version 
         
   - ps: |
 
@@ -179,9 +179,9 @@ before_build:
 
 build_script:
   - cmd: cm update-deps 
-  - cmd: cm build-deps -v
+  - cmd: cm build-deps
   - sh: mono ~/bin/dotnet/cm.exe update-deps 
-  - sh: mono ~/bin/dotnet/cm.exe build-deps -v
+  - sh: mono ~/bin/dotnet/cm.exe build-deps
   - dotnet restore
   - dotnet build -c Release
 
