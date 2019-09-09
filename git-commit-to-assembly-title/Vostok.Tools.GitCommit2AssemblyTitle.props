@@ -12,6 +12,14 @@
   <UsingTask TaskName="Vostok.Tools.GitCommit2AssemblyTitle.GitCommit2AssemblyTitle" AssemblyFile="$(TaskAssembly)" />
 
   <Target Name="GenerateAssemblyTitle" BeforeTargets="BeforeBuild">
+    <GetAssemblyIdentity AssemblyFiles="$(TargetPath)">
+      <Output
+        TaskParameter="Assemblies"
+        ItemName="MyAssemblyIdentities"/>
+    </GetAssemblyIdentity>
+    <PropertyGroup Condition="'$(Version)' == ''">
+      <Version>%(MyAssemblyIdentities.Version)</Version>
+    </PropertyGroup>
     <GitCommit2AssemblyTitle AssemblyVersion="$(Version)"/>
   </Target>
 
