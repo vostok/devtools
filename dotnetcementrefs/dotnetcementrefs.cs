@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -127,8 +127,8 @@ public static class Program
             $"Found cement references in {solutionProject.ProjectName}: {Environment.NewLine}\t{string.Join(Environment.NewLine + "\t", cementReferences.Select(item => item.EvaluatedInclude))}");
         Console.Out.WriteLine();
 
-        var allowPrereleasePackages = HasPrereleaseVersionSuffix(project, out var versionSuffix);
-        if (allowPrereleasePackages)
+        var allowPrereleasePackagesForAll = HasPrereleaseVersionSuffix(project, out var versionSuffix);
+        if (allowPrereleasePackagesForAll)
         {
             Console.Out.WriteLine(
                 $"Will allow prerelease versions in package references due to prerelease version suffix '{versionSuffix}'.");
@@ -141,14 +141,32 @@ public static class Program
 
         Console.Out.WriteLine();
 
+        var usePrereleaseForPrefixes = GetUsePrereleaseForPrefixes(project);
+        if (!allowPrereleasePackagesForAll && usePrereleaseForPrefixes.Length > 0)
+        {
+            Console.Out.WriteLine(
+                $"prerelease allowed for prefixes {string.Join(';', usePrereleaseForPrefixes)} by .csproj properties");
+        }
+
         foreach (var reference in cementReferences)
         {
-            HandleReference(project, reference, allowPrereleasePackages, parameters);
+            var allowPrereleaseForThisReference = usePrereleaseForPrefixes.Any(reference.EvaluatedInclude.StartsWith);
+            HandleReference(project, reference, allowPrereleasePackagesForAll || allowPrereleaseForThisReference,
+                parameters);
         }
 
         project.Save();
 
         Console.Out.WriteLine();
+    }
+
+    private static string[] GetUsePrereleaseForPrefixes(Project project)
+    {
+        var property = project.Properties.FirstOrDefault(x => x.Name == "DotnetCementRefsUsePrereleaseForPrefixes");
+        var usePrereleaseForPrefixes =
+            property?.EvaluatedValue.Split(new[] {';', ',', ' '}, StringSplitOptions.RemoveEmptyEntries) ??
+            new string[] { };
+        return usePrereleaseForPrefixes;
     }
 
     private static bool HasPrereleaseVersionSuffix(Project project, out string suffix)
@@ -181,7 +199,7 @@ public static class Program
         Parameters parameters)
     {
         var packageName = reference.EvaluatedInclude;
-        
+
         if (packageName.Contains(","))
             throw new Exception($"Fix reference format for '{packageName}'.");
 
@@ -191,7 +209,7 @@ public static class Program
             project.RemoveItem(reference);
             return;
         }
-        
+
         var packageVersion = GetLatestNugetVersion(packageName, allowPrereleasePackages, parameters.SourceUrls);
 
         if (packageVersion == null)
@@ -202,7 +220,7 @@ public static class Program
                 project.RemoveItem(reference);
                 return;
             }
-            
+
             if (parameters.FailOnNotFoundPackage)
                 throw new Exception(
                     $"No versions of package '{packageName}' were found on '{string.Join(", ", parameters.SourceUrls)}'.");
