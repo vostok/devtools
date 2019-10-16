@@ -179,9 +179,23 @@ before_build:
 
 build_script:
   - cmd: cm update-deps 
-  - cmd: cm build-deps
   - sh: mono ~/bin/dotnet/cm.exe update-deps 
-  - sh: mono ~/bin/dotnet/cm.exe build-deps
+  
+  # - cmd: cm build-deps
+  # - sh: mono ~/bin/dotnet/cm.exe build-deps
+  - ps: |
+
+    if (-Not Test-Path -Path "../.need-to-deploy") {
+        if ($IsLinux) {
+            mono ~/bin/dotnet/cm.exe build-deps
+        }
+        else {
+            cm build-deps
+        }
+        
+        if ($LASTEXITCODE -ne 0) { throw "Failed to build-deps." }
+    } 
+  
   - dotnet restore
   - dotnet build -c Release
 
