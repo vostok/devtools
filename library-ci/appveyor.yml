@@ -196,6 +196,7 @@ build_script:
         if ($LASTEXITCODE -ne 0) { throw "Failed to build-deps." }
       }
 
+
   - dotnet restore
   - dotnet build -c Release
 
