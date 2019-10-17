@@ -116,7 +116,7 @@ public static class Program
             return;
         }
 
-        var cementReferences = FindCementReferences(project, allProjectsInSolution, parameters.CementReferencePrefixes);
+        var cementReferences = FindCementReferences(project, allProjectsInSolution, parameters.CementReferencePrefixes, parameters.AllowLocalProjects);
         if (!cementReferences.Any())
         {
             Console.Out.WriteLine($"No cement references found in project {solutionProject.ProjectName}.");
@@ -186,12 +186,12 @@ public static class Program
 
 
     private static ProjectItem[] FindCementReferences(Project project, ISet<string> localProjects,
-        string[] cementRefPrefixes)
+        string[] cementRefPrefixes, bool allowLocalProjects)
     {
         return project.Items
             .Where(item => item.ItemType == "Reference")
             .Where(item => cementRefPrefixes.Any(x => item.EvaluatedInclude.StartsWith(x)))
-            .Where(item => !localProjects.Contains(item.EvaluatedInclude))
+            .Where(item => allowLocalProjects || !localProjects.Contains(item.EvaluatedInclude))
             .ToArray();
     }
 
@@ -288,6 +288,7 @@ public static class Program
         public string[] MissingReferencesToRemove { get; }
         public string[] ReferencesToRemove { get; }
         public bool FailOnNotFoundPackage { get; }
+        public bool AllowLocalProjects { get; }
 
         public Parameters(string[] args)
         {
@@ -300,6 +301,7 @@ public static class Program
             ReferencesToRemove = GetArgsByKey(args, "--remove:").ToArray();
             FailOnNotFoundPackage = !args.Contains("--ignoreMissingPackages");
             SolutionConfiguration = GetArgsByKey(args, "--solutionConfiguration:").FirstOrDefault() ?? "Release";
+            AllowLocalProjects = args.Contains("--allowLocalProjects");
         }
     }
 }
