@@ -117,21 +117,21 @@ public static class Program
             return;
         }
 
-        var cementReferences = FindCementReferences(project, allProjectsInSolution, parameters.CementReferencePrefixes);
+        var references = FindCementReferences(project, allProjectsInSolution, parameters.CementReferencePrefixes);
 
         if (parameters.AllowLocalProjects)
         {
-            cementReferences.AddRange(FindLocalProjectReferences(project, allProjectsInSolution));
+            references.AddRange(FindLocalProjectReferences(project, allProjectsInSolution));
         }
 
-        if (!cementReferences.Any())
+        if (!references.Any())
         {
-            Console.Out.WriteLine($"No cement references found in project {solutionProject.ProjectName}.");
+            Console.Out.WriteLine($"No references found in project {solutionProject.ProjectName}.");
             return;
         }
 
         Console.Out.WriteLine(
-            $"Found cement references in {solutionProject.ProjectName}: {Environment.NewLine}\t{string.Join(Environment.NewLine + "\t", cementReferences.Select(item => item.EvaluatedInclude))}");
+            $"Found references in {solutionProject.ProjectName}: {Environment.NewLine}\t{string.Join(Environment.NewLine + "\t", references.Select(item => item.EvaluatedInclude))}");
         Console.Out.WriteLine();
 
         var allowPrereleasePackagesForAll = HasPrereleaseVersionSuffix(project, out var versionSuffix);
@@ -155,7 +155,7 @@ public static class Program
                 $"prerelease allowed for prefixes {string.Join(';', usePrereleaseForPrefixes)} by .csproj properties");
         }
 
-        foreach (var reference in cementReferences)
+        foreach (var reference in references)
         {
             var allowPrereleaseForThisReference = usePrereleaseForPrefixes.Any(reference.EvaluatedInclude.StartsWith);
             HandleReference(project, reference, allowPrereleasePackagesForAll || allowPrereleaseForThisReference,
