@@ -8,6 +8,7 @@ using Microsoft.Build.Definition;
 using Microsoft.Build.Evaluation;
 using NuGet.Common;
 using NuGet.Configuration;
+using NuGet.Packaging;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
@@ -116,7 +117,13 @@ public static class Program
             return;
         }
 
-        var cementReferences = FindCementReferences(project, allProjectsInSolution, parameters.CementReferencePrefixes, parameters.AllowLocalProjects);
+        var cementReferences = FindCementReferences(project, allProjectsInSolution, parameters.CementReferencePrefixes);
+
+        if (parameters.AllowLocalProjects)
+        {
+            cementReferences.AddRange(FindLocalProjectReferences(project, allProjectsInSolution));
+        }
+
         if (!cementReferences.Any())
         {
             Console.Out.WriteLine($"No cement references found in project {solutionProject.ProjectName}.");
@@ -186,12 +193,20 @@ public static class Program
 
 
     private static ProjectItem[] FindCementReferences(Project project, ISet<string> localProjects,
-        string[] cementRefPrefixes, bool allowLocalProjects)
+        string[] cementRefPrefixes)
     {
         return project.Items
             .Where(item => item.ItemType == "Reference")
             .Where(item => cementRefPrefixes.Any(x => item.EvaluatedInclude.StartsWith(x)))
-            .Where(item => allowLocalProjects || !localProjects.Contains(item.EvaluatedInclude))
+            .Where(item => !localProjects.Contains(item.EvaluatedInclude))
+            .ToArray();
+    }
+
+    private static ProjectItem[] FindLocalProjectReferences(Project project, ISet<string> localProjects)
+    {
+        return project.Items
+            .Where(item => item.ItemType == "Reference")
+            .Where(item => localProjects.Contains(item.EvaluatedInclude))
             .ToArray();
     }
 
