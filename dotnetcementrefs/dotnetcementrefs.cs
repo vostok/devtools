@@ -8,6 +8,7 @@ using Microsoft.Build.Definition;
 using Microsoft.Build.Evaluation;
 using NuGet.Common;
 using NuGet.Configuration;
+using NuGet.Packaging;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
@@ -117,6 +118,12 @@ public static class Program
         }
 
         var cementReferences = FindCementReferences(project, allProjectsInSolution, parameters.CementReferencePrefixes);
+
+        if (parameters.AllowLocalProjects)
+        {
+            cementReferences.AddRange(FindLocalProjectReferences(project, allProjectsInSolution));
+        }
+
         if (!cementReferences.Any())
         {
             Console.Out.WriteLine($"No cement references found in project {solutionProject.ProjectName}.");
@@ -192,6 +199,14 @@ public static class Program
             .Where(item => item.ItemType == "Reference")
             .Where(item => cementRefPrefixes.Any(x => item.EvaluatedInclude.StartsWith(x)))
             .Where(item => !localProjects.Contains(item.EvaluatedInclude))
+            .ToArray();
+    }
+
+    private static ProjectItem[] FindLocalProjectReferences(Project project, ISet<string> localProjects)
+    {
+        return project.Items
+            .Where(item => item.ItemType == "Reference")
+            .Where(item => localProjects.Contains(item.EvaluatedInclude))
             .ToArray();
     }
 
@@ -288,6 +303,7 @@ public static class Program
         public string[] MissingReferencesToRemove { get; }
         public string[] ReferencesToRemove { get; }
         public bool FailOnNotFoundPackage { get; }
+        public bool AllowLocalProjects { get; }
 
         public Parameters(string[] args)
         {
@@ -300,6 +316,7 @@ public static class Program
             ReferencesToRemove = GetArgsByKey(args, "--remove:").ToArray();
             FailOnNotFoundPackage = !args.Contains("--ignoreMissingPackages");
             SolutionConfiguration = GetArgsByKey(args, "--solutionConfiguration:").FirstOrDefault() ?? "Release";
+            AllowLocalProjects = args.Contains("--allowLocalProjects");
         }
     }
 }
