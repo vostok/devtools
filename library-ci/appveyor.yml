@@ -72,7 +72,7 @@ install:
       $ErrorActionPreference = "Stop"
       $cementBaseDirectory = if ($isLinux) { "~/bin" } else { "$env:USERPROFILE\bin" }
       $cementDirectory = if ($isLinux) { "$cementBaseDirectory/dotnet" } else { "$cementBaseDirectory\dotnet" }
-      Invoke-WebRequest "https://github.com/skbkontur/cement/releases/download/v1.0.36/cd10b5220e492beebc13a374a356aa8a680626d3.zip" -Out "cement.zip"
+      Invoke-WebRequest "https://github.com/skbkontur/cement/releases/download/v1.0.58/63d70a890a8a69703c066965196021afb7a793c1.zip" -Out "cement.zip"
       Expand-Archive "cement.zip" -Force -DestinationPath "$cementBaseDirectory"
 
   # Make Cement easily callable by typing 'cm':
