@@ -8,7 +8,6 @@ using Microsoft.Build.Definition;
 using Microsoft.Build.Evaluation;
 using NuGet.Common;
 using NuGet.Configuration;
-using NuGet.Packaging;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
@@ -192,22 +191,22 @@ public static class Program
     }
 
 
-    private static ProjectItem[] FindCementReferences(Project project, ISet<string> localProjects,
+    private static List<ProjectItem> FindCementReferences(Project project, ISet<string> localProjects,
         string[] cementRefPrefixes)
     {
         return project.Items
             .Where(item => item.ItemType == "Reference")
             .Where(item => cementRefPrefixes.Any(x => item.EvaluatedInclude.StartsWith(x)))
             .Where(item => !localProjects.Contains(item.EvaluatedInclude))
-            .ToArray();
+            .ToList();
     }
 
-    private static ProjectItem[] FindLocalProjectReferences(Project project, ISet<string> localProjects)
+    private static List<ProjectItem> FindLocalProjectReferences(Project project, ISet<string> localProjects)
     {
         return project.Items
             .Where(item => item.ItemType == "Reference")
             .Where(item => localProjects.Contains(item.EvaluatedInclude))
-            .ToArray();
+            .ToList();
     }
 
     private static void HandleReference(Project project, ProjectItem reference, bool allowPrereleasePackages,
