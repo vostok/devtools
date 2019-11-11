@@ -166,6 +166,11 @@ before_build:
         if ($LASTEXITCODE -ne 0) { throw "Failed to convert Cement references to package references." }
       }
 
+
+build_script:
+  - cmd: cm update-deps 
+  - sh: mono ~/bin/dotnet/cm.exe update-deps 
+
   - ps: |
 
       # Patch Cement references in projects and convert them to NuGet package references if we are to deploy later: 
@@ -176,13 +181,6 @@ before_build:
         if ($LASTEXITCODE -ne 0) { throw "Failed to convert Cement references to package references." }
       }
 
-
-build_script:
-  - cmd: cm update-deps 
-  - sh: mono ~/bin/dotnet/cm.exe update-deps 
-  
-  # - cmd: cm build-deps
-  # - sh: mono ~/bin/dotnet/cm.exe build-deps
   - ps: |
 
       if (-Not (Test-Path -Path "../.need-to-deploy")) {
