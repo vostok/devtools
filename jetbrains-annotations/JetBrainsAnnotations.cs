@@ -248,8 +248,7 @@ namespace JetBrains.Annotations
         [NotNull]
         public string Name { get; private set; }
     }
-} // You can find all available annotations here
-// https://github.com/dittodhole/dotnet-Source.JetBrains.Annotations/blob/develop/src/content/JetBrains.Annotations.cs
+}
 
 // Annotations are added on-demand
 // Feel free to add specific annotation if you need it
