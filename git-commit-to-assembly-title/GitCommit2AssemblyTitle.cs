@@ -97,7 +97,13 @@ namespace Vostok.Tools.GitCommit2AssemblyTitle
             {
                 try
                 {
+                    var lastWriteTime = File.Exists(assemblyTitleFileName)
+                        ? File.GetLastWriteTime(assemblyTitleFileName)
+                        : DateTime.Now;
+
                     File.WriteAllText(assemblyTitleFileName, newContent);
+                    File.SetLastWriteTime(assemblyTitleFileName, lastWriteTime);
+
                     return;
                 }
                 catch (IOException)
