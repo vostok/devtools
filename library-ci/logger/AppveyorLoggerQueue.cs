@@ -84,7 +84,14 @@ namespace Microsoft.VisualStudio.TestPlatform.Extensions.Appveyor.TestLogger
                 args.Append($"\"{escaped}\"");
             }
 
-            Process.Start("appveyor", args.ToString())?.WaitForExit();
+            try
+            {
+                Process.Start("appveyor", args.ToString())?.WaitForExit();
+            }
+            catch
+            {
+
+            }
         }
     }
 }
