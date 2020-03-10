@@ -1,7 +1,6 @@
 ﻿using System;
 
 // ReSharper disable All
-#nullable disable
 
 namespace JetBrains.Annotations
 {
