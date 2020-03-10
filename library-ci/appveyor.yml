@@ -185,7 +185,7 @@ build_script:
 
       if (-Not (Test-Path -Path "../.need-to-deploy")) {
         if ($IsLinux) {
-            mono ~/bin/dotnet/cm.exe build-deps
+            mono ~/bin/dotnet/cm.exe build-deps -v
         }
         else {
             cm build-deps
