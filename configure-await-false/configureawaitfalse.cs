@@ -14,29 +14,35 @@ public static class Program
 
     public static void Main(string[] args)
     {
+        var failedResults = args.Select(arg => new DirectoryInfo(arg)).Select(Check).Sum();
+        if (failedResults > 0)
+            throw new Exception($"{failedResults} await(s) without 'ConfigureAwait(false)' were found.");
+    }
+
+    private static int Check(DirectoryInfo directory)
+    {
         var failedResults = 0;
 
-        foreach (var directory in args.Select(arg => new DirectoryInfo(arg)))
+        if (!directory.Exists || directory.EnumerateFiles(".skip-configure-await-checks").Any())
+            return failedResults;
+
+        foreach (var file in directory.EnumerateFiles("*.cs", SearchOption.TopDirectoryOnly))
         {
-            if (!directory.Exists)
-                continue;
-
-            foreach (var file in directory.EnumerateFiles("*.cs", SearchOption.AllDirectories))
+            foreach (var result in Check(File.ReadAllText(file.FullName)))
             {
-                foreach (var result in Check(File.ReadAllText(file.FullName)))
+                if (!result.HasConfigureAwaitFalse)
                 {
-                    if (!result.HasConfigureAwaitFalse)
-                    {
-                        Console.Out.WriteLine("Error: missing 'ConfigureAwait(false)' in file '{0}' at line {1}.", file.Name, result.Location.GetMappedLineSpan().StartLinePosition.Line);
+                    Console.Out.WriteLine("Error: missing 'ConfigureAwait(false)' in file '{0}' at line {1}.", file.Name, result.Location.GetMappedLineSpan().StartLinePosition.Line);
 
-                        failedResults++;
-                    }
+                    failedResults++;
                 }
             }
         }
 
-        if (failedResults > 0)
-            throw new Exception($"{failedResults} await(s) without 'ConfigureAwait(false)' were found.");
+        foreach (var subDirectory in directory.EnumerateDirectories())
+            Check(subDirectory);
+
+        return failedResults;
     }
 
     private static IEnumerable<CheckResult> Check(string sourceCode)
