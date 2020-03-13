@@ -194,7 +194,7 @@ public static class Program
     private static List<ProjectItem> FindCementReferences(Project project, ISet<string> localProjects,
         string[] cementRefPrefixes)
     {
-        return project.Items
+        return project.ItemsIgnoringCondition
             .Where(item => item.ItemType == "Reference")
             .Where(item => cementRefPrefixes.Any(x => item.EvaluatedInclude.StartsWith(x)))
             .Where(item => !localProjects.Contains(item.EvaluatedInclude))
@@ -203,7 +203,7 @@ public static class Program
 
     private static List<ProjectItem> FindLocalProjectReferences(Project project, ISet<string> localProjects)
     {
-        return project.Items
+        return project.ItemsIgnoringCondition
             .Where(item => item.ItemType == "Reference")
             .Where(item => localProjects.Contains(item.EvaluatedInclude))
             .ToList();
