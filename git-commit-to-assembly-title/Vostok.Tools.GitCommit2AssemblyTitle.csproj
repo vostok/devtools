@@ -15,8 +15,4 @@
     <PackageReference Update="@(PackageReference)" PrivateAssets="All" />
   </ItemGroup>
 
-  <Target Name="CopyBinaryFile" AfterTargets="Build">
-    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(SolutionDir)" SkipUnchangedFiles="true" />
-  </Target>
-
 </Project>
