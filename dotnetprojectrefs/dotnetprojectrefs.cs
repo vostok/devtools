@@ -122,28 +122,7 @@ public static class Program
             $"Found references in {solutionProject.ProjectName}: {Environment.NewLine}\t{string.Join(Environment.NewLine + "\t", references.Select(item => item.EvaluatedInclude))}");
         Console.Out.WriteLine();
 
-        var allowPrereleasePackagesForAll = HasPrereleaseVersionSuffix(project, out var versionSuffix);
-        if (allowPrereleasePackagesForAll)
-        {
-            Console.Out.WriteLine(
-                $"Will allow prerelease versions in package references due to prerelease version suffix '{versionSuffix}'.");
-        }
-        else
-        {
-            Console.Out.WriteLine(
-                "Won't allow prerelease versions in package due to stable version of the project itself.");
-        }
-
-        Console.Out.WriteLine();
-
-        var usePrereleaseForPrefixes = GetUsePrereleaseForPrefixes(project);
-        if (!allowPrereleasePackagesForAll && usePrereleaseForPrefixes.Length > 0)
-        {
-            Console.Out.WriteLine(
-                $"prerelease allowed for prefixes {string.Join(';', usePrereleaseForPrefixes)} by .csproj properties");
-        }
-
-        var version = project.GetProperty("VersionSuffix");
+        var version = project.GetProperty("Version");
 
         Console.Out.WriteLine($"Future version of all NuGet packages is '{version}'");
 
@@ -157,22 +136,6 @@ public static class Program
         project.Save();
 
         Console.Out.WriteLine();
-    }
-
-    private static string[] GetUsePrereleaseForPrefixes(Project project)
-    {
-        var property = project.Properties.FirstOrDefault(x => x.Name == "DotnetCementRefsUsePrereleaseForPrefixes");
-        var usePrereleaseForPrefixes =
-            property?.EvaluatedValue.Split(new[] {';', ',', ' '}, StringSplitOptions.RemoveEmptyEntries) ??
-            new string[] { };
-        return usePrereleaseForPrefixes;
-    }
-
-    private static bool HasPrereleaseVersionSuffix(Project project, out string suffix)
-    {
-        suffix = project.GetProperty("VersionSuffix")?.EvaluatedValue;
-
-        return !string.IsNullOrWhiteSpace(suffix);
     }
 
     private static bool ShouldIgnore(Project project)

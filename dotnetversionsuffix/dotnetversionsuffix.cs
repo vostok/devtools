@@ -97,8 +97,17 @@ public static class Program
 
         public Parameters(string[] args)
         {
-            VersionPart = args.Contains("--prefix") ? "prefix" : "suffix";
-            CsProjProperty = args.Contains("--prefix") ? "VersionPrefix" : "VersionSuffix";
+            VersionPart = args.Contains("--version")
+                ? "version"
+                : args.Contains("--prefix")
+                    ? "prefix"
+                    : "suffix";
+
+            CsProjProperty = args.Contains("--version")
+                ? "Version"
+                : args.Contains("--prefix")
+                    ? "VersionPrefix"
+                    : "VersionSuffix";
 
             var positionalArgs = args.Where(x => !x.StartsWith("--")).ToArray();
 
