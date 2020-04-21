@@ -158,7 +158,7 @@ public static class Program
         
         if (parameters.ReferencesToRemove.Contains(packageName, StringComparer.OrdinalIgnoreCase))
         {
-            Console.Out.WriteLine($"Removed cement reference to '{reference.EvaluatedInclude}'.");
+            Console.Out.WriteLine($"Removed project reference to '{reference.EvaluatedInclude}'.");
             project.RemoveItem(reference);
             return;
         }
@@ -167,7 +167,7 @@ public static class Program
         {
             if (parameters.MissingReferencesToRemove.Any(x => packageName.StartsWith(x)))
             {
-                Console.Out.WriteLine($"Removed cement reference to '{reference.EvaluatedInclude}'.");
+                Console.Out.WriteLine($"Removed project reference to '{reference.EvaluatedInclude}'.");
                 project.RemoveItem(reference);
                 return;
             }
@@ -181,7 +181,7 @@ public static class Program
 
         project.RemoveItem(reference);
 
-        Console.Out.WriteLine($"Removed cement reference to '{reference.EvaluatedInclude}'.");
+        Console.Out.WriteLine($"Removed project reference to '{reference.EvaluatedInclude}'.");
 
         project.AddItem("PackageReference", packageName, new[]
         {
