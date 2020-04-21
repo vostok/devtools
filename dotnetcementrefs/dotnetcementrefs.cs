@@ -14,6 +14,8 @@ using NuGet.Versioning;
 
 public static class Program
 {
+    private static readonly Dictionary<(string package, bool includePrerelease, string[] sourceUrls), NuGetVersion> NugetCache = new Dictionary<(string, bool, string[]), NuGetVersion>();
+
     public static void Main(string[] args)
     {
         var parameters = new Parameters(args);
@@ -224,7 +226,7 @@ public static class Program
             return;
         }
 
-        var packageVersion = GetLatestNugetVersion(packageName, allowPrereleasePackages, parameters.SourceUrls);
+        var packageVersion = GetLatestNugetVersionWithCache(packageName, allowPrereleasePackages, parameters.SourceUrls);
 
         if (packageVersion == null)
         {
@@ -256,13 +258,27 @@ public static class Program
         Console.Out.WriteLine();
     }
 
-    private static NuGetVersion GetLatestNugetVersion(string package, bool includePrerelease, string[] sourceUrls)
+    private static NuGetVersion GetLatestNugetVersionWithCache(string package, bool includePrerelease, string[] sourceUrls)
+    {
+        if (NugetCache.TryGetValue((package, includePrerelease, sourceUrls), out var value))
+            return value;
+
+        var version = GetLatestNugetVersionDirect(package, includePrerelease, sourceUrls);
+
+        NugetCache.Add((package, includePrerelease, sourceUrls), version);
+
+        return version;
+    }
+
+    private static NuGetVersion GetLatestNugetVersionDirect(string package, bool includePrerelease, string[] sourceUrls)
     {
         foreach (var source in sourceUrls)
         {
             var latestVersion = GetLatestNugetVersion(package, includePrerelease, source);
             if (latestVersion != null)
+            {
                 return latestVersion;
+            }
         }
 
         return null;
