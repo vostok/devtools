@@ -1,5 +1,5 @@
 image:
-  - Ubuntu
+  - Previous Ubuntu
   - Visual Studio 2019
 
 
@@ -21,7 +21,7 @@ environment:
 
 
 init:
-  - sh: curl -sflL 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-ssh.sh' | bash -e -
+  # - sh: curl -sflL 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-ssh.sh' | bash -e -
 
   # Skip Windows-only repositories on Linux
   - ps: |
