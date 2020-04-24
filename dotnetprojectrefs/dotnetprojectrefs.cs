@@ -2,20 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Definition;
 using Microsoft.Build.Evaluation;
-using NuGet.Common;
-using NuGet.Configuration;
-using NuGet.Protocol;
-using NuGet.Protocol.Core.Types;
-using NuGet.Versioning;
 
 public static class Program
 {
-    private static readonly Dictionary<(string package, bool includePrerelease, string[] sourceUrls), NuGetVersion> NugetCache = new Dictionary<(string, bool, string[]), NuGetVersion>();
-
     public static void Main(string[] args)
     {
         var parameters = new Parameters(args);
@@ -118,12 +110,7 @@ public static class Program
             return;
         }
 
-        var references = FindCementReferences(project, allProjectsInSolution, parameters.CementReferencePrefixes);
-
-        if (parameters.AllowLocalProjects)
-        {
-            references.AddRange(FindLocalProjectReferences(project, allProjectsInSolution));
-        }
+        var references = FindProjectReferences(project);
 
         if (!references.Any())
         {
@@ -135,53 +122,20 @@ public static class Program
             $"Found references in {solutionProject.ProjectName}: {Environment.NewLine}\t{string.Join(Environment.NewLine + "\t", references.Select(item => item.EvaluatedInclude))}");
         Console.Out.WriteLine();
 
-        var allowPrereleasePackagesForAll = HasPrereleaseVersionSuffix(project, out var versionSuffix);
-        if (allowPrereleasePackagesForAll)
-        {
-            Console.Out.WriteLine(
-                $"Will allow prerelease versions in package references due to prerelease version suffix '{versionSuffix}'.");
-        }
-        else
-        {
-            Console.Out.WriteLine(
-                "Won't allow prerelease versions in package due to stable version of the project itself.");
-        }
+        var version = project.GetProperty("Version");
+
+        Console.Out.WriteLine($"Future version of all NuGet packages is '{version}'");
 
         Console.Out.WriteLine();
 
-        var usePrereleaseForPrefixes = GetUsePrereleaseForPrefixes(project);
-        if (!allowPrereleasePackagesForAll && usePrereleaseForPrefixes.Length > 0)
-        {
-            Console.Out.WriteLine(
-                $"prerelease allowed for prefixes {string.Join(';', usePrereleaseForPrefixes)} by .csproj properties");
-        }
-
         foreach (var reference in references)
         {
-            var allowPrereleaseForThisReference = usePrereleaseForPrefixes.Any(reference.EvaluatedInclude.StartsWith);
-            HandleReference(project, reference, allowPrereleasePackagesForAll || allowPrereleaseForThisReference,
-                parameters);
+            HandleProjectReference(project, reference, version.EvaluatedValue, parameters);
         }
 
         project.Save();
 
         Console.Out.WriteLine();
-    }
-
-    private static string[] GetUsePrereleaseForPrefixes(Project project)
-    {
-        var property = project.Properties.FirstOrDefault(x => x.Name == "DotnetCementRefsUsePrereleaseForPrefixes");
-        var usePrereleaseForPrefixes =
-            property?.EvaluatedValue.Split(new[] {';', ',', ' '}, StringSplitOptions.RemoveEmptyEntries) ??
-            new string[] { };
-        return usePrereleaseForPrefixes;
-    }
-
-    private static bool HasPrereleaseVersionSuffix(Project project, out string suffix)
-    {
-        suffix = project.GetProperty("VersionSuffix")?.EvaluatedValue;
-
-        return !string.IsNullOrWhiteSpace(suffix);
     }
 
     private static bool ShouldIgnore(Project project)
@@ -192,50 +146,32 @@ public static class Program
                          item.EvaluatedValue == "true");
     }
 
-
-    private static List<ProjectItem> FindCementReferences(Project project, ISet<string> localProjects,
-        string[] cementRefPrefixes)
+    private static List<ProjectItem> FindProjectReferences(Project project)
     {
-        return project.ItemsIgnoringCondition
-            .Where(item => item.ItemType == "Reference")
-            .Where(item => cementRefPrefixes.Any(x => item.EvaluatedInclude.StartsWith(x)))
-            .Where(item => !localProjects.Contains(item.EvaluatedInclude))
+        return project.GetItems("ProjectReference")
             .ToList();
     }
 
-    private static List<ProjectItem> FindLocalProjectReferences(Project project, ISet<string> localProjects)
+    private static void HandleProjectReference(Project project, ProjectItem reference, string version, Parameters parameters)
     {
-        return project.ItemsIgnoringCondition
-            .Where(item => item.ItemType == "Reference")
-            .Where(item => localProjects.Contains(item.EvaluatedInclude))
-            .ToList();
-    }
-
-    private static void HandleReference(Project project, ProjectItem reference, bool allowPrereleasePackages,
-        Parameters parameters)
-    {
-        var packageName = reference.EvaluatedInclude;
-
-        if (packageName.Contains(","))
-            throw new Exception($"Fix reference format for '{packageName}'.");
-
+        var packageName = AdjustPackageName(reference.EvaluatedInclude);
+        
         if (parameters.ReferencesToRemove.Contains(packageName, StringComparer.OrdinalIgnoreCase))
         {
-            Console.Out.WriteLine($"Removed cement reference to '{reference.EvaluatedInclude}'.");
+            Console.Out.WriteLine($"Removed project reference to '{reference.EvaluatedInclude}'.");
             project.RemoveItem(reference);
             return;
         }
 
-        var packageVersion = GetLatestNugetVersionWithCache(packageName, allowPrereleasePackages, parameters.SourceUrls);
-
-        if (packageVersion == null)
+        if (version == null)
         {
             if (parameters.MissingReferencesToRemove.Any(x => packageName.StartsWith(x)))
             {
-                Console.Out.WriteLine($"Removed cement reference to '{reference.EvaluatedInclude}'.");
+                Console.Out.WriteLine($"Removed project reference to '{reference.EvaluatedInclude}'.");
                 project.RemoveItem(reference);
                 return;
             }
+
 
             if (parameters.FailOnNotFoundPackage)
                 throw new Exception(
@@ -243,70 +179,24 @@ public static class Program
             return;
         }
 
-        Console.Out.WriteLine($"Latest version of NuGet package '{packageName}' is '{packageVersion}'");
-
         project.RemoveItem(reference);
 
-        Console.Out.WriteLine($"Removed cement reference to '{reference.EvaluatedInclude}'.");
+        Console.Out.WriteLine($"Removed project reference to '{reference.EvaluatedInclude}'.");
 
         project.AddItem("PackageReference", packageName, new[]
         {
-            new KeyValuePair<string, string>("Version", packageVersion.ToString())
+            new KeyValuePair<string, string>("Version", version)
         });
 
-        Console.Out.WriteLine($"Added package reference to '{packageName}' of version '{packageVersion}'.");
+        Console.Out.WriteLine($"Added package reference to '{packageName}' of version '{version}'.");
         Console.Out.WriteLine();
     }
 
-    private static NuGetVersion GetLatestNugetVersionWithCache(string package, bool includePrerelease, string[] sourceUrls)
+    private static string AdjustPackageName(string referenceEvaluatedInclude)
     {
-        if (NugetCache.TryGetValue((package, includePrerelease, sourceUrls), out var value))
-            return value;
-
-        var version = GetLatestNugetVersionDirect(package, includePrerelease, sourceUrls);
-
-        NugetCache.Add((package, includePrerelease, sourceUrls), version);
-
-        return version;
-    }
-
-    private static NuGetVersion GetLatestNugetVersionDirect(string package, bool includePrerelease, string[] sourceUrls)
-    {
-        foreach (var source in sourceUrls)
-        {
-            var latestVersion = GetLatestNugetVersion(package, includePrerelease, source);
-            if (latestVersion != null)
-            {
-                return latestVersion;
-            }
-        }
-
-        return null;
-    }
-
-    private static NuGetVersion GetLatestNugetVersion(string package, bool includePrerelease, string sourceUrl)
-    {
-        var providers = new List<Lazy<INuGetResourceProvider>>();
-
-        providers.AddRange(Repository.Provider.GetCoreV3());
-
-        var packageSource = new PackageSource(sourceUrl);
-
-        var sourceRepository = new SourceRepository(packageSource, providers);
-
-        var metadataResource = sourceRepository.GetResource<PackageMetadataResource>();
-
-        var versions = metadataResource.GetMetadataAsync(package, includePrerelease, false, new SourceCacheContext(),
-                new NullLogger(), CancellationToken.None)
-            .GetAwaiter()
-            .GetResult()
-            .Where(data => data.Identity.Id == package)
-            .Select(data => data.Identity.Version)
-            .ToArray();
-
-        return versions.Any()
-            ? versions.Max()
-            : null;
+        return referenceEvaluatedInclude.Split(new []{"\\", "/"}, StringSplitOptions.RemoveEmptyEntries)
+            .Last()
+            .Replace(".csproj", String.Empty);
     }
 
     private class Parameters
