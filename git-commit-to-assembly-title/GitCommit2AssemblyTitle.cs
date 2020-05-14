@@ -5,12 +5,17 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
+using Task = System.Threading.Tasks.Task;
+
+// ReSharper disable AccessToDisposedClosure
 
 namespace Vostok.Tools.GitCommit2AssemblyTitle
 {
-    public class GitCommit2AssemblyTitle : Task
+    public class GitCommit2AssemblyTitle : Microsoft.Build.Utilities.Task
     {
+        private static readonly TimeSpan CommandTimeout = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan StreamTimeout = TimeSpan.FromSeconds(5);
+
         public override bool Execute()
         {
             void LogMessageFunction(string str, object[] args) => Log.LogMessage(str, args);
@@ -121,55 +126,65 @@ namespace Vostok.Tools.GitCommit2AssemblyTitle
 
         private static string GetCommandOutput(string command, string args, LogMessageFunction log)
         {
-            var psi = new ProcessStartInfo
+            log(command + " " + args);
+
+            var startInfo = new ProcessStartInfo
             {
-                Arguments = args,
-                CreateNoWindow = true,
-                ErrorDialog = false,
                 FileName = command,
-                UseShellExecute = false,
+                Arguments = args,
                 WorkingDirectory = Directory.GetCurrentDirectory(),
+                UseShellExecute = false,
+                CreateNoWindow = true,
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
+                ErrorDialog = false,
+                WindowStyle = ProcessWindowStyle.Hidden,
             };
-            log(command + " " + args);
-            var output = new StringBuilder();
+            
+            var stdout = new StringBuilder();
+            var stderr = new StringBuilder();
+
             try
             {
-                var p = Process.Start(psi);
-                while (!p.HasExited)
+                using (var process = new Process {StartInfo = startInfo})
                 {
-                    if (!p.StandardOutput.EndOfStream || !p.StandardError.EndOfStream)
-                    {
-                        AppendOutput(p, output);
-                    }
-                    else
-                    {
-                        Thread.Sleep(200);
-                    }
+                    if (!process.Start())
+                        throw new Exception("Failed to start Git process.");
+
+                    var stdoutTask = Task.Run(() => ReadStreamAsync(process.StandardOutput, stdout));
+                    var stderrTask = Task.Run(() => ReadStreamAsync(process.StandardError, stderr));
+
+                    if (process.WaitForExit((int) CommandTimeout.TotalMilliseconds))
+                        process.WaitForExit();
+
+                    process.Kill();
+                    process.WaitForExit();
+
+                    log("exit code:" + process.ExitCode);
+
+                    stdoutTask.Wait(StreamTimeout);
+                    stderrTask.Wait(StreamTimeout);
+
+                    return stdout.Length > 0 ? stdout.ToString() : stderr.ToString();
                 }
-                AppendOutput(p, output);
-                log("exit code:" + p.ExitCode);
-                return output.ToString();
             }
-            catch (Exception)
+            catch (Exception error)
             {
+                log(error.Message);
+
                 return string.Empty;
             }
         }
 
-        private static void AppendOutput(Process p, StringBuilder output)
+        private static async Task ReadStreamAsync(StreamReader reader, StringBuilder buffer)
         {
-            if (!p.StandardOutput.EndOfStream)
+            while (!reader.EndOfStream)
             {
-                var str = p.StandardOutput.ReadToEnd();
-                output.Append(str);
-                Console.WriteLine(str);
-            }
-            if (!p.StandardError.EndOfStream)
-            {
-                var str = p.StandardError.ReadToEnd();
-                Console.WriteLine(str);
+                var line = await reader.ReadLineAsync().ConfigureAwait(false);
+
+                buffer.AppendLine(line);
+
+                Console.Out.WriteLine(line);
             }
         }
     }
