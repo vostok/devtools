@@ -97,8 +97,8 @@ namespace Vostok.Tools.GitCommit2AssemblyTitle
             const int attempts = 10;
             
             var random = new Random(Guid.NewGuid().GetHashCode());
-                
-            for (var i = 1; ; ++i)
+
+            for (var i = 1; i <= attempts; i++)
             {
                 try
                 {
@@ -119,7 +119,7 @@ namespace Vostok.Tools.GitCommit2AssemblyTitle
                         throw;
                     
                     log("Wait...");
-                    Thread.Sleep(random.Next(600, 1200));
+                    Thread.Sleep(random.Next(500, 1000));
                 }
             }
         }
