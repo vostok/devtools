@@ -95,7 +95,7 @@ namespace Vostok.Tools.GitCommit2AssemblyTitle
             log("{0} updated", assemblyTitleFileName);
 
             const int attempts = 10;
-            
+
             var random = new Random(Guid.NewGuid().GetHashCode());
 
             for (var i = 1; i <= attempts; i++)
@@ -114,10 +114,10 @@ namespace Vostok.Tools.GitCommit2AssemblyTitle
                 catch (IOException)
                 {
                     log($"File {assemblyTitleFileName} is locked.");
-                    
+
                     if (i == attempts)
                         throw;
-                    
+
                     log("Wait...");
                     Thread.Sleep(random.Next(500, 1000));
                 }
@@ -138,9 +138,9 @@ namespace Vostok.Tools.GitCommit2AssemblyTitle
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
                 ErrorDialog = false,
-                WindowStyle = ProcessWindowStyle.Hidden,
+                WindowStyle = ProcessWindowStyle.Hidden
             };
-            
+
             var stdout = new StringBuilder();
             var stderr = new StringBuilder();
 
@@ -154,11 +154,20 @@ namespace Vostok.Tools.GitCommit2AssemblyTitle
                     var stdoutTask = Task.Run(() => ReadStreamAsync(process.StandardOutput, stdout));
                     var stderrTask = Task.Run(() => ReadStreamAsync(process.StandardError, stderr));
 
-                    if (process.WaitForExit((int) CommandTimeout.TotalMilliseconds))
-                        process.WaitForExit();
+                    if (!process.WaitForExit((int) CommandTimeout.TotalMilliseconds))
+                    {
+                        try
+                        {
+                            process.Kill();
+                            log("process killed");
+                        }
+                        catch (Exception)
+                        {
+                            log("killing already exited process");
+                        }
 
-                    process.Kill();
-                    process.WaitForExit();
+                        process.WaitForExit();
+                    }
 
                     log("exit code:" + process.ExitCode);
 
