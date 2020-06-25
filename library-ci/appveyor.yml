@@ -242,6 +242,7 @@ after_test:
 
 artifacts:
   - path: '**\*.nupkg'
+  - path: '**\*.snupkg'
 
 
 # The purpose of this 'for' scope is to prevent deployment unless we are on Windows and need to deploy packages.
