@@ -272,12 +272,29 @@ public static class Program
 
     private static NuGetVersion GetLatestNugetVersionDirect(string package, bool includePrerelease, string[] sourceUrls)
     {
-        foreach (var source in sourceUrls)
+        const int attempts = 3;
+
+        for (int attempt = 1; attempt <= attempts; attempt++)
         {
-            var latestVersion = GetLatestNugetVersion(package, includePrerelease, source);
-            if (latestVersion != null)
+            try
             {
-                return latestVersion;
+                foreach (var source in sourceUrls)
+                {
+                    var latestVersion = GetLatestNugetVersion(package, includePrerelease, source);
+                    if (latestVersion != null)
+                    {
+                        return latestVersion;
+                    }
+                }
+
+                return null;
+            }
+            catch (Exception error)
+            {
+                if (attempt == attempts)
+                    throw;
+
+                Console.Out.WriteLine($"Failed to fetch version of package '{package}'. Attempt = {attempt}. Error = {error}.");
             }
         }
 
