@@ -46,7 +46,7 @@ public static class Program
         Console.Out.WriteLine($"Found projects in solution {solutionName}: {Environment.NewLine}\t{string.Join(Environment.NewLine + "\t", solution.ProjectsInOrder.Select(project => project.AbsolutePath))}");
         Console.Out.WriteLine();
 
-        var projectInSolution = solution.ProjectsInOrder.Single(x => !x.ProjectName.EndsWith(".Tests"));
+        var projectInSolution = solution.ProjectsInOrder.Single(x => !x.ProjectName.EndsWith(".Tests") && !x.ProjectName.EndsWith(".Benchmark"));
         
         HandleProject(projectInSolution);
     }
