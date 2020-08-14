@@ -1,2 +1,1 @@
-dotnet tool uninstall -g tcscreateoptions
-dotnet tool install --add-source nupkg -g tcscreateoptions
+dotnet tool update --add-source nupkg -g tcscreateoptions

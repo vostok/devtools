@@ -1,2 +1,1 @@
-dotnet tool uninstall -g configureawaitfalse
-dotnet tool install --add-source nupkg -g configureawaitfalse
+dotnet tool update --add-source nupkg -g configureawaitfalse

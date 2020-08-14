@@ -1,2 +1,1 @@
-dotnet tool uninstall -g dotnetcementrefs
-dotnet tool install --add-source nupkg -g dotnetcementrefs
+dotnet tool update --add-source nupkg -g dotnetcementrefs
