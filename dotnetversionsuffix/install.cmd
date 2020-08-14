@@ -1,2 +1,1 @@
-dotnet tool uninstall -g dotnetversionsuffix
-dotnet tool install --add-source nupkg -g dotnetversionsuffix
+dotnet tool update --add-source nupkg -g dotnetversionsuffix
