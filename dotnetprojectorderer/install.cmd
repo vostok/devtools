@@ -1,2 +1,1 @@
-dotnet tool uninstall -g dotnetprojectorderer
-dotnet tool install --add-source nupkg -g dotnetprojectorderer
+dotnet tool update --add-source nupkg -g dotnetprojectorderer
