@@ -26,7 +26,10 @@ namespace launchpad
                     if (string.IsNullOrEmpty(current))
                         mainParameters.Add(argument);
                     else
+                    {
                         namedParameters[current].Add(argument);
+                        current = string.Empty;
+                    }
                 }
             }
         }
