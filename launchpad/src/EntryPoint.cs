@@ -45,7 +45,7 @@ namespace launchpad
                 case "new":
                     if (parameters.MainParametersCount == 2)
                     {
-                        HandleNewCommand(parameters.GetMainValue(1));
+                        HandleNewCommand(parameters);
                         return;
                     }
                     break;
@@ -65,8 +65,9 @@ namespace launchpad
             }
         }
 
-        private static void HandleNewCommand(string templateName)
+        private static void HandleNewCommand(ConsoleParameters parameters)
         {
+            var templateName = parameters.GetMainValue(1);
             var config = new LaunchpadConfigProvider().GetConfig();
 
             var packageName = GetPackageNameOrNull(templateName, config);
@@ -81,8 +82,9 @@ namespace launchpad
                 var specProvider = new LaunchpadSpecProvider();
                 var variablesFiller = new VariableFiller();
                 var templateProcessor = new TemplateProcessor();
+                var nugetSources = GetNugetSources(parameters, config);
 
-                packageFetcher.Fetch(packageName, config.NugetSources, tempDirectory.FullPath);
+                packageFetcher.Fetch(packageName, nugetSources, tempDirectory.FullPath);
 
                 var templateSpec = specProvider.ProvideFrom(tempDirectory.FullPath);
                 var variables = variablesFiller.FillVariables(templateSpec.Variables);
@@ -96,6 +98,16 @@ namespace launchpad
 
             Console.Out.WriteLine();
             Console.Out.WriteLine("Done!");
+        }
+
+        private static string[] GetNugetSources(ConsoleParameters parameters, LaunchpadConfig config)
+        {
+            const string sourceParameter = "--source";
+
+            if (!parameters.HasParameterWithValue(sourceParameter))
+                return config.NugetSources;
+
+            return parameters.GetValues(sourceParameter).ToArray();
         }
 
         private static string GetPackageNameOrNull(string templateName, LaunchpadConfig config)
