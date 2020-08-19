@@ -50,8 +50,25 @@ namespace launchpad
 
         private async Task<(bool IsSuccessful, PackageIdentity Id)> DownloadPackageAsync(string packageName, string source, string targetDirectory)
         {
-            var resource = GetFindPackageByIdResource(source);
+            var resources = GetFindPackageByIdResource(source);
 
+            foreach (var resource in resources)
+            {
+                try
+                {
+                    return await DownloadPackageAsync(packageName, resource, targetDirectory);
+                }
+                catch (Exception)
+                {
+                    await Console.Out.WriteLineAsync($"Error was ocurred while downloading package. Will try next source if available.");
+                }
+            }
+
+            throw new Exception($"Package with name '{packageName}' not found");
+        }
+
+        private async Task<(bool IsSuccessful, PackageIdentity Id)> DownloadPackageAsync(string packageName, FindPackageByIdResource resource, string targetDirectory)
+        {
             var versions = (await resource.GetAllVersionsAsync(packageName, new NullSourceCacheContext(), logger, CancellationToken.None)).ToArray();
             if (versions.Length == 0)
             {
@@ -60,7 +77,7 @@ namespace launchpad
 
             var highestVersion = versions.Max();
             var packageId = new PackageIdentity(packageName, highestVersion);
-  
+
             var client = await resource.GetPackageDownloaderAsync(packageId, new SourceCacheContext(), logger, CancellationToken.None);
 
             var packageFileDestination = Path.Combine(targetDirectory, $"{packageId}.nupkg");
@@ -71,24 +88,30 @@ namespace launchpad
             return (await client.CopyNupkgFileToAsync(packageFileDestination, CancellationToken.None), packageId);
         }
 
-        private FindPackageByIdResource GetFindPackageByIdResource(string source)
+        private FindPackageByIdResource[] GetFindPackageByIdResource(string source)
         {
-            if (source.Contains("api/v2"))
-            {
-                var repository = factory.GetCoreV2(new PackageSource(source));
-                return new RemoteV2FindPackageByIdResource(repository.PackageSource, HttpSource.Create(repository));
-            }
-            else
-            {
-                var repository = factory.GetCoreV3(source);
-                return new RemoteV3FindPackageByIdResource(repository, HttpSource.Create(repository));
-            }
+            if (source.Contains("api/v2")) return new[] {GetV2Resource(source)};
+            if (source.Contains("api/v3")) return new[] {GetV3Resource(source)};
+
+            return new[] {GetV2Resource(source), GetV3Resource(source)};
+        }
+
+        private FindPackageByIdResource GetV2Resource(string source)
+        {
+            var repository = factory.GetCoreV2(new PackageSource(source));
+            return new RemoteV2FindPackageByIdResource(repository.PackageSource, HttpSource.Create(repository));
+        }
+
+        private FindPackageByIdResource GetV3Resource(string source)
+        {
+            var repository = factory.GetCoreV3(source);
+            return new RemoteV3FindPackageByIdResource(repository, HttpSource.Create(repository));
         }
 
         private void UnpackPackage(string extractDirectory, string packagePath)
         {
             using (var reader = new PackageArchiveReader(packagePath))
-            { 
+            {
                 var files = reader.GetFiles().Where(f => f.StartsWith(ContentFiles));
 
                 foreach (var file in files)

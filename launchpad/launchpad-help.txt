@@ -1,11 +1,13 @@
 Commands:
 
-launchpad new <template-name>
+launchpad new <template-name> [--source <nuget-source>]
 	Bootstraps a project from given template in current directory.
 	Prompts user interactively for variable values.
 	There are several ways to specify template:
 		1. Short name. Use 'list' command to view all templates with short names configured.
-		2. Nuget package id. Example: 'nuget::Vostok.Launchpad.Templates.Library'
+		2. Nuget package id. Example: 'nuget::Vostok.Launchpad.Templates.Library'.
+    Options:
+        --source <nuget-source> - allow user to specify nuget sources for command execution.
 
 launchpad process
 	Processes all files in current directory assuming that it contains an unpacked template.
