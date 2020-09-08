@@ -8,3 +8,4 @@ Usage:
  2. Run `vostok-release` in solution directory. It will do several things:
     * new tag with current release version will be created and pushed,
     * VersionPrefix in csproj will be incremented, commited and pushed,
+    * new package will be pushed to Nuget
