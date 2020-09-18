@@ -40,7 +40,7 @@ public static class Program
         }
 
         foreach (var subDirectory in directory.EnumerateDirectories())
-            Check(subDirectory);
+            failedResults += Check(subDirectory);
 
         return failedResults;
     }
