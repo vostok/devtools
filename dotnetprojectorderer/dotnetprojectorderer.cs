@@ -60,9 +60,13 @@ public static class Program
         var graph = new Dictionary<string, string[]>();
         foreach (var solutionProject in projects)
         {
-            graph[solutionProject.AbsolutePath] = GetDependencyProjects(solutionProject)
-                .Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(solutionProject.AbsolutePath), x)))
-                .ToArray();
+            var referencedProjects = GetReferencedProjects(solutionProject)
+                .Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(solutionProject.AbsolutePath), x)));
+
+            var dependenciesAsProjectNames = solutionProject.Dependencies.Select(d => solution.ProjectsByGuid[d].RelativePath)
+                .Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(solutionFile), x)));
+            
+            graph[solutionProject.AbsolutePath] = referencedProjects.Concat(dependenciesAsProjectNames).Distinct().ToArray();
         }
 
         var sorted = SortTopological(graph);
@@ -120,7 +124,7 @@ public static class Program
         }
     }
 
-    private static string[] GetDependencyProjects(ProjectInSolution solutionProject)
+    private static string[] GetReferencedProjects(ProjectInSolution solutionProject)
     {
         if (!File.Exists(solutionProject.AbsolutePath))
         {
