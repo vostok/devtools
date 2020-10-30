@@ -135,7 +135,7 @@ public static class Program
             $"Found references in {solutionProject.ProjectName}: {Environment.NewLine}\t{string.Join(Environment.NewLine + "\t", references.Select(item => item.EvaluatedInclude))}");
         Console.Out.WriteLine();
 
-        var allowPrereleasePackagesForAll = HasPrereleaseVersionSuffix(project, out var versionSuffix);
+        var allowPrereleasePackagesForAll = HasPrereleaseVersionSuffix(project, out var versionSuffix) || parameters.AllowPrereleasePackages;
         if (allowPrereleasePackagesForAll)
         {
             Console.Out.WriteLine(
@@ -336,6 +336,7 @@ public static class Program
         public string[] ReferencesToRemove { get; }
         public bool FailOnNotFoundPackage { get; }
         public bool AllowLocalProjects { get; }
+        public bool AllowPrereleasePackages { get; }
 
         public Parameters(string[] args)
         {
@@ -349,6 +350,7 @@ public static class Program
             FailOnNotFoundPackage = !args.Contains("--ignoreMissingPackages");
             SolutionConfiguration = GetArgsByKey(args, "--solutionConfiguration:").FirstOrDefault() ?? "Release";
             AllowLocalProjects = args.Contains("--allowLocalProjects");
+            AllowPrereleasePackages = args.Contains("--allowPrereleasePackages");
         }
     }
 }
