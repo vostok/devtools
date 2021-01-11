@@ -1,5 +1,5 @@
 image:
-  # - Ubuntu
+  - Ubuntu
   - Visual Studio 2019
 
 
@@ -185,18 +185,13 @@ build_script:
         if ($LASTEXITCODE -ne 0) { throw "Failed to convert Cement references to package references." }
       }
 
-  - ps: |
-
-      if (-Not (Test-Path -Path "../.need-to-deploy")) {
-        if ($IsLinux) {
-            mono ~/bin/dotnet/cm.exe build-deps
-        }
-        else {
-            cm build-deps
-        }
-        
-        if ($LASTEXITCODE -ne 0) { throw "Failed to build-deps." }
-      }
+  - sh: |
+      if [ ! -f ../.need-to-deploy ];
+      then
+      mono ~/bin/dotnet/cm.exe build-deps
+      fi
+    
+  - cmd: if not exist "../.need-to-deploy" cm build-deps
 
 
   - dotnet restore
