@@ -130,7 +130,7 @@ public static class Program
 
         foreach (var reference in references)
         {
-            HandleProjectReference(project, reference, version.EvaluatedValue, parameters);
+            HandleProjectReference(project, reference, version?.EvaluatedValue, parameters);
         }
 
         project.Save();
@@ -155,7 +155,16 @@ public static class Program
     private static void HandleProjectReference(Project project, ProjectItem reference, string version, Parameters parameters)
     {
         var packageName = AdjustPackageName(reference.EvaluatedInclude);
-        
+
+        //note skip project-to project dependencies without dll reference
+        if (reference.Metadata.Any(x =>
+            x.Name == "ReferenceOutputAssembly" &&
+            string.Equals(x.EvaluatedValue, "false", StringComparison.OrdinalIgnoreCase)))
+        {
+            Console.Out.WriteLine($"Skip dependency reference to '{reference.EvaluatedInclude}'.");
+            return;
+        }
+
         if (parameters.ReferencesToRemove.Contains(packageName, StringComparer.OrdinalIgnoreCase))
         {
             Console.Out.WriteLine($"Removed project reference to '{reference.EvaluatedInclude}'.");
