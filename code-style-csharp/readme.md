@@ -35,8 +35,6 @@ Currently, our code style enforces the following file layout:
 
     - static properties
 
-    - static methods
-
     - properties
 
     - methods
