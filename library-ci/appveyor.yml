@@ -214,13 +214,7 @@ test_script:
         Pop-Location
         
         # Run 'dotnet test' command there:
-        # Note: This is made in order to deploy libs with flapping ubuntu tests. (18.02.2021)
-        if ($isLinux -and $needToPublishRelease){ 
-          dotnet test -c Release --test-adapter-path:. --logger "AppVeyor" "$testProjectFolder" ; $LASTEXITCODE = 0
-        }
-        else {
-          dotnet test -c Release --test-adapter-path:. --logger "AppVeyor" "$testProjectFolder"
-        }
+        dotnet test -c Release --test-adapter-path:. --logger "AppVeyor" "$testProjectFolder"
         
         # Fail build if there were any failed tests:
         if ($LASTEXITCODE -ne 0) { throw "There were some failed tests." }
@@ -264,10 +258,10 @@ for:
       name: nuget-org
 
 
-notifications:
-  - provider: Slack
-    incoming_webhook:
-      secure: ZK5UUIckrg0IC/TbkGc4zNt7WGd2DEbMzDsxxlp3lo+z+rXafaC8AHp2H60JhHRvTMpHQsbQqGF03PQW8KgqJJg3yDUt5ODCmaz1BXZxQeg=
-    on_build_success: false
-    on_build_failure: true
-    on_build_status_changed: false
+# notifications:
+#   - provider: Slack
+#     incoming_webhook:
+#       secure: ZK5UUIckrg0IC/TbkGc4zNt7WGd2DEbMzDsxxlp3lo+z+rXafaC8AHp2H60JhHRvTMpHQsbQqGF03PQW8KgqJJg3yDUt5ODCmaz1BXZxQeg=
+#     on_build_success: false
+#     on_build_failure: true
+#     on_build_status_changed: false
