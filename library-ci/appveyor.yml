@@ -216,7 +216,7 @@ test_script:
         
         # Run 'dotnet test' command there:
         # Note: Some libraries have known issues on Linux. We don't want these libraries to fail our release. (tsup, 28.06.2021)
-        if ($isLinux -and $needToPublishRelease -and (
+        if ($isLinux -and (
             $env:APPVEYOR_REPO_NAME -like '*servicediscovery*' -or
             $env:APPVEYOR_REPO_NAME -like '*zookeeper*' -or
             $env:APPVEYOR_REPO_NAME -like '*hercules.client*')){ 
