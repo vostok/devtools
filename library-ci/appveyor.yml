@@ -218,8 +218,7 @@ test_script:
         # Note: Some libraries have known issues on Linux. We don't want these libraries to fail our release. (tsup, 28.06.2021)
         if ($isLinux -and $needToPublishRelease -and (
             $env:APPVEYOR_REPO_NAME -like '*servicediscovery*' -or
-            $env:APPVEYOR_REPO_NAME -like '*zookeeper*' -or
-            $env:APPVEYOR_REPO_NAME -like '*hercules.client*')){ 
+            $env:APPVEYOR_REPO_NAME -like '*zookeeper*')){ 
           dotnet test -c Release --test-adapter-path:. --logger "AppVeyor" "$testProjectFolder" ; $LASTEXITCODE = 0
         }
         else {
