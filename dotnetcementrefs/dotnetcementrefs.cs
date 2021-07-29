@@ -342,8 +342,7 @@ public static class Program
         {
             var positionalArgs = args.Where(x => !x.StartsWith("-")).ToArray();
             WorkingDirectory = positionalArgs.Length > 0 ? positionalArgs[0] : Environment.CurrentDirectory;
-            SourceUrls = new[] {"https://nexus.kontur.host/repository/nuget/index.json"}.Concat(GetArgsByKey(args, "--source:"))
-                .ToArray();
+            SourceUrls = GetArgsByKey(args, "--source:").ToArray();
             CementReferencePrefixes = new[] {"Vostok."}.Concat(GetArgsByKey(args, "--refPrefix:")).ToArray();
             MissingReferencesToRemove = GetArgsByKey(args, "--removeMissing:").ToArray();
             ReferencesToRemove = GetArgsByKey(args, "--remove:").ToArray();

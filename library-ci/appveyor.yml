@@ -181,7 +181,7 @@ build_script:
       # Patch Cement references in projects and convert them to NuGet package references if we are to deploy later: 
       if (Test-Path -Path "../.need-to-deploy") {
         
-        dotnetcementrefs
+        dotnetcementrefs --source:https://api.nuget.org/v3/index.json
 
         if ($LASTEXITCODE -ne 0) { throw "Failed to convert Cement references to package references." }
       }
