@@ -14,7 +14,11 @@ public static class Program
 
     public static void Main(string[] args)
     {
-        var failedResults = args.Select(arg => new DirectoryInfo(arg)).Select(Check).Sum();
+        var failedResults = args.Select(arg => new DirectoryInfo(arg)).Select(info =>
+        {
+            Console.Out.WriteLine($"Checking '{info.FullName}'..");
+            return Check(info);
+        }).Sum();
         if (failedResults > 0)
             throw new Exception($"{failedResults} await(s) without 'ConfigureAwait(false)' were found.");
     }
@@ -32,7 +36,7 @@ public static class Program
             {
                 if (!result.HasConfigureAwaitFalse)
                 {
-                    Console.Out.WriteLine("Error: missing 'ConfigureAwait(false)' in file '{0}' at line {1}.", file.Name, result.Location.GetMappedLineSpan().StartLinePosition.Line);
+                    Console.Out.WriteLine($"Error: missing 'ConfigureAwait(false)' in file '{file.Name}' at line {result.Location.GetMappedLineSpan().StartLinePosition.Line}.");
 
                     failedResults++;
                 }
