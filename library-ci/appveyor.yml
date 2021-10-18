@@ -19,6 +19,8 @@ environment:
     - producePackages: false
     - producePackages: true
 
+# This line affects only Linux images. To set 'Java 11' on Windows we have to patch JAVA_HOME below.
+stack: jdk 11
 
 init:
   - sh: curl -sflL 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-ssh.sh' | bash -e -
@@ -83,6 +85,12 @@ install:
   # Make Cement easily callable by typing 'cm':
   - sh: alias cm='mono ~/bin/dotnet/cm.exe'
   - cmd: set PATH=%USERPROFILE%\bin\dotnet;%PATH%
+  
+  # Patch JAVA_HOME to actual version. See paths here: https://www.appveyor.com/docs/windows-images-software/#java
+  # On Linux we use 'stack'. See it above.
+  - cmd: | 
+      set JAVA_HOME=C:\Progra~1\Java\jdk11
+      set PATH=%JAVA_HOME%\bin;%PATH%
 
   # Update Cement to latest version and display it (iloktionov: temporarily disabled it on Jan. 9, 2019 due to instability):
   # - cm self-update
