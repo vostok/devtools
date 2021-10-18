@@ -43,6 +43,7 @@
     <None Include="..\module.yaml" Link = "Auxiliary\module.yaml"/>
     <None Include="..\CHANGELOG.md" Link = "Auxiliary\changelog.md"/>
     <None Include="..\README.md" Link = "Auxiliary\readme.md"/>
+    <None Include="..\.github\workflows\ci.yml" Link = "Auxiliary\ci.yml"/>
   </ItemGroup>
 
   <Target Name="ReadReleaseNotesFromFile" BeforeTargets="BeforeBuild">
