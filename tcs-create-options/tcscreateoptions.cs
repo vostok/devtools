@@ -20,6 +20,8 @@ public static class Program
         {
             if (!directory.Exists)
                 continue;
+            
+            Console.Out.WriteLine($"Checking '{directory.FullName}'..");
 
             foreach (var file in directory.EnumerateFiles("*.cs", SearchOption.AllDirectories))
             {
