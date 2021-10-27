@@ -29,11 +29,6 @@ Note that repository name should not start with `vostok` prefix (it comes from o
 
 * Ensure that created project builds with a `dotnet build` command and push it to `master` branch.
 
-* Setup CI on AppVeyor:
-  * Login to [AppVeyor](https://ci.appveyor.com/projects) via GitHub (select 'vostok' from available accounts).
-  * Create a new project and select corresponding GitHub repository for it.
-  * Go to project settings and adjust the following ones in the General tab:
-    * Set `appveyor.yml` location to https://raw.githubusercontent.com/vostok/devtools/master/library-ci/appveyor.yml
-    * Enable secure variables in pull requests
-    * Add comma-separated tags (like 'logging' or 'configuration')
-  * Start a new build and see if it succeeds.
+* Setup CI on GitHub:
+  * Copy and workflow from https://github.com/vostok/applications.aspnetcore/blob/master/.github/workflows/ci.yml
+  * Check and fill testing frameworks & platforms
