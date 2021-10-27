@@ -30,7 +30,7 @@ Note that repository name should not start with `vostok` prefix (it comes from o
 * Ensure that created project builds with a `dotnet build` command
 
 * Setup CI on GitHub:
-  * Copy and workflow from https://github.com/vostok/applications.aspnetcore/blob/master/.github/workflows/ci.yml
+  * Copy and workflow from [hosting](https://github.com/vostok/hosting/blob/master/.github/workflows/ci.yml) module
   * Check and fill testing frameworks & platforms
 
 * Push repository to `master` branch.
