@@ -8,6 +8,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Configurations>Debug;Release;Publish</Configurations>
     <LangVersion>7.2</LangVersion>
+    <NoWarn>NETSDK1138</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>
