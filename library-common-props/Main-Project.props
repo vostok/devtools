@@ -32,7 +32,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <NoWarn>1701;1702;1591;1573</NoWarn>
+    <NoWarn>1701;1702;1591;1573;NETSDK1138</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
