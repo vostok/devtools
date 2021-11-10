@@ -2,11 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <OutputPath>bin\</OutputPath>
     <IntermediateOutputPath>obj\</IntermediateOutputPath>
+    <NoWarn>NETSDK1138</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

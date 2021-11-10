@@ -20,7 +20,8 @@
     <PackAsTool>true</PackAsTool>
     <PackageId>Vostok.Launchpad</PackageId>
     <PackageOutputPath>$(SolutionDir)\nupkg</PackageOutputPath>
-
+    
+    <NoWarn>NETSDK1138</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>
