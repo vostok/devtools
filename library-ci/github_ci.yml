@@ -9,7 +9,7 @@ jobs:
   test:
     needs: build
     uses: vostok/github.ci/.github/workflows/test.yml@master
-           
+
   publish:
     needs: test
     uses: vostok/github.ci/.github/workflows/publish.yml@master
