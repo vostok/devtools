@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <ReferencesFramework>netstandard2.0</ReferencesFramework>
   </PropertyGroup>
 
   <PropertyGroup>
