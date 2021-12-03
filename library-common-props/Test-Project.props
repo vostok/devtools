@@ -1,9 +1,8 @@
 <Project>
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;netcoreapp2.1;net471</TargetFrameworks>
-    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">net6.0;netcoreapp2.1</TargetFrameworks>
-    <ReferencesFramework>netstandard2.0</ReferencesFramework>
+    <TargetFrameworks>net6.0</TargetFrameworks>
+    <ReferencesFramework>net6.0</ReferencesFramework>
   </PropertyGroup>
 
   <PropertyGroup>
