@@ -1,4 +1,4 @@
-name: Merge master to net6.0 branches
+name: Merge master
 
 on:
   push:
