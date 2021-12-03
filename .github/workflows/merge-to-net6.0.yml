@@ -1,0 +1,26 @@
+name: Merge master to net6.0 branches
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  merge-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Merge master -> with-net6.0
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          target_branch: with-net6.0
+          github_token: ${{ github.token }}
+
+      - name: Merge master -> only-net6.0
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          target_branch: only-net6.0
+          github_token: ${{ github.token }}
