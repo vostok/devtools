@@ -1,8 +1,9 @@
 <Project>
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
     <ReferencesFramework>netstandard2.0</ReferencesFramework>
+    <ReferencesFramework Condition="'$(TargetFramework)' == 'net6.0'">net6.0</ReferencesFramework>
   </PropertyGroup>
 
   <PropertyGroup>
