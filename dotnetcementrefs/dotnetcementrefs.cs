@@ -127,7 +127,7 @@ public static class Program
 
         if (parameters.EnsureMultitargeted)
         {
-            var singleTargeted = references.Select(r => r.DirectMetadata.Single().UnevaluatedValue).Where(r => !r.Contains("$(ReferencesFramework)")).ToArray();
+            var singleTargeted = references.Select(r => r.DirectMetadata.Single(m => m.Name == "HintPath").UnevaluatedValue).Where(r => !r.Contains("$(ReferencesFramework)")).ToArray();
             if (singleTargeted.Any())
             {
                 throw new Exception("All cement references should support multitargeting and contain $(ReferencesFramework). But "
