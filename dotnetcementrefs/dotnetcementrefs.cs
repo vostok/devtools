@@ -125,6 +125,16 @@ public static class Program
             references.AddRange(FindLocalProjectReferences(project, allProjectsInSolution));
         }
 
+        if (parameters.EnsureMultitargeted)
+        {
+            var singleTargeted = references.Select(r => r.DirectMetadata.Single().UnevaluatedValue).Where(r => !r.Contains("$(ReferencesFramework)")).ToArray();
+            if (singleTargeted.Any())
+            {
+                throw new Exception("All cement references should support multitargeting and contain $(ReferencesFramework). But "
+                    + string.Join(",", singleTargeted) + "don't.");
+            }
+        }
+        
         if (!references.Any())
         {
             Console.Out.WriteLine($"No references found in project {solutionProject.ProjectName}.");
@@ -337,6 +347,7 @@ public static class Program
         public bool FailOnNotFoundPackage { get; }
         public bool AllowLocalProjects { get; }
         public bool AllowPrereleasePackages { get; }
+        public bool EnsureMultitargeted { get; }
 
         public Parameters(string[] args)
         {
@@ -350,6 +361,7 @@ public static class Program
             SolutionConfiguration = GetArgsByKey(args, "--solutionConfiguration:").FirstOrDefault() ?? "Release";
             AllowLocalProjects = args.Contains("--allowLocalProjects");
             AllowPrereleasePackages = args.Contains("--allowPrereleasePackages");
+            EnsureMultitargeted = args.Contains("--ensureMultitargeted");
         }
     }
 }
