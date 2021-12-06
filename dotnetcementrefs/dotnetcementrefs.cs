@@ -131,7 +131,7 @@ public static class Program
             if (singleTargeted.Any())
             {
                 throw new Exception("All cement references should support multitargeting and contain $(ReferencesFramework). But "
-                    + string.Join(",", singleTargeted) + "don't.");
+                    + string.Join(",", singleTargeted) + " don't.");
             }
         }
         
