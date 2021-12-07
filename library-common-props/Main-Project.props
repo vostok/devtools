@@ -48,18 +48,12 @@
   <ItemGroup>
     <None Include="..\module.yaml" Link = "Auxiliary\module.yaml"/>
     <None Include="..\CHANGELOG.md" Link = "Auxiliary\changelog.md"/>
-    <None Include="..\README.md" Link = "Auxiliary\readme.md"/>
+    <None Include="..\README.md" Link = "Auxiliary\readme.md" Pack="true" PackagePath="\"/>
     <None Include="..\.github\workflows\ci.yml" Link = "Auxiliary\ci.yml"/>
   </ItemGroup>
 
-  <Target Name="ReadReleaseNotesFromFile" BeforeTargets="BeforeBuild">
-    <ReadLinesFromFile File="../CHANGELOG.md">
-      <Output TaskParameter="Lines" ItemName="ReleaseNotesFromFile" />
-    </ReadLinesFromFile>
-  </Target>
-
-  <PropertyGroup>
-    <PackageReleaseNotes>@(ReleaseNotesFromFile, '%0a%0d')</PackageReleaseNotes>
+  <PropertyGroup>    
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
 </Project>
