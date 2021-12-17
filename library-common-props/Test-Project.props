@@ -5,6 +5,7 @@
     <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">net6.0;netcoreapp2.1</TargetFrameworks>
     <ReferencesFramework>netstandard2.0</ReferencesFramework>
     <ReferencesFramework Condition="'$(TargetFramework)' == 'net6.0'">net6.0</ReferencesFramework>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup>
