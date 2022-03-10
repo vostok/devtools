@@ -259,13 +259,23 @@ public static class Program
 
         Console.Out.WriteLine($"Removed cement reference to '{reference.EvaluatedInclude}'.");
 
-        project.AddItem("PackageReference", packageName, new[]
-        {
-            new KeyValuePair<string, string>("Version", packageVersion.ToString())
-        });
+        var metadata = ConstructMetadata(reference, parameters, packageVersion);
+        project.AddItem("PackageReference", packageName, metadata);
 
         Console.Out.WriteLine($"Added package reference to '{packageName}' of version '{packageVersion}'.");
         Console.Out.WriteLine();
+    }
+
+    private static IEnumerable<KeyValuePair<string, string>> ConstructMetadata(ProjectItem reference, Parameters parameters, NuGetVersion packageVersion)
+    {
+        var metadata = new List<KeyValuePair<string, string>>
+        {
+            new("Version", packageVersion.ToString())
+        };
+        var privateAssets = reference.GetMetadataValue("PrivateAssets");
+        if (parameters.CopyPrivateAssetsMetadata && !string.IsNullOrEmpty(privateAssets))
+            metadata.Add(new KeyValuePair<string, string>("PrivateAssets", privateAssets));
+        return metadata;
     }
 
     private static NuGetVersion GetLatestNugetVersionWithCache(string package, bool includePrerelease, string[] sourceUrls)
@@ -348,6 +358,7 @@ public static class Program
         public bool AllowLocalProjects { get; }
         public bool AllowPrereleasePackages { get; }
         public bool EnsureMultitargeted { get; }
+        public bool CopyPrivateAssetsMetadata { get; }
 
         public Parameters(string[] args)
         {
@@ -362,6 +373,7 @@ public static class Program
             AllowLocalProjects = args.Contains("--allowLocalProjects");
             AllowPrereleasePackages = args.Contains("--allowPrereleasePackages");
             EnsureMultitargeted = args.Contains("--ensureMultitargeted");
+            CopyPrivateAssetsMetadata = args.Contains("--copyPrivateAssets");
         }
     }
 }
