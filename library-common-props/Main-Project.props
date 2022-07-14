@@ -18,6 +18,13 @@
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4-beta1.22310.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
   <PropertyGroup>
     <FileVersion>$(Version)</FileVersion>
     <AssemblyVersion>$(Version)</AssemblyVersion>
@@ -39,6 +46,7 @@
 
   <PropertyGroup>
     <NoWarn>1701;1702;1591;1573;NETSDK1138;NU5125;NU5048</NoWarn>
+    <WarningsAsErrors Condition="Exists('PublicAPI.Shipped.txt')">RS0016,RS0017</WarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
