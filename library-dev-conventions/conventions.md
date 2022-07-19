@@ -76,6 +76,7 @@ Most of the project-related requirements are automatically met when using a [Lau
 * Should target `netstandard2.0`.
 * Should generate xml-docs file during build.
 * Should include Git commit info in assembly attributes using [git-commit-to-assembly-title](https://github.com/vostok/devtools/tree/master/git-commit-to-assembly-title) target from `vostok.devtools` module.
+* Should include common props in assembly attributes using [Main-Project.props](https://github.com/vostok/devtools/blob/master/library-common-props/Main-Project.props).
 
 ##### Versioning
 * Version in `.csproj` should be split into `VersionPrefix` and `VersionSuffix`.
@@ -142,8 +143,9 @@ Initial prerelease.
 #### Tests project
 
 ##### Common
-* Should target `net471` and `netcoreapp2.1` on Windows and just `netcoreapp2.1` on Linux.
+* Should target all contemporary .NET runtimes.
 * Should include Git commit info in assembly attributes using [git-commit-to-assembly-title](https://github.com/vostok/devtools/tree/master/git-commit-to-assembly-title) target from `vostok.devtools` module.
+* Should include common props in assembly attributes using [Test-Project.props](https://github.com/vostok/devtools/blob/master/library-common-props/Test-Project.props).
 
 ##### Packaging
 * Should not be able to produce packages: `<IsPackable>false</IsPackable>`
@@ -266,21 +268,20 @@ Initial prerelease.
 
 
 ### Continuous integration
-* CI happens in [AppVeyor](https://ci.appveyor.com/projects).
+* CI happens in [Github Actions](https://github.com/features/actions).
 
-* AppVeyor configuration is maintained in an [appveyor.yml](../library-ci/appveyor.yml) file in `vostok.devtools` module.
+* Github Actions configuration is maintained in an [github_ci.yml](../library-ci/github_ci.yml) file in `vostok.devtools` module and in `vostok.github.ci` module.
 
 * Builds and tests are run in a variety of conditions:
 	* On two different operating systems: Windows and Ubuntu
 	* With two different dependency resolution mechanisms:
 		* From latest sources in Cement.
-		* From latest versions of NuGet packages (only when publishing a package).
-	* Ubuntu builds are skipped for repositories that contain "windows" in their names.
-	* This leads to either 1, 2 or 4 configurations (depending on platform and whether to publish packages).
+		* From latest versions of NuGet packages.
+	* Modules can override some parameters (i.e. Windows specific modules won't try to launch tests on Ubuntu).
 
 * Tests are executed using all available runtimes:
-	* .NET Core and .NET Framework on Windows
-	* .NET Core on Ubuntu
+	* .NET, .NET Core and .NET Framework on Windows
+	* .NET, .NET Core on Ubuntu
 
 * If the build process fails or some tests turn red in any of these configurations, the run is considered failed and no packages can be published.
 
@@ -288,16 +289,13 @@ Initial prerelease.
 
 * When publishing a *prerelease* version of NuGet package, all cement dependencies are substituted with references to latest versions (*including unstable*) of corresponding NuGet packages before build and testing.
 
-* A notification to a special Slack channel is sent every time a package is successfully published.
-
-* A notification to a special Slack channel is sent every time a build on `master` branch or a tagged commit fails.
-
+* A notification to the user which triggered the process is sent in case of failure of CI.
 
 <br/>
 
 
 ### Change log
-
+* 19.07.2022: removed appveyor mentions, added github actions description, added Main.Props description
 * 07.11.2018: added a suggestion about xml-docs for ctors
 * 10.09.2018: take package release notes from CHANGELOG.md file
 * 05.09.2018: added a reminder about .ConfigureAwait(false)
