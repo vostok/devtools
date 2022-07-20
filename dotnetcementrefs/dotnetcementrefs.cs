@@ -262,15 +262,19 @@ public static class Program
         var metadata = ConstructMetadata(reference, parameters, packageVersion);
         project.AddItem("PackageReference", packageName, metadata);
 
-        Console.Out.WriteLine($"Added package reference to '{packageName}' of version '{packageVersion}'.");
+        Console.Out.WriteLine($"Added package reference to '{packageName}' of version '{metadata.First().Value}'.");
         Console.Out.WriteLine();
     }
 
     private static IEnumerable<KeyValuePair<string, string>> ConstructMetadata(ProjectItem reference, Parameters parameters, NuGetVersion packageVersion)
     {
+        var version = packageVersion.ToString();
+        if (parameters.UseFloatingVersions && !parameters.AllowPrereleasePackages)
+            version = $"{packageVersion.Version.Major}.{packageVersion.Version.Minor}.*";
+
         var metadata = new List<KeyValuePair<string, string>>
         {
-            new("Version", packageVersion.ToString())
+            new("Version", version)
         };
         var privateAssets = reference.GetMetadataValue("PrivateAssets");
         if (parameters.CopyPrivateAssetsMetadata && !string.IsNullOrEmpty(privateAssets))
@@ -359,6 +363,7 @@ public static class Program
         public bool AllowPrereleasePackages { get; }
         public bool EnsureMultitargeted { get; }
         public bool CopyPrivateAssetsMetadata { get; }
+        public bool UseFloatingVersions { get; }
 
         public Parameters(string[] args)
         {
@@ -374,6 +379,7 @@ public static class Program
             AllowPrereleasePackages = args.Contains("--allowPrereleasePackages");
             EnsureMultitargeted = args.Contains("--ensureMultitargeted");
             CopyPrivateAssetsMetadata = args.Contains("--copyPrivateAssets");
+            UseFloatingVersions = args.Contains("--useFloatingVersions");
         }
     }
 }
