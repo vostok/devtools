@@ -269,8 +269,11 @@ public static class Program
     private static IEnumerable<KeyValuePair<string, string>> ConstructMetadata(ProjectItem reference, Parameters parameters, NuGetVersion packageVersion)
     {
         var version = packageVersion.ToString();
-        if (parameters.UseFloatingVersions && !parameters.AllowPrereleasePackages)
-            version = $"{packageVersion.Version.Major}.{packageVersion.Version.Minor}.*";
+        if (parameters.UseFloatingVersions)
+        {
+            version = $"{packageVersion.Version.Major}.{packageVersion.Version.Minor}.";
+            version += packageVersion.IsPrerelease ? "*-*" : "*";
+        }
 
         var metadata = new List<KeyValuePair<string, string>>
         {
