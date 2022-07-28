@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Definition;
@@ -91,11 +92,44 @@ public static class Program
         project.SetProperty("VersionPrefix", newVersion);
         project.Save();
 
+        RotateShipped(solutionProject);
+        
         Exec($@"git add ""{solutionProject.ProjectName}""").exitCode.EnsureSuccess();
+        Exec($@"git add ""*PublicAPI.Shipped.txt""").exitCode.EnsureSuccess();
+        Exec($@"git add ""*PublicAPI.Unshipped.txt""").exitCode.EnsureSuccess();
         Exec($@"git commit -m ""Bumped version to {newVersion}"".").exitCode.EnsureSuccess();
         Exec("git push").exitCode.EnsureSuccess();
         
         Console.Out.WriteLine();
+    }
+
+    private static void RotateShipped(ProjectInSolution solutionProject)
+    {
+        var publicApiFiles = Directory.GetFiles(Path.GetDirectoryName(solutionProject.AbsolutePath), "PublicAPI.Unshipped.txt", SearchOption.AllDirectories);
+        foreach (var unshipped in publicApiFiles)
+        {
+            var shipped = unshipped.Replace("PublicAPI.Unshipped.txt", "PublicAPI.Shipped.txt");
+            var unshippedLines = GetLines(unshipped);
+            var shippedLines = GetLines(shipped);
+            
+            if (!unshippedLines.Any())
+                continue;
+
+            foreach (var unshippedLine in unshippedLines)
+            {
+                if (unshippedLine.StartsWith("*REMOVED*", StringComparison.InvariantCultureIgnoreCase))
+                    shippedLines = shippedLines.Where(l => !string.Equals($"*REMOVED*{l}", unshippedLine, StringComparison.InvariantCultureIgnoreCase)).ToList();
+                else
+                    shippedLines.Add(unshippedLine);
+            }
+            
+            shippedLines.Sort();
+            File.WriteAllLines(shipped, shippedLines, Encoding.UTF8);
+            File.WriteAllText(unshipped, "");
+        }
+
+        List<string> GetLines(string path) =>
+            File.ReadAllLines(path).Select(l => l.Trim()).Where(l => !string.IsNullOrEmpty(l)).ToList();
     }
 
     private static (int exitCode, string stdOut, string stdErr) Exec(string command)
