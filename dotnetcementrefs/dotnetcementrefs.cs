@@ -21,9 +21,11 @@ public static class Program
         var parameters = new Parameters(args);
 
         Console.Out.WriteLine(
-            $"Converting cement references to NuGet package references for all projects of solutions located in '{parameters.WorkingDirectory}'.");
+            $"Converting cement references to NuGet package references for all projects of solutions located in '{parameters.TargetSlnPath}'.");
 
-        var solutionFiles = Directory.GetFiles(parameters.WorkingDirectory, "*.sln");
+        var solutionFiles = parameters.TargetSlnPath.EndsWith(".sln", StringComparison.OrdinalIgnoreCase)
+            ? Directory.GetFiles(Environment.CurrentDirectory, parameters.TargetSlnPath)
+            : Directory.GetFiles(parameters.TargetSlnPath, "*.sln");
         if (solutionFiles.Length == 0)
         {
             Console.Out.WriteLine("No solution files found.");
@@ -221,13 +223,12 @@ public static class Program
             .ToList();
     }
 
-    private static void HandleReference(Project project, ProjectItem reference, bool allowPrereleasePackages,
-        Parameters parameters)
+    private static void HandleReference(Project project, ProjectItem reference, bool allowPrereleasePackages, Parameters parameters)
     {
         var packageName = reference.EvaluatedInclude;
 
         if (packageName.Contains(","))
-            throw new Exception($"Fix reference format for '{packageName}'.");
+            throw new Exception($"Fix reference format for '{packageName}' (there shouldn't be any explicit versions or architecture references).");
 
         if (parameters.ReferencesToRemove.Contains(packageName, StringComparer.OrdinalIgnoreCase))
         {
@@ -355,7 +356,7 @@ public static class Program
 
     private class Parameters
     {
-        public string WorkingDirectory { get; }
+        public string TargetSlnPath { get; }
         public string SolutionConfiguration { get; }
         public string[] SourceUrls { get; }
         public string[] CementReferencePrefixes { get; }
@@ -371,7 +372,7 @@ public static class Program
         public Parameters(string[] args)
         {
             var positionalArgs = args.Where(x => !x.StartsWith("-")).ToArray();
-            WorkingDirectory = positionalArgs.Length > 0 ? positionalArgs[0] : Environment.CurrentDirectory;
+            TargetSlnPath = positionalArgs.Length > 0 ? positionalArgs[0] : Environment.CurrentDirectory;
             SourceUrls = GetArgsByKey(args, "--source:").ToArray();
             CementReferencePrefixes = new[] {"Vostok."}.Concat(GetArgsByKey(args, "--refPrefix:")).ToArray();
             MissingReferencesToRemove = GetArgsByKey(args, "--removeMissing:").ToArray();
