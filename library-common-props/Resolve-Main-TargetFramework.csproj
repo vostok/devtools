@@ -1,0 +1,12 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Target Name="Resolve-Main-TargetFramework">
+    <PropertyGroup>
+      <PropsFile Condition=" '$(PropsFile)' == '' ">Main-TargetFramework-netstandard2.0.props</PropsFile>
+    </PropertyGroup>
+    <Copy
+      SourceFiles="$(PropsFile)"
+      DestinationFiles="Main-TargetFramework.props"
+      SkipUnchangedFiles="true"
+    />
+  </Target>
+</Project>
