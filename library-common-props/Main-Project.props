@@ -1,7 +1,6 @@
 <Project>
 
-  <Import Project="Main-TargetFramework.props" Condition="Exists('Main-TargetFramework.props')" />
-  <Import Project="Main-TargetFramework-netstandard2.0.props" Condition="!Exists('Main-TargetFramework.props')" />
+  <Import Project="Main-TargetFramework.props" />
 
   <PropertyGroup>
     <LangVersion>latest</LangVersion>
