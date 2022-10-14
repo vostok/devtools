@@ -3,36 +3,12 @@ src:
     target: None
     configuration: None
 
-base:
+full-build:
   deps:
     - vostok.devtools.ilrepack.bin
   build:
     target: None
     configuration: None
-
-netstandard2.0 > base *default:
-  build:
-    - tool: dotnet
-      parameters: build
-      target: library-common-props/Resolve-Main-TargetFramework.csproj -p:PropsFile=Main-TargetFramework-netstandard2.0.props
-
-only-net6.0 > base:
-  build:
-    - tool: dotnet
-      parameters: build
-      target: library-common-props/Resolve-Main-TargetFramework.csproj -p:PropsFile=Main-TargetFramework-only-net6.0.props
-
-with-net6.0 > netstandard2.0, only-net6.0:
-  build:
-    - tool: dotnet
-      parameters: build
-      target: library-common-props/Resolve-Main-TargetFramework.csproj -p:PropsFile=Main-TargetFramework-with-net6.0.props
-
-full-build > with-net6.0:
-  build:
-    - tool: dotnet
-      parameters: build
-      target: library-common-props/Resolve-Main-TargetFramework.csproj -p:PropsFile=Main-TargetFramework-with-net6.0.props
 
 dotnetcementrefs:
   build:

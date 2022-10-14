@@ -1,8 +1,8 @@
 <Project>
 
-  <Import Project="Main-TargetFramework.props" />
-
   <PropertyGroup>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <ReferencesFramework>netstandard2.0</ReferencesFramework>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
