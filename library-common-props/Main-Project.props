@@ -47,7 +47,7 @@
 
   <PropertyGroup>
     <NoWarn>1701;1702;1591;1573;NETSDK1138;NU5125;NU5048</NoWarn>
-    <WarningsAsErrors Condition="Exists('PublicAPI.Shipped.txt') OR Exists('PublicAPI\netstandard2.0\PublicAPI.Shipped.txt')">RS0016,RS0017,RS0024,RS0025,RS0048,RS0050</WarningsAsErrors>
+    <WarningsAsErrors Condition="Exists('PublicAPI.Shipped.txt') OR Exists('PublicAPI\netstandard2.0\PublicAPI.Shipped.txt')  OR Exists('PublicAPI\net6.0\PublicAPI.Shipped.txt')">RS0016,RS0017,RS0024,RS0025,RS0048,RS0050</WarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
