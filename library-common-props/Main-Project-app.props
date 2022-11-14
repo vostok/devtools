@@ -2,10 +2,6 @@
 
   <Import Project="Main-Project.props" />
   
-  <ItemGroup>
-    <PackageReference Remove="Microsoft.CodeAnalysis.PublicApiAnalyzers" />
-  </ItemGroup>
-  
   <PropertyGroup>
     <TargetFrameworks>net6.0</TargetFrameworks>
     <ReferencesFramework>net6.0</ReferencesFramework>
