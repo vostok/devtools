@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefAnalyzer", "RefAnalyzer.csproj", "{29841FA8-114F-47D4-95FF-A994EA138EFA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{29841FA8-114F-47D4-95FF-A994EA138EFA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{29841FA8-114F-47D4-95FF-A994EA138EFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{29841FA8-114F-47D4-95FF-A994EA138EFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{29841FA8-114F-47D4-95FF-A994EA138EFA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

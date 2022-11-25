@@ -1,0 +1,16 @@
+<Project TreatAsLocalProperty="RefAnalyzerTaskAssembly">
+
+  <PropertyGroup>
+    <RefAnalyzerTaskAssembly>$(MSBuildThisFileDirectory)bin\RefAnalyzer.dll</RefAnalyzerTaskAssembly>
+	<RefAnalyzerOwner Condition="'$(RefAnalyzerOwner)'==''">project owner</RefAnalyzerOwner>
+	<RefAnalyzerForbiddingRegexp Condition="'$(RefAnalyzerForbiddingRegexp)'==''"></RefAnalyzerForbiddingRegexp>
+	<RefAnalyzerCheckSolutionBoundary Condition="'$(RefAnalyzerCheckSolutionBoundary)'==''">false</RefAnalyzerCheckSolutionBoundary>
+  </PropertyGroup>
+
+  <UsingTask TaskName="Vostok.Tools.RefAnalyzer.RefAnalyzer" AssemblyFile="$(RefAnalyzerTaskAssembly)" />
+
+  <Target Name="AnalyzeReferences" BeforeTargets="BeforeBuild">
+    <RefAnalyzer SolutionDir="$(SolutionDir)" ProjectFullPath="$(MSBuildProjectFullPath)" Owner="$(RefAnalyzerOwner)" CheckSolutionBoundary="$(RefAnalyzerCheckSolutionBoundary)" ForbiddingRegexp="$(RefAnalyzerForbiddingRegexp)" />
+  </Target>
+
+</Project>
