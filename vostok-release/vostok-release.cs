@@ -92,19 +92,23 @@ public static class Program
         project.SetProperty("VersionPrefix", newVersion);
         project.Save();
 
-        RotateShipped(solutionProject);
+        var publicApiFiles = RotateShipped(solutionProject);
         
         Exec($@"git add ""{solutionProject.ProjectName}""").exitCode.EnsureSuccess();
-        Exec($@"git add ""*PublicAPI.Shipped.txt""").exitCode.EnsureSuccess();
-        Exec($@"git add ""*PublicAPI.Unshipped.txt""").exitCode.EnsureSuccess();
+        if (publicApiFiles)
+        {
+            Exec(@"git add ""*PublicAPI.Shipped.txt""").exitCode.EnsureSuccess();
+            Exec(@"git add ""*PublicAPI.Unshipped.txt""").exitCode.EnsureSuccess();
+        }
         Exec($@"git commit -m ""Bumped version to {newVersion}"".").exitCode.EnsureSuccess();
         Exec("git push").exitCode.EnsureSuccess();
         
         Console.Out.WriteLine();
     }
 
-    private static void RotateShipped(ProjectInSolution solutionProject)
+    private static bool RotateShipped(ProjectInSolution solutionProject)
     {
+        var changes = false;
         var publicApiFiles = Directory.GetFiles(Path.GetDirectoryName(solutionProject.AbsolutePath), "PublicAPI.Unshipped.txt", SearchOption.AllDirectories);
         foreach (var unshipped in publicApiFiles)
         {
@@ -126,7 +130,10 @@ public static class Program
             shippedLines.Sort();
             File.WriteAllLines(shipped, shippedLines, Encoding.UTF8);
             File.WriteAllText(unshipped, "");
+            changes = true;
         }
+
+        return changes;
 
         List<string> GetLines(string path) =>
             File.ReadAllLines(path).Select(l => l.Trim()).Where(l => !string.IsNullOrEmpty(l)).ToList();
