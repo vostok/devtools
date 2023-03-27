@@ -25,7 +25,7 @@ Note that repository name should not start with `vostok` prefix (it comes from o
   * `launchpad new vostok-source-library` for source libraries
   * You will be prompted for multiple variables. Follow the provided descriptions to choose correct values.
   
-* Manually fix ci.yml file: last line should be `token: ${{ secrets.NUGET_TOKEN }}` (or fix launchpad temlate, but I don't know how to escape it)
+* Manually fix .github/workflows/ci.yml file: last line should be `token: ${{ secrets.NUGET_TOKEN }}` (or fix launchpad temlate, but I don't know how to escape it)
     
 * Update cement dependencies: `cm update-deps <module-name>`
 
