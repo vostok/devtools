@@ -256,14 +256,18 @@ public static class Program
 
         Console.Out.WriteLine($"Latest version of NuGet package '{packageName}' is '{packageVersion}'");
 
-        project.RemoveItem(reference);
-
-        Console.Out.WriteLine($"Removed cement reference to '{reference.EvaluatedInclude}'.");
-
+        var group = project.Xml.ItemGroups.FirstOrDefault(g => g.Items.Any(r => r.Include == reference.EvaluatedInclude));
+        
         var metadata = ConstructMetadata(reference, parameters, packageVersion);
-        project.AddItem("PackageReference", packageName, metadata);
-
+        if (group != null)
+            group.AddItem("PackageReference", packageName, metadata);
+        else
+            project.AddItem("PackageReference", packageName, metadata);
         Console.Out.WriteLine($"Added package reference to '{packageName}' of version '{metadata.First().Value}'.");
+        
+        project.RemoveItem(reference);
+        Console.Out.WriteLine($"Removed cement reference to '{reference.EvaluatedInclude}'.");
+        
         Console.Out.WriteLine();
     }
 
