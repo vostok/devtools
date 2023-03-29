@@ -256,11 +256,12 @@ public static class Program
 
         Console.Out.WriteLine($"Latest version of NuGet package '{packageName}' is '{packageVersion}'");
 
-        var group = project.Xml.ItemGroups.FirstOrDefault(g => g.Items.Any(r => r.Include == reference.EvaluatedInclude));
+        var groups = project.Xml.ItemGroups.Where(g => g.Items.Any(r => r.Include == reference.EvaluatedInclude)).ToList();
         
         var metadata = ConstructMetadata(reference, parameters, packageVersion);
-        if (group != null)
-            group.AddItem("PackageReference", packageName, metadata);
+        if (groups.Any())
+            foreach (var group in groups)
+                group.AddItem("PackageReference", packageName, metadata);
         else
             project.AddItem("PackageReference", packageName, metadata);
         Console.Out.WriteLine($"Added package reference to '{packageName}' of version '{metadata.First().Value}'.");
