@@ -17,6 +17,7 @@ jobs:
           type: now
           target_branch: with-net6.0
           github_token: ${{ github.token }}
+          disable_fastforwards: true
 
       - name: Merge master -> only-net6.0
         uses: devmasx/merge-branch@master
@@ -24,3 +25,4 @@ jobs:
           type: now
           target_branch: only-net6.0
           github_token: ${{ github.token }}
+          disable_fastforwards: true
