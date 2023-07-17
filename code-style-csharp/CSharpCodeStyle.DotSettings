@@ -685,45 +685,6 @@
       &lt;/Entry.SortBy&gt;&#xD;
     &lt;/Entry&gt;&#xD;
   &lt;/TypePattern&gt;&#xD;
-  &lt;FilePattern RemoveRegions="AllExceptGenerated"&gt;&#xD;
-    &lt;Entry DisplayName="Extern"&gt;&#xD;
-      &lt;Entry.Match&gt;&#xD;
-        &lt;Extern /&gt;&#xD;
-      &lt;/Entry.Match&gt;&#xD;
-    &lt;/Entry&gt;&#xD;
-    &lt;Entry DisplayName="Namespace"&gt;&#xD;
-      &lt;Entry.Match&gt;&#xD;
-        &lt;And&gt;&#xD;
-          &lt;Kind Is="Namespace" /&gt;&#xD;
-        &lt;/And&gt;&#xD;
-      &lt;/Entry.Match&gt;&#xD;
-    &lt;/Entry&gt;&#xD;
-    &lt;Entry DisplayName="Delegates"&gt;&#xD;
-      &lt;Entry.Match&gt;&#xD;
-        &lt;Kind Is="Delegate" /&gt;&#xD;
-      &lt;/Entry.Match&gt;&#xD;
-    &lt;/Entry&gt;&#xD;
-    &lt;Entry DisplayName="Enums"&gt;&#xD;
-      &lt;Entry.Match&gt;&#xD;
-        &lt;Kind Is="Enum" /&gt;&#xD;
-      &lt;/Entry.Match&gt;&#xD;
-    &lt;/Entry&gt;&#xD;
-    &lt;Entry DisplayName="Interfaces"&gt;&#xD;
-      &lt;Entry.Match&gt;&#xD;
-        &lt;Kind Is="Interface" /&gt;&#xD;
-      &lt;/Entry.Match&gt;&#xD;
-    &lt;/Entry&gt;&#xD;
-    &lt;Entry DisplayName="Structs"&gt;&#xD;
-      &lt;Entry.Match&gt;&#xD;
-        &lt;Kind Is="Struct" /&gt;&#xD;
-      &lt;/Entry.Match&gt;&#xD;
-    &lt;/Entry&gt;&#xD;
-    &lt;Entry DisplayName="Classes"&gt;&#xD;
-      &lt;Entry.Match&gt;&#xD;
-        &lt;Kind Is="Class" /&gt;&#xD;
-      &lt;/Entry.Match&gt;&#xD;
-    &lt;/Entry&gt;&#xD;
-  &lt;/FilePattern&gt;&#xD;
 &lt;/Patterns&gt;</s:String>
     <s:String
             x:Key="/Default/CodeStyle/Naming/CSharpNaming/PredefinedNamingRules/=PrivateInstanceFields/@EntryIndexedValue">&lt;Policy Inspect="True" Prefix="" Suffix="" Style="aaBb" /&gt;</s:String>
