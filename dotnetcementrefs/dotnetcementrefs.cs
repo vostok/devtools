@@ -225,7 +225,8 @@ public static class Program
 
     private static void HandleReference(Project project, ProjectItem reference, bool allowPrereleasePackages, Parameters parameters)
     {
-        var packageName = reference.EvaluatedInclude;
+        var packageName = reference.Metadata.FirstOrDefault(i => i.Name == "NugetPackageName")?.EvaluatedValue
+                          ?? reference.EvaluatedInclude;
 
         if (packageName.Contains(","))
             throw new Exception($"Fix reference format for '{packageName}' (there shouldn't be any explicit versions or architecture references).");
@@ -256,14 +257,22 @@ public static class Program
 
         Console.Out.WriteLine($"Latest version of NuGet package '{packageName}' is '{packageVersion}'");
 
-        var groups = project.Xml.ItemGroups.Where(g => g.Items.Any(r => r.Include == reference.EvaluatedInclude)).ToList();
+        var itemGroupsWithCementRef = project.Xml.ItemGroups.Where(g => g.Items.Any(r => r.ElementName == "Reference" && r.Include == reference.EvaluatedInclude)).ToList();
+        var itemGroupsWithPackageRef = project.Xml.ItemGroups.Where(ig => ig.Items.Any(i => i.ElementName == "PackageReference" && i.Include == packageName)).ToList();
         
         var metadata = ConstructMetadata(reference, parameters, packageVersion);
-        if (groups.Any())
-            foreach (var group in groups)
+        if (itemGroupsWithCementRef.Any())
+            foreach (var group in itemGroupsWithCementRef)
+            {
+                if (itemGroupsWithPackageRef.Any(ig => ReferenceEquals(ig, group)))
+                    continue;
                 group.AddItem("PackageReference", packageName, metadata);
+            }
         else
-            project.AddItem("PackageReference", packageName, metadata);
+        {
+            if (!project.Items.Any(i => i.ItemType == "PackageReference" && i.EvaluatedInclude == packageName))
+                project.AddItem("PackageReference", packageName, metadata);
+        }
         Console.Out.WriteLine($"Added package reference to '{packageName}' of version '{metadata.First().Value}'.");
         
         project.RemoveItem(reference);
