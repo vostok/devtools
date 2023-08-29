@@ -50,11 +50,8 @@ public static class Program
     {
         var solution = SolutionFile.Parse(solutionFile);
         var solutionName = Path.GetFileName(solutionFile);
-
         await Console.Out.WriteLineAsync($"Working with '{parameters.SolutionConfiguration}' solution configuration.");
-
         var projects = FilterProjectsByConfiguration(solution.ProjectsInOrder, parameters.SolutionConfiguration).ToArray();
-
         if (!projects.Any())
         {
             await Console.Out.WriteLineAsync($"No projects found in solution {solutionName}.");
@@ -64,23 +61,18 @@ public static class Program
         var separator = Environment.NewLine + "\t";
         await Console.Out.WriteLineAsync($"Found projects in solution {solutionName}: {Environment.NewLine}\t{string.Join(separator, projects.Select(project => project.AbsolutePath))}");
         await Console.Out.WriteLineAsync();
-
         var allProjectsInSolution = projects
             .Select(p => p.ProjectName)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
         foreach (var solutionProject in projects)
         {
             await HandleProjectAsync(solutionProject, allProjectsInSolution, parameters).ConfigureAwait(false);
         }
     }
 
-    private static IEnumerable<ProjectInSolution> FilterProjectsByConfiguration(
-        IEnumerable<ProjectInSolution> projects,
-        string configuration)
+    private static IEnumerable<ProjectInSolution> FilterProjectsByConfiguration(IEnumerable<ProjectInSolution> projects, string configuration)
     {
         var keyPrefix = configuration + "|";
-
         foreach (var project in projects)
         {
             var configurations = project.ProjectConfigurations;
@@ -177,7 +169,7 @@ public static class Program
     {
         return project
             .Properties
-            .Any(item => item.Name == "DotnetCementRefsExclude" && item.EvaluatedValue == "true");
+            .Any(item => item.Name == "DotnetCementRefsExclude" && item.EvaluatedValue.ToLower() is "true");
     }
 
 
@@ -201,8 +193,9 @@ public static class Program
 
     private static async Task HandleReferenceAsync(Project project, ProjectItem reference, bool allowPrereleasePackages, Parameters parameters)
     {
-        var packageName = reference.Metadata.FirstOrDefault(i => i.Name == "NugetPackageName")?.EvaluatedValue
-                          ?? reference.EvaluatedInclude;
+        var packageName = reference.GetMetadataValue("NugetPackageName");
+        if (packageName is "")
+            packageName = reference.EvaluatedInclude;
         if (packageName.Contains(","))
             throw new($"Fix reference format for '{packageName}' (there shouldn't be any explicit versions or architecture references).");
 
@@ -213,6 +206,9 @@ public static class Program
             return;
         }
 
+        var explicitPrereleaseFlag = reference.GetMetadataValue("NugetPackageAllowPrerelease").ToLower();
+        if (explicitPrereleaseFlag is "true" or "false")
+            allowPrereleasePackages = bool.Parse(explicitPrereleaseFlag);
         var packageVersion = await GetLatestNugetVersionWithCacheAsync(packageName, allowPrereleasePackages, parameters.SourceUrls);
         if (packageVersion == null)
         {
