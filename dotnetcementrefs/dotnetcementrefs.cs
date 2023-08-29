@@ -167,7 +167,7 @@ public static class Program
         return usePrereleaseForPrefixes;
     }
 
-    private static bool HasPrereleaseVersionSuffix(Project project, out string suffix)
+    private static bool HasPrereleaseVersionSuffix(Project project, out string? suffix)
     {
         suffix = project.GetProperty("VersionSuffix")?.EvaluatedValue;
         return !string.IsNullOrWhiteSpace(suffix);
@@ -266,17 +266,18 @@ public static class Program
         return metadata;
     }
 
-    private static async Task<NuGetVersion> GetLatestNugetVersionWithCacheAsync(string package, bool includePrerelease, string[] sourceUrls)
+    private static async Task<NuGetVersion?> GetLatestNugetVersionWithCacheAsync(string package, bool includePrerelease, string[] sourceUrls)
     {
         if (NugetCache.TryGetValue((package, includePrerelease, sourceUrls), out var value))
             return value;
 
         var version = await GetLatestNugetVersionDirectAsync(package, includePrerelease, sourceUrls).ConfigureAwait(false);
-        NugetCache.Add((package, includePrerelease, sourceUrls), version);
+        if (version is not null)
+            NugetCache.Add((package, includePrerelease, sourceUrls), version);
         return version;
     }
 
-    private static async Task<NuGetVersion> GetLatestNugetVersionDirectAsync(string package, bool includePrerelease, string[] sourceUrls)
+    private static async Task<NuGetVersion?> GetLatestNugetVersionDirectAsync(string package, bool includePrerelease, string[] sourceUrls)
     {
         const int attempts = 3;
         for (var attempt = 1; attempt <= attempts; attempt++)
@@ -304,7 +305,7 @@ public static class Program
         return null;
     }
 
-    private static async Task<NuGetVersion> GetLatestNugetVersionAsync(string package, bool includePrerelease, string sourceUrl)
+    private static async Task<NuGetVersion?> GetLatestNugetVersionAsync(string package, bool includePrerelease, string sourceUrl)
     {
         var providers = new List<Lazy<INuGetResourceProvider>>();
         providers.AddRange(Repository.Provider.GetCoreV3());
