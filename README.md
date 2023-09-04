@@ -17,3 +17,5 @@ This module contains various tools, helpers and guidelines serving to ease/autom
 * [configure-await-false](configure-await-false) CLI tool for .NET Core 2.1 to verify that awaits in library code are configured.
 * [publicize.roslyn](publicize.roslyn) build target to publicize types in source libraries.
 * [vostok-release](vostok-release) tool to release Vostok library updates.
+
+asd
