@@ -308,19 +308,28 @@ public static class Program
         var packageSource = new PackageSource(sourceUrl);
         var sourceRepository = new SourceRepository(packageSource, providers);
         var metadataResource = sourceRepository.GetResource<PackageMetadataResource>();
-        var versions = (
-                await metadataResource.GetMetadataAsync(
-                    package,
-                    includePrerelease,
-                    false,
-                    new(),
-                    new NullLogger(),
-                    CancellationToken.None
-                ).ConfigureAwait(false)
-            ).Where(data => data.Identity.Id == package)
+        var searchResult = await metadataResource.GetMetadataAsync(
+            package,
+            includePrerelease,
+            false,
+            new(),
+            new NullLogger(),
+            CancellationToken.None
+        ).ConfigureAwait(false);
+        var versions = searchResult 
+            .Where(data => data.Identity.Id == package)
+            .OrderBy(data => data.Published)
             .Select(data => data.Identity.Version)
             .ToArray();
-        return versions.Any() ? versions.Max() : null;
+        if (versions.Length == 0)
+            return null;
+        
+        var maxVer = versions.Max();
+        // semver doesn't sort suffix numerically, so .Max() will return the oldest prerelease version
+        // there could be a better solution with proper string comparer,
+        // but it'll only help if all prerelease versions have the same tag name with numbered suffix 
+        var latest = versions.Last(v => v.Version == maxVer.Version);
+        return latest;
     }
 
     private class Parameters
