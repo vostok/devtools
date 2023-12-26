@@ -327,8 +327,11 @@ public static class Program
         var maxVer = versions.Max();
         // semver doesn't sort suffix numerically, so .Max() will return the oldest prerelease version
         // there could be a better solution with proper string comparer,
-        // but it'll only help if all prerelease versions have the same tag name with numbered suffix 
-        var latest = versions.Last(v => v.Version == maxVer.Version);
+        // but it'll only help if all prerelease versions have the same tag name with numbered suffix
+        // additionally, if there's a release version available, it must be the most relevant one
+        // even if there are later prerelease versions published after it
+        var latest = versions.LastOrDefault(v => v.Version == maxVer.Version && !v.IsPrerelease)
+            ?? versions.Last(v => v.Version == maxVer.Version);
         return latest;
     }
 
