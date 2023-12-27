@@ -5,7 +5,7 @@ src:
 
 full-build:
   deps:
-    - vostok.devtools.ilrepack.bin
+    - vostok.devtools.ilrepack.bin@dotnet6
   build:
     target: None
     configuration: None
