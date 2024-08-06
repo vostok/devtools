@@ -4,14 +4,15 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Cement.Vostok.Devtools;
 using Microsoft.Build.Construction;
-using Microsoft.Build.Definition;
 using Microsoft.Build.Evaluation;
 using NuGet.Common;
 using NuGet.Configuration;
-using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
+
+namespace dotnetcementrefs;
 
 public static class Program
 {
@@ -105,6 +106,8 @@ public static class Program
             return;
         }
 
+        ReplaceModuleReferences(project);
+
         var references = FindCementReferences(project, allProjectsInSolution, parameters.CementReferencePrefixes);
         if (parameters.AllowLocalProjects)
         {
@@ -149,6 +152,56 @@ public static class Program
         }
         project.Save();
         await Console.Out.WriteLineAsync();
+    }
+
+    private static void ReplaceModuleReferences(Project project)
+    {
+        var moduleReferences = project.ItemsIgnoringCondition
+            .Where(item => item.ItemType == "ModuleReference")
+            .ToList();
+
+        if (moduleReferences.Count == 0)
+        {
+            return;
+        }
+
+        var workspacePath = FileUtilities.GetDirectoryNameOfDirectoryAbove(project.FullPath, ".cement");
+        if (workspacePath == null)
+        {
+            throw new($"Failed to find cement workspace for '{project.FullPath}'. " +
+                      $"Make sure project is inside cement workspace.");
+        }
+
+        var moduleReferenceTransformer = new ModuleReferenceTransformer();
+
+        foreach (var moduleReference in moduleReferences)
+        {
+            try
+            {
+                var references = moduleReferenceTransformer
+                    .ToReferences(workspacePath, moduleReference.EvaluatedInclude);
+                
+                foreach (var reference in references)
+                {
+                    if (moduleReference.Xml.Parent is ProjectItemGroupElement groupElement)
+                    {
+                        groupElement.AddItem("Reference", reference.Include, reference.Metadata);
+                    }
+                    else
+                    {
+                        project.AddItem("Reference", reference.Include, reference.Metadata);
+                    }
+
+                    project.RemoveItem(moduleReference);
+                }
+            }
+            catch (Exception e)
+            {
+                throw new($"Failed to replace ModuleReference at '{moduleReference.Xml.Location}'", e);
+            }
+        }
+
+        project.ReevaluateIfNecessary();
     }
 
     private static string[] GetUsePrereleaseForPrefixes(Project project)

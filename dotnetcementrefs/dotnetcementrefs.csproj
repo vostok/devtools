@@ -30,4 +30,10 @@
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="7.0.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="Cement.Vostok.Devtools">
+      <HintPath>..\..\idevops.cement.cli\src\Cement.Vostok.Devtools\bin\Release\netstandard2.0\Cement.Vostok.Devtools.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>
