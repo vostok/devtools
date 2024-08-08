@@ -12,7 +12,7 @@ full-build:
 
 dotnetcementrefs:
   deps:
-    - idevops.cement.cli/vostok-devtools@ID-12903
+    - idevops.cement.cli/vostok-devtools@v7.9.1
   build:
     - name: Build
       tool: dotnet
