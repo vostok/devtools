@@ -6,6 +6,7 @@ src:
 full-build:
   deps:
     - vostok.devtools.ilrepack.bin
+    - idevops.cement.cli/vostok-devtools@v7.9.1
   build:
     target: None
     configuration: None
