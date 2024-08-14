@@ -15,6 +15,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- required for gitlab ci test reports -->
+    <PackageReference Include="JunitXml.TestLogger" Version="3.1.12" /> 
+    <!-- previously was used for GitHub test reports. can be safely removed after migration to gitlab ci -->
     <PackageReference Include="GitHubActionsTestLogger" Version="1.2.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
     <PackageReference Include="NUnit" Version="3.13.2" />
