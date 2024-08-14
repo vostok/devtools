@@ -4,14 +4,15 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Cement.Vostok.Devtools;
 using Microsoft.Build.Construction;
-using Microsoft.Build.Definition;
 using Microsoft.Build.Evaluation;
 using NuGet.Common;
 using NuGet.Configuration;
-using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
+
+namespace dotnetcementrefs;
 
 public static class Program
 {
@@ -105,6 +106,8 @@ public static class Program
             return;
         }
 
+        ReplaceModuleReferences(project);
+
         var references = FindCementReferences(project, allProjectsInSolution, parameters.CementReferencePrefixes);
         if (parameters.AllowLocalProjects)
         {
@@ -149,6 +152,56 @@ public static class Program
         }
         project.Save();
         await Console.Out.WriteLineAsync();
+    }
+
+    private static void ReplaceModuleReferences(Project project)
+    {
+        var moduleReferences = project.ItemsIgnoringCondition
+            .Where(item => item.ItemType == "ModuleReference")
+            .ToList();
+
+        if (moduleReferences.Count == 0)
+        {
+            return;
+        }
+
+        var workspacePath = FileUtilities.GetDirectoryNameOfDirectoryAbove(project.FullPath, ".cement");
+        if (workspacePath == null)
+        {
+            throw new($"Failed to find cement workspace for '{project.FullPath}'. " +
+                      $"Make sure project is inside cement workspace.");
+        }
+
+        var moduleReferenceTransformer = new ModuleReferenceTransformer();
+
+        foreach (var moduleReference in moduleReferences)
+        {
+            try
+            {
+                var references = moduleReferenceTransformer
+                    .ToReferences(workspacePath, moduleReference.EvaluatedInclude);
+                
+                foreach (var reference in references)
+                {
+                    if (moduleReference.Xml.Parent is ProjectItemGroupElement groupElement)
+                    {
+                        groupElement.AddItem("Reference", reference.Include, reference.Metadata);
+                    }
+                    else
+                    {
+                        project.AddItem("Reference", reference.Include, reference.Metadata);
+                    }
+
+                    project.RemoveItem(moduleReference);
+                }
+            }
+            catch (Exception e)
+            {
+                throw new($"Failed to replace ModuleReference at '{moduleReference.Xml.Location}'", e);
+            }
+        }
+
+        project.ReevaluateIfNecessary();
     }
 
     private static string[] GetUsePrereleaseForPrefixes(Project project)
@@ -308,19 +361,31 @@ public static class Program
         var packageSource = new PackageSource(sourceUrl);
         var sourceRepository = new SourceRepository(packageSource, providers);
         var metadataResource = sourceRepository.GetResource<PackageMetadataResource>();
-        var versions = (
-                await metadataResource.GetMetadataAsync(
-                    package,
-                    includePrerelease,
-                    false,
-                    new(),
-                    new NullLogger(),
-                    CancellationToken.None
-                ).ConfigureAwait(false)
-            ).Where(data => data.Identity.Id == package)
+        var searchResult = await metadataResource.GetMetadataAsync(
+            package,
+            includePrerelease,
+            false,
+            new(),
+            new NullLogger(),
+            CancellationToken.None
+        ).ConfigureAwait(false);
+        var versions = searchResult 
+            .Where(data => data.Identity.Id == package)
+            .OrderBy(data => data.Published)
             .Select(data => data.Identity.Version)
             .ToArray();
-        return versions.Any() ? versions.Max() : null;
+        if (versions.Length == 0)
+            return null;
+        
+        var maxVer = versions.Max();
+        // semver doesn't sort suffix numerically, so .Max() will return the oldest prerelease version
+        // there could be a better solution with proper string comparer,
+        // but it'll only help if all prerelease versions have the same tag name with numbered suffix
+        // additionally, if there's a release version available, it must be the most relevant one
+        // even if there are later prerelease versions published after it
+        var latest = versions.LastOrDefault(v => v.Version == maxVer.Version && !v.IsPrerelease)
+            ?? versions.Last(v => v.Version == maxVer.Version);
+        return latest;
     }
 
     private class Parameters

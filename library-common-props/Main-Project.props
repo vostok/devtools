@@ -57,7 +57,8 @@
     <None Include="..\module.yaml" Link = "Auxiliary\module.yaml"/>
     <None Include="..\CHANGELOG.md" Link = "Auxiliary\changelog.md"/>
     <None Include="..\README.md" Link = "Auxiliary\readme.md" Pack="true" PackagePath="\"/>
-    <None Include="..\.github\workflows\ci.yml" Link = "Auxiliary\ci.yml"/>
+    <None Include="..\.github\workflows\ci.yml" Link = "Auxiliary\ci.yml" Condition="Exists('..\.github\workflows\ci.yml')"/>
+    <None Include="..\.gitlab-ci.yml" Link = "Auxiliary\.gitlab-ci.yml" Condition="Exists('..\.gitlab-ci.yml')"/>
   </ItemGroup>
 
   <PropertyGroup>    
