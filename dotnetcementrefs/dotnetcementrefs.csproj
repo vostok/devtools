@@ -31,7 +31,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../idevops.cement.cli/src/Cement.Vostok.Devtools/Cement.Vostok.Devtools.csproj"/>
+    <Reference Include="Cement.Vostok.Devtools" HintPath="../external/Cement.Vostok.Devtools.dll"/>
+    <PackageReference Include="SharpYaml" Version="2.1.0" />
   </ItemGroup>
 
 </Project>
