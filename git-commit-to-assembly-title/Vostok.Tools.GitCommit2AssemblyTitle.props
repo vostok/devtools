@@ -28,7 +28,7 @@
     <GitCommit2AssemblyTitle AssemblyVersion="$(Version)"/>
   </Target>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(CI)' == 'true'">
     <Compile Remove="Properties\AssemblyTitle.cs" />
     <Compile Include="Properties\AssemblyTitle.cs" />
   </ItemGroup>
