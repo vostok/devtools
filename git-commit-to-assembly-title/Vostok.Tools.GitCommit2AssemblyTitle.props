@@ -1,12 +1,12 @@
 <Project TreatAsLocalProperty="TaskAssembly">
 
-  <PropertyGroup Condition="'$(GenerateGC2ATAttributes)' == ''">
-    <GenerateGC2ATAttributes>true</GenerateGC2ATAttributes>
-    <GenerateGC2ATAttributes Condition="'$(TEAMCITY_VERSION)' != '' or
+  <PropertyGroup Condition="'$(GenerateVostokGC2ATAttributes)' == ''">
+    <GenerateVostokGC2ATAttributes>true</GenerateVostokGC2ATAttributes>
+    <GenerateVostokGC2ATAttributes Condition="'$(TEAMCITY_VERSION)' != '' or
                    '$(GITLAB_CI)' == 'true' or
                    '$(GITHUB_ACTIONS)' == 'true' or
                    '$(CI)' == 'true'">false
-    </GenerateGC2ATAttributes>
+    </GenerateVostokGC2ATAttributes>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -20,14 +20,14 @@
 
   <UsingTask TaskName="Vostok.Tools.GitCommit2AssemblyTitle.GitCommit2AssemblyTitle" AssemblyFile="$(TaskAssembly)"/>
 
-  <Target Name="GenerateAssemblyTitle" BeforeTargets="BeforeBuild" Condition="'$(GenerateGC2ATAttributes)' == 'true'">
+  <Target Name="GenerateAssemblyTitle" BeforeTargets="BeforeBuild" Condition="'$(GenerateVostokGC2ATAttributes)' == 'true'">
     <PropertyGroup Condition="'$(Version)' == ''">
       <Version>1.0.0.0</Version>
     </PropertyGroup>
     <GitCommit2AssemblyTitle AssemblyVersion="$(Version)"/>
   </Target>
 
-  <ItemGroup Condition="'$(GenerateGC2ATAttributes)' == 'true'">
+  <ItemGroup Condition="'$(GenerateVostokGC2ATAttributes)' == 'true'">
     <Compile Remove="Properties\AssemblyTitle.cs"/>
     <Compile Include="Properties\AssemblyTitle.cs"/>
   </ItemGroup>
