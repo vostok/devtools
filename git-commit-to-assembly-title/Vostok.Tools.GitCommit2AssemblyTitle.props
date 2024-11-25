@@ -1,12 +1,12 @@
 <Project TreatAsLocalProperty="TaskAssembly">
 
-  <PropertyGroup Condition="'$(CI)' == ''">
-    <CI>false</CI>
-    <CI Condition="'$(TEAMCITY_VERSION)' != '' or
+  <PropertyGroup Condition="'$(GenerateGC2ATAttributes)' == ''">
+    <GenerateGC2ATAttributes>true</GenerateGC2ATAttributes>
+    <GenerateGC2ATAttributes Condition="'$(TEAMCITY_VERSION)' != '' or
                    '$(GITLAB_CI)' == 'true' or
                    '$(GITHUB_ACTIONS)' == 'true' or
-                   '$(CI)' == 'true'">true
-    </CI>
+                   '$(CI)' == 'true'">false
+    </GenerateGC2ATAttributes>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -14,23 +14,22 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <!-- todo(dstarasov): эти свойства, кажется, совсем не используются -->
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
     <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
   </PropertyGroup>
 
-  <UsingTask TaskName="Vostok.Tools.GitCommit2AssemblyTitle.GitCommit2AssemblyTitle" AssemblyFile="$(TaskAssembly)" />
+  <UsingTask TaskName="Vostok.Tools.GitCommit2AssemblyTitle.GitCommit2AssemblyTitle" AssemblyFile="$(TaskAssembly)"/>
 
-  <Target Name="GenerateAssemblyTitle" BeforeTargets="BeforeBuild" Condition="'$(CI)' == 'true'">
+  <Target Name="GenerateAssemblyTitle" BeforeTargets="BeforeBuild" Condition="'$(GenerateGC2ATAttributes)' == 'true'">
     <PropertyGroup Condition="'$(Version)' == ''">
       <Version>1.0.0.0</Version>
     </PropertyGroup>
     <GitCommit2AssemblyTitle AssemblyVersion="$(Version)"/>
   </Target>
 
-  <ItemGroup Condition="'$(CI)' == 'true'">
-    <Compile Remove="Properties\AssemblyTitle.cs" />
-    <Compile Include="Properties\AssemblyTitle.cs" />
+  <ItemGroup Condition="'$(GenerateGC2ATAttributes)' == 'true'">
+    <Compile Remove="Properties\AssemblyTitle.cs"/>
+    <Compile Include="Properties\AssemblyTitle.cs"/>
   </ItemGroup>
 
 </Project>
