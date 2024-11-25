@@ -1,11 +1,11 @@
 <Project TreatAsLocalProperty="TaskAssembly">
 
   <PropertyGroup Condition="'$(GenerateVostokGC2ATAttributes)' == ''">
-    <GenerateVostokGC2ATAttributes>true</GenerateVostokGC2ATAttributes>
+    <GenerateVostokGC2ATAttributes>false</GenerateVostokGC2ATAttributes>
     <GenerateVostokGC2ATAttributes Condition="'$(TEAMCITY_VERSION)' != '' or
                    '$(GITLAB_CI)' == 'true' or
                    '$(GITHUB_ACTIONS)' == 'true' or
-                   '$(CI)' == 'true'">false
+                   '$(CI)' == 'true'">true
     </GenerateVostokGC2ATAttributes>
   </PropertyGroup>
 
