@@ -165,6 +165,12 @@ public static class Program
             return;
         }
 
+        var targetFrameworksProperty = project.GetPropertyValue("TargetFramework");
+        if (string.IsNullOrWhiteSpace(targetFrameworksProperty))
+        {
+            targetFrameworksProperty = project.GetPropertyValue("TargetFrameworks");
+        }
+        
         var workspacePath = FileUtilities.GetDirectoryNameOfDirectoryAbove(project.FullPath, ".cement");
         if (workspacePath == null)
         {
@@ -172,26 +178,44 @@ public static class Program
                       $"Make sure project is inside cement workspace.");
         }
 
-        var moduleReferenceTransformer = new ModuleReferenceTransformer();
+        var targetFrameworks = targetFrameworksProperty.Split(';', StringSplitOptions.RemoveEmptyEntries);
+        var assetsResolver = new InstallAssetsResolver();
 
         foreach (var moduleReference in moduleReferences)
         {
             try
             {
-                var references = moduleReferenceTransformer
-                    .ToReferences(workspacePath, moduleReference.EvaluatedInclude);
-                
-                foreach (var reference in references)
+                foreach (var framework in targetFrameworks)
                 {
-                    if (moduleReference.Xml.Parent is ProjectItemGroupElement groupElement)
+                    var assets = assetsResolver.Resolve(workspacePath, moduleReference.EvaluatedInclude, framework);
+                    if (assets == null)
                     {
-                        groupElement.AddItem("Reference", reference.Include, reference.Metadata);
-                    }
-                    else
-                    {
-                        project.AddItem("Reference", reference.Include, reference.Metadata);
+                        continue;
                     }
 
+                    foreach (var file in assets.InstallFiles)
+                    {
+                        var filePath = LinuxPath.ReplaceSeparator(file);
+                        var fullPath = LinuxPath.Combine(workspacePath, filePath);
+                    
+                        var include = Path.GetFileNameWithoutExtension(filePath);
+                        var metadata = new Dictionary<string, string>
+                        {
+                            ["HintPath"] = fullPath,
+                            ["Condition"] = $"'$(TargetFramework)' == '{framework}'",
+                            ["CementTargetFramework"] = framework
+                        };
+                    
+                        if (moduleReference.Xml.Parent is ProjectItemGroupElement groupElement)
+                        {
+                            groupElement.AddItem("Reference", include, metadata);
+                        }
+                        else
+                        {
+                            project.AddItem("Reference", include, metadata);
+                        }
+                    }
+                    
                     project.RemoveItem(moduleReference);
                 }
             }
@@ -311,7 +335,16 @@ public static class Program
         var metadata = new List<KeyValuePair<string, string>> { new("Version", version) };
         var privateAssets = reference.GetMetadataValue("PrivateAssets");
         if (parameters.CopyPrivateAssetsMetadata && !string.IsNullOrEmpty(privateAssets))
+        {
             metadata.Add(new("PrivateAssets", privateAssets));
+        }
+
+        var targetFramework = reference.GetMetadataValue("CementTargetFramework");
+        if (!string.IsNullOrEmpty(targetFramework))
+        {
+            metadata.Add(new("Condition", $"'$(TargetFramework)' == '{targetFramework}'"));
+        }
+        
         return metadata;
     }
 
