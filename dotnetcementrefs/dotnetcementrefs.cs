@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 using Cement.Vostok.Devtools;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
+using Microsoft.Build.Shared;
 using NuGet.Common;
 using NuGet.Configuration;
+using NuGet.Frameworks;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 
@@ -105,9 +107,7 @@ public static class Program
             await Console.Out.WriteLineAsync($"Ignore project  '{solutionProject.ProjectName}' due to DotnetCementRefsExclude property in csproj.");
             return;
         }
-
-        ReplaceModuleReferences(project);
-
+        
         var references = FindCementReferences(project, allProjectsInSolution, parameters.CementReferencePrefixes);
         if (parameters.AllowLocalProjects)
         {
@@ -121,6 +121,22 @@ public static class Program
                 throw new($"All cement references should support multitargeting and contain $(ReferencesFramework). But {string.Join(",", singleTargeted)} don't.");
             }
         }
+
+        {
+            var newItems = ReplaceModuleReferences(project).ToHashSet();
+
+            var itemsQuery = project.Items
+                .Where(x => newItems.Contains(x.EvaluatedInclude));
+            
+            if (!parameters.AllowLocalProjects)
+            {
+                itemsQuery = itemsQuery.Where(x => !allProjectsInSolution.Contains(x.EvaluatedInclude));
+            }
+            
+            references.AddRange(itemsQuery);
+        }
+        
+        references = references.OrderBy(x => x.HasMetadata("InstallFrameworks")).ToList();
         
         if (!references.Any())
         {
@@ -154,7 +170,62 @@ public static class Program
         await Console.Out.WriteLineAsync();
     }
 
-    private static void ReplaceModuleReferences(Project project)
+    private static string[] ReplaceModuleReferences(Project project)
+    {
+        var references = ResolveModuleReferences(project);
+        var items = AddReferences(project, references);
+        
+        var moduleReferences = references.Select(x => x.Source);
+        project.RemoveItems(moduleReferences);
+        
+        project.ReevaluateIfNecessary();
+        // project.Save();
+
+        return items;
+    }
+
+    private static string[] AddReferences(Project project, Reference[] references)
+    {
+        var items = new List<string>();
+        
+        var referencesByInclude = references.GroupBy(x => x.Include).ToArray();
+
+        foreach (var group in referencesByInclude)
+        {
+            var include = group.Key;
+
+            var referenceExist = project.GetItems("Reference")
+                .Select(x => x.EvaluatedInclude)
+                .Contains(include);
+            
+            if (referenceExist)
+            {
+                continue;
+            }
+            
+            var frameworks = group.Select(x => x.TargetFramework.GetShortFolderName()).Distinct();
+            var metadata = new Dictionary<string, string>
+            {
+                ["InstallFrameworks"] = string.Join(';', frameworks),
+            };
+
+            var itemGroup = group.Select(x => x.Source.Xml.Parent).FirstOrDefault(x => x is ProjectItemGroupElement);
+            if (itemGroup != null)
+            {
+                ((ProjectItemGroupElement)itemGroup).AddItem("Reference", include, metadata);
+            }
+            else
+            {
+               project.AddItem("Reference", include, metadata);
+            }
+
+            items.Add(include);
+        }
+
+        return items.ToArray();
+    }
+
+    private static Reference[] ResolveModuleReferences(Project project)
     {
         var moduleReferences = project.ItemsIgnoringCondition
             .Where(item => item.ItemType == "ModuleReference")
@@ -162,7 +233,7 @@ public static class Program
 
         if (moduleReferences.Count == 0)
         {
-            return;
+            return [];
         }
 
         var targetFrameworksProperty = project.GetPropertyValue("TargetFramework");
@@ -171,61 +242,43 @@ public static class Program
             targetFrameworksProperty = project.GetPropertyValue("TargetFrameworks");
         }
         
+        var targetFrameworks = targetFrameworksProperty.Split(';', StringSplitOptions.RemoveEmptyEntries);
+
         var workspacePath = FileUtilities.GetDirectoryNameOfDirectoryAbove(project.FullPath, ".cement");
         if (workspacePath == null)
         {
             throw new($"Failed to find cement workspace for '{project.FullPath}'. " +
                       $"Make sure project is inside cement workspace.");
         }
-
-        var targetFrameworks = targetFrameworksProperty.Split(';', StringSplitOptions.RemoveEmptyEntries);
+        
         var assetsResolver = new InstallAssetsResolver();
+
+        var references = new List<Reference>();
 
         foreach (var moduleReference in moduleReferences)
         {
-            try
+            foreach (var framework in targetFrameworks)
             {
-                foreach (var framework in targetFrameworks)
+                var assets = assetsResolver.Resolve(workspacePath, moduleReference.EvaluatedInclude, framework);
+                if (assets == null)
                 {
-                    var assets = assetsResolver.Resolve(workspacePath, moduleReference.EvaluatedInclude, framework);
-                    if (assets == null)
-                    {
-                        continue;
-                    }
-
-                    foreach (var file in assets.InstallFiles)
-                    {
-                        var filePath = LinuxPath.ReplaceSeparator(file);
-                        var fullPath = LinuxPath.Combine(workspacePath, filePath);
-                    
-                        var include = Path.GetFileNameWithoutExtension(filePath);
-                        var metadata = new Dictionary<string, string>
-                        {
-                            ["HintPath"] = fullPath,
-                            ["Condition"] = $"'$(TargetFramework)' == '{framework}'",
-                            ["CementTargetFramework"] = framework
-                        };
-                    
-                        if (moduleReference.Xml.Parent is ProjectItemGroupElement groupElement)
-                        {
-                            groupElement.AddItem("Reference", include, metadata);
-                        }
-                        else
-                        {
-                            project.AddItem("Reference", include, metadata);
-                        }
-                    }
-                    
-                    project.RemoveItem(moduleReference);
+                    continue;
                 }
-            }
-            catch (Exception e)
-            {
-                throw new($"Failed to replace ModuleReference at '{moduleReference.Xml.Location}'", e);
+
+                foreach (var file in assets.InstallFiles)
+                {
+                    var filePath = LinuxPath.ReplaceSeparator(file);
+
+                    var include = Path.GetFileNameWithoutExtension(filePath);
+                    var nuGetFramework = NuGetFramework.ParseFolder(framework);
+
+                    var reference = new Reference(moduleReference, include, nuGetFramework);
+                    references.Add(reference);
+                }
             }
         }
 
-        project.ReevaluateIfNecessary();
+        return references.ToArray();
     }
 
     private static string[] GetUsePrereleaseForPrefixes(Project project)
@@ -305,18 +358,33 @@ public static class Program
         var itemGroupsWithCementRef = project.Xml.ItemGroups.Where(g => g.Items.Any(r => r.ElementName == "Reference" && r.Include == reference.EvaluatedInclude)).ToList();
         var itemGroupsWithPackageRef = project.Xml.ItemGroups.Where(ig => ig.Items.Any(i => i.ElementName == "PackageReference" && i.Include == packageName)).ToList();
         var metadata = ConstructMetadata(reference, parameters, packageVersion);
+        var condition = ConstructCondition(reference);
         if (itemGroupsWithCementRef.Any())
+        {
             foreach (var group in itemGroupsWithCementRef)
             {
                 if (itemGroupsWithPackageRef.Any(ig => ReferenceEquals(ig, group)))
+                {
                     continue;
-                
-                group.AddItem("PackageReference", packageName, metadata);
+                }
+
+                var item = group.AddItem("PackageReference", packageName, metadata);
+                if (condition != null)
+                {
+                    item.Condition = condition;
+                }
             }
+        }
         else
         {
             if (!project.Items.Any(i => i.ItemType == "PackageReference" && i.EvaluatedInclude == packageName))
-                project.AddItem("PackageReference", packageName, metadata);
+            {
+                var item = project.AddItem("PackageReference", packageName, metadata)[0];
+                if (condition != null)
+                {
+                    item.Xml.Condition = condition;
+                }
+            }
         }
         await Console.Out.WriteLineAsync($"Added package reference to '{packageName}' of version '{metadata.First().Value}'.");
         project.RemoveItem(reference);
@@ -324,7 +392,7 @@ public static class Program
         await Console.Out.WriteLineAsync();
     }
 
-    private static IEnumerable<KeyValuePair<string, string>> ConstructMetadata(ProjectItem reference, Parameters parameters, NuGetVersion packageVersion)
+    private static KeyValuePair<string, string>[] ConstructMetadata(ProjectItem reference, Parameters parameters, NuGetVersion packageVersion)
     {
         var version = packageVersion.ToString();
         if (parameters.UseFloatingVersions)
@@ -338,14 +406,22 @@ public static class Program
         {
             metadata.Add(new("PrivateAssets", privateAssets));
         }
+        
+        return metadata.ToArray();
+    }
 
-        var targetFramework = reference.GetMetadataValue("CementTargetFramework");
-        if (!string.IsNullOrEmpty(targetFramework))
+    private static string? ConstructCondition(ProjectItem reference)
+    {
+        var targetFrameworks = reference.GetMetadataValue("InstallFrameworks");
+
+        if (string.IsNullOrEmpty(targetFrameworks))
         {
-            metadata.Add(new("Condition", $"'$(TargetFramework)' == '{targetFramework}'"));
+            return null;
         }
         
-        return metadata;
+        var frameworks = targetFrameworks.Split(';');
+        var conditions = frameworks.Select(x => $"'$(TargetFramework)' == '{x}'");
+        return string.Join(" or ", conditions);
     }
 
     private static async Task<NuGetVersion?> GetLatestNugetVersionWithCacheAsync(string package, bool includePrerelease, string[] sourceUrls)
