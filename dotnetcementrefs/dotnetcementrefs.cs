@@ -120,7 +120,10 @@ public static class Program
         }
         
         var itemsFromModuleReferences = ReplaceModuleReferences(project).ToHashSet();
-        var itemsQuery = project.Items.Where(x => itemsFromModuleReferences.Contains(x.EvaluatedInclude));
+        var itemsQuery = project.ItemsIgnoringCondition
+            .Where(x => x.ItemType == "Reference")
+            .Where(x => itemsFromModuleReferences.Contains(x.EvaluatedInclude));
+        
         if (!parameters.AllowLocalProjects)
         {
             itemsQuery = itemsQuery.Where(x => !allProjectsInSolution.Contains(x.EvaluatedInclude));
