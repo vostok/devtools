@@ -4,13 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Cement.Vostok.Devtools;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
-using Microsoft.Build.Shared;
 using NuGet.Common;
 using NuGet.Configuration;
-using NuGet.Frameworks;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 
@@ -121,22 +118,18 @@ public static class Program
                 throw new($"All cement references should support multitargeting and contain $(ReferencesFramework). But {string.Join(",", singleTargeted)} don't.");
             }
         }
-
+        
+        var itemsFromModuleReferences = ReplaceModuleReferences(project).ToHashSet();
+        var itemsQuery = project.Items.Where(x => itemsFromModuleReferences.Contains(x.EvaluatedInclude));
+        if (!parameters.AllowLocalProjects)
         {
-            var newItems = ReplaceModuleReferences(project).ToHashSet();
-
-            var itemsQuery = project.Items
-                .Where(x => newItems.Contains(x.EvaluatedInclude));
-            
-            if (!parameters.AllowLocalProjects)
-            {
-                itemsQuery = itemsQuery.Where(x => !allProjectsInSolution.Contains(x.EvaluatedInclude));
-            }
-            
-            references.AddRange(itemsQuery);
+            itemsQuery = itemsQuery.Where(x => !allProjectsInSolution.Contains(x.EvaluatedInclude));
         }
         
-        references = references.OrderBy(x => x.HasMetadata("InstallFrameworks")).ToList();
+        references = references
+            .Concat(itemsQuery)
+            .OrderBy(x => x.HasMetadata(WellKnownMetadata.Reference.CementInstallFrameworks))
+            .ToList();
         
         if (!references.Any())
         {
@@ -172,113 +165,18 @@ public static class Program
 
     private static string[] ReplaceModuleReferences(Project project)
     {
-        var references = ResolveModuleReferences(project);
-        var items = AddReferences(project, references);
+        var resolver = new ModuleReferenceResolver();
+        var references = resolver.Resolve(project);
+
+        var helper = new ReferenceHelper();
+        var items = helper.AddReferences(project, references);
         
         var moduleReferences = references.Select(x => x.Source);
         project.RemoveItems(moduleReferences);
         
         project.ReevaluateIfNecessary();
-        // project.Save();
 
         return items;
-    }
-
-    private static string[] AddReferences(Project project, Reference[] references)
-    {
-        var items = new List<string>();
-        
-        var referencesByInclude = references.GroupBy(x => x.Include).ToArray();
-
-        foreach (var group in referencesByInclude)
-        {
-            var include = group.Key;
-
-            var referenceExist = project.GetItems("Reference")
-                .Select(x => x.EvaluatedInclude)
-                .Contains(include);
-            
-            if (referenceExist)
-            {
-                continue;
-            }
-            
-            var frameworks = group.Select(x => x.TargetFramework.GetShortFolderName()).Distinct();
-            var metadata = new Dictionary<string, string>
-            {
-                ["InstallFrameworks"] = string.Join(';', frameworks),
-            };
-
-            var itemGroup = group.Select(x => x.Source.Xml.Parent).FirstOrDefault(x => x is ProjectItemGroupElement);
-            if (itemGroup != null)
-            {
-                ((ProjectItemGroupElement)itemGroup).AddItem("Reference", include, metadata);
-            }
-            else
-            {
-               project.AddItem("Reference", include, metadata);
-            }
-
-            items.Add(include);
-        }
-
-        return items.ToArray();
-    }
-
-    private static Reference[] ResolveModuleReferences(Project project)
-    {
-        var moduleReferences = project.ItemsIgnoringCondition
-            .Where(item => item.ItemType == "ModuleReference")
-            .ToList();
-
-        if (moduleReferences.Count == 0)
-        {
-            return [];
-        }
-
-        var targetFrameworksProperty = project.GetPropertyValue("TargetFramework");
-        if (string.IsNullOrWhiteSpace(targetFrameworksProperty))
-        {
-            targetFrameworksProperty = project.GetPropertyValue("TargetFrameworks");
-        }
-        
-        var targetFrameworks = targetFrameworksProperty.Split(';', StringSplitOptions.RemoveEmptyEntries);
-
-        var workspacePath = FileUtilities.GetDirectoryNameOfDirectoryAbove(project.FullPath, ".cement");
-        if (workspacePath == null)
-        {
-            throw new($"Failed to find cement workspace for '{project.FullPath}'. " +
-                      $"Make sure project is inside cement workspace.");
-        }
-        
-        var assetsResolver = new InstallAssetsResolver();
-
-        var references = new List<Reference>();
-
-        foreach (var moduleReference in moduleReferences)
-        {
-            foreach (var framework in targetFrameworks)
-            {
-                var assets = assetsResolver.Resolve(workspacePath, moduleReference.EvaluatedInclude, framework);
-                if (assets == null)
-                {
-                    continue;
-                }
-
-                foreach (var file in assets.InstallFiles)
-                {
-                    var filePath = LinuxPath.ReplaceSeparator(file);
-
-                    var include = Path.GetFileNameWithoutExtension(filePath);
-                    var nuGetFramework = NuGetFramework.ParseFolder(framework);
-
-                    var reference = new Reference(moduleReference, include, nuGetFramework);
-                    references.Add(reference);
-                }
-            }
-        }
-
-        return references.ToArray();
     }
 
     private static string[] GetUsePrereleaseForPrefixes(Project project)
@@ -360,7 +258,6 @@ public static class Program
         var metadata = ConstructMetadata(reference, parameters, packageVersion);
         var condition = ConstructCondition(reference);
         if (itemGroupsWithCementRef.Any())
-        {
             foreach (var group in itemGroupsWithCementRef)
             {
                 if (itemGroupsWithPackageRef.Any(ig => ReferenceEquals(ig, group)))
@@ -374,7 +271,6 @@ public static class Program
                     item.Condition = condition;
                 }
             }
-        }
         else
         {
             if (!project.Items.Any(i => i.ItemType == "PackageReference" && i.EvaluatedInclude == packageName))
@@ -403,16 +299,13 @@ public static class Program
         var metadata = new List<KeyValuePair<string, string>> { new("Version", version) };
         var privateAssets = reference.GetMetadataValue("PrivateAssets");
         if (parameters.CopyPrivateAssetsMetadata && !string.IsNullOrEmpty(privateAssets))
-        {
             metadata.Add(new("PrivateAssets", privateAssets));
-        }
-        
         return metadata.ToArray();
     }
 
     private static string? ConstructCondition(ProjectItem reference)
     {
-        var targetFrameworks = reference.GetMetadataValue("InstallFrameworks");
+        var targetFrameworks = reference.GetMetadataValue(WellKnownMetadata.Reference.CementInstallFrameworks);
 
         if (string.IsNullOrEmpty(targetFrameworks))
         {
