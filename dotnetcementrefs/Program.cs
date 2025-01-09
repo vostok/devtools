@@ -6,7 +6,7 @@ public static class Program
 {
     public static async Task Main(string[] args)
     {
-        var parameters = new Parameters(args);
+        var parameters = Parameters.Parse(args);
         
         var packageVersionProvider = new PackageVersionProvider();
         var command = new ReplaceRefsCommand(packageVersionProvider);

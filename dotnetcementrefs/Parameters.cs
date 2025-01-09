@@ -19,23 +19,43 @@ internal sealed class Parameters
     public bool CopyPrivateAssetsMetadata { get; }
     public bool UseFloatingVersions { get; }
 
-    public Parameters(string[] args)
+    public Parameters(string targetSlnPath, string solutionConfiguration, string[] sourceUrls, string[] cementReferencePrefixes, string[] missingReferencesToRemove, string[] referencesToRemove, bool failOnNotFoundPackage, bool allowLocalProjects, bool allowPrereleasePackages, bool ensureMultitargeted, bool copyPrivateAssetsMetadata, bool useFloatingVersions)
+    {
+        TargetSlnPath = targetSlnPath;
+        SolutionConfiguration = solutionConfiguration;
+        SourceUrls = sourceUrls;
+        CementReferencePrefixes = cementReferencePrefixes;
+        MissingReferencesToRemove = missingReferencesToRemove;
+        ReferencesToRemove = referencesToRemove;
+        FailOnNotFoundPackage = failOnNotFoundPackage;
+        AllowLocalProjects = allowLocalProjects;
+        AllowPrereleasePackages = allowPrereleasePackages;
+        EnsureMultitargeted = ensureMultitargeted;
+        CopyPrivateAssetsMetadata = copyPrivateAssetsMetadata;
+        UseFloatingVersions = useFloatingVersions;
+    }
+
+    public static Parameters Parse(string[] args)
     {
         var positionalArgs = args.Where(x => !x.StartsWith("-")).ToArray();
-        TargetSlnPath = positionalArgs.Length > 0 ? positionalArgs[0] : Environment.CurrentDirectory;
-        SourceUrls = GetArgsByKey(args, "--source:").ToArray();
-        CementReferencePrefixes = new[] {"Vostok."}.Concat(GetArgsByKey(args, "--refPrefix:")).ToArray();
-        MissingReferencesToRemove = GetArgsByKey(args, "--removeMissing:").ToArray();
-        ReferencesToRemove = GetArgsByKey(args, "--remove:").ToArray();
-        FailOnNotFoundPackage = !args.Contains("--ignoreMissingPackages");
-        SolutionConfiguration = GetArgsByKey(args, "--solutionConfiguration:").FirstOrDefault() ?? "Release";
-        AllowLocalProjects = args.Contains("--allowLocalProjects");
-        AllowPrereleasePackages = args.Contains("--allowPrereleasePackages");
-        EnsureMultitargeted = args.Contains("--ensureMultitargeted");
-        CopyPrivateAssetsMetadata = args.Contains("--copyPrivateAssets");
-        UseFloatingVersions = args.Contains("--useFloatingVersions");
+        var targetSlnPath = positionalArgs.Length > 0 ? positionalArgs[0] : Environment.CurrentDirectory;
+        var sourceUrls = GetArgsByKey(args, "--source:").ToArray();
+        var cementReferencePrefixes = new[] {"Vostok."}.Concat(GetArgsByKey(args, "--refPrefix:")).ToArray();
+        var missingReferencesToRemove = GetArgsByKey(args, "--removeMissing:").ToArray();
+        var referencesToRemove = GetArgsByKey(args, "--remove:").ToArray();
+        var failOnNotFoundPackage = !args.Contains("--ignoreMissingPackages");
+        var solutionConfiguration = GetArgsByKey(args, "--solutionConfiguration:").FirstOrDefault() ?? "Release";
+        var allowLocalProjects = args.Contains("--allowLocalProjects");
+        var allowPrereleasePackages = args.Contains("--allowPrereleasePackages");
+        var ensureMultitargeted = args.Contains("--ensureMultitargeted");
+        var copyPrivateAssetsMetadata = args.Contains("--copyPrivateAssets");
+        var useFloatingVersions = args.Contains("--useFloatingVersions");
+        
+        return new Parameters(targetSlnPath, solutionConfiguration, sourceUrls, cementReferencePrefixes,
+            missingReferencesToRemove, referencesToRemove, failOnNotFoundPackage, allowLocalProjects,
+            allowPrereleasePackages, ensureMultitargeted, copyPrivateAssetsMetadata, useFloatingVersions);
     }
-    
+
     private static IEnumerable<string> GetArgsByKey(string[] args, string key)
     {
         return args
