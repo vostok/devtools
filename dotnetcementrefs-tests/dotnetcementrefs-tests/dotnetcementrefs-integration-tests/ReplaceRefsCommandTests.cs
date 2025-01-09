@@ -10,15 +10,21 @@ namespace DotnetCementRefs.Integration.Tests;
 public sealed class ReplaceRefsCommandTests : IDisposable
 {
     private readonly ReplaceRefsCommand command;
-    private readonly IProjectsProvider projectProvider;
+    private readonly FakeProjectProvider projectProvider;
     private readonly IPackageVersionProvider versionProvider;
     private readonly TempWorkspace workspace;
+
+    private static ProjectOptions DefaultProjectOptions => new()
+    {
+        ProjectCollection = new ProjectCollection(),
+        LoadSettings = ProjectLoadSettings.IgnoreMissingImports
+    };
 
     public ReplaceRefsCommandTests()
     {
         workspace = TempWorkspace.Create();
 
-        projectProvider = Substitute.For<IProjectsProvider>();
+        projectProvider = new FakeProjectProvider();
         versionProvider = Substitute.For<IPackageVersionProvider>();
         command = new ReplaceRefsCommand(projectProvider, versionProvider);
     }
@@ -39,11 +45,7 @@ public sealed class ReplaceRefsCommandTests : IDisposable
     public async Task Should_replace_reference()
     {
         // arrange
-        var moduleName = Guid.NewGuid().ToString();
-        var modulePath = workspace.CreateModule(moduleName);
-
-        var solutionConfiguration = Guid.NewGuid().ToString();
-        var solutionPath = CreateSolution(modulePath);
+        var (modulePath, solutionPath, solutionConfiguration) = CreateModule();
 
         var project = ProjectsFactory.CreateClassLib(["net8.0"]);
 
@@ -63,13 +65,7 @@ public sealed class ReplaceRefsCommandTests : IDisposable
         await command.ExecuteAsync(parameters);
 
         // assert
-        var projectOptions = new ProjectOptions
-        {
-            ProjectCollection = new ProjectCollection(),
-            LoadSettings = ProjectLoadSettings.IgnoreMissingImports
-        };
-
-        var actual = Project.FromFile(project.FullPath, projectOptions);
+        var actual = Project.FromFile(project.FullPath, DefaultProjectOptions);
         actual.GetItems("Reference").Should().BeEmpty();
 
         var packageReference = actual.GetItems("PackageReference").Single();
@@ -81,11 +77,7 @@ public sealed class ReplaceRefsCommandTests : IDisposable
     public async Task Should_replace_module_reference()
     {
         // arrange
-        var moduleName = Guid.NewGuid().ToString();
-        var modulePath = workspace.CreateModule(moduleName);
-
-        var solutionConfiguration = Guid.NewGuid().ToString();
-        var solutionPath = CreateSolution(modulePath);
+        var (modulePath, solutionPath, solutionConfiguration) = CreateModule();
 
         var depName = Guid.NewGuid().ToString();
         workspace.CreateModule(depName);
@@ -115,13 +107,7 @@ public sealed class ReplaceRefsCommandTests : IDisposable
         await command.ExecuteAsync(parameters);
 
         // assert
-        var projectOptions = new ProjectOptions
-        {
-            ProjectCollection = new ProjectCollection(),
-            LoadSettings = ProjectLoadSettings.IgnoreMissingImports
-        };
-
-        var actual = Project.FromFile(project.FullPath, projectOptions);
+        var actual = Project.FromFile(project.FullPath, DefaultProjectOptions);
         actual.GetItems("Reference").Should().BeEmpty();
         actual.GetItems("ModuleReference").Should().BeEmpty();
 
@@ -134,11 +120,7 @@ public sealed class ReplaceRefsCommandTests : IDisposable
     public async Task Should_support_install_groups()
     {
         // arrange
-        var moduleName = Guid.NewGuid().ToString();
-        var modulePath = workspace.CreateModule(moduleName);
-
-        var solutionConfiguration = Guid.NewGuid().ToString();
-        var solutionPath = CreateSolution(modulePath);
+        var (modulePath, solutionPath, solutionConfiguration) = CreateModule();
 
         var depName = Guid.NewGuid().ToString();
         workspace.CreateModule(depName);
@@ -202,17 +184,13 @@ public sealed class ReplaceRefsCommandTests : IDisposable
             packageReference.EvaluatedInclude.Should().Be(dll);
             packageReference.GetMetadataValue("Version").Should().Be(nugetVersion.ToString());
         }
-    }  
-    
+    }
+
     [Test]
     public async Task Should_replace_when_reference_and_module_reference_exists()
     {
         // arrange
-        var moduleName = Guid.NewGuid().ToString();
-        var modulePath = workspace.CreateModule(moduleName);
-
-        var solutionConfiguration = Guid.NewGuid().ToString();
-        var solutionPath = CreateSolution(modulePath);
+        var (modulePath, solutionPath, solutionConfiguration) = CreateModule();
 
         var depName = Guid.NewGuid().ToString();
         workspace.CreateModule(depName);
@@ -246,27 +224,17 @@ public sealed class ReplaceRefsCommandTests : IDisposable
         await command.ExecuteAsync(parameters);
 
         // assert
-        var projectOptions = new ProjectOptions
-        {
-            ProjectCollection = new ProjectCollection(),
-            LoadSettings = ProjectLoadSettings.IgnoreMissingImports
-        };
-
-        var actual = Project.FromFile(project.FullPath, projectOptions);
+        var actual = Project.FromFile(project.FullPath, DefaultProjectOptions);
         actual.GetItems("Reference").Should().BeEmpty();
         actual.GetItems("ModuleReference").Should().BeEmpty();
         actual.GetItems("PackageReference").Should().ContainSingle();
     }
 
     [Test]
-    public async Task Should_ignore_local_project()
+    public async Task Should_ignore_local_projects()
     {
         // arrange
-        var moduleName = Guid.NewGuid().ToString();
-        var modulePath = workspace.CreateModule(moduleName);
-
-        var solutionConfiguration = Guid.NewGuid().ToString();
-        var solutionPath = CreateSolution(modulePath);
+        var (modulePath, solutionPath, solutionConfiguration) = CreateModule();
 
         var depName = Guid.NewGuid().ToString();
         workspace.CreateModule(depName);
@@ -284,24 +252,15 @@ public sealed class ReplaceRefsCommandTests : IDisposable
         var project1 = ProjectsFactory.CreateClassLib(["net8.0"]);
         project1.AddItem("ModuleReference", depName);
         project1.AddItem("Reference", dllName);
-        
-        var projectName1 = Guid.NewGuid().ToString();
-        var projectPath1 = Path.Combine(workspace.Path, $"{projectName1}.csproj");
-        project1.Save(projectPath1);   
-        
+
+        AddProjectToSolution(project1, solutionPath, solutionConfiguration);
+
         var project2 = ProjectsFactory.CreateClassLib(["net8.0"]);
-        var projectName2 = dllName;
-        var projectPath2 = Path.Combine(workspace.Path, $"{projectName2}.csproj");
-        project2.Save(projectPath2);
-        
-        var solutionProject1 = new SolutionProject(projectPath1, projectName1);
-        var solutionProject2 = new SolutionProject(projectPath2, projectName2);
-        projectProvider.GetFromSolution(solutionPath, solutionConfiguration)
-            .Returns([solutionProject1, solutionProject2]);
+        AddProjectToSolution(project2, solutionPath, solutionConfiguration, projectName: dllName);
 
         var sourceUrl = Guid.NewGuid().ToString();
-        var includePrerelease = Arg.Any<bool>();
         var nugetVersion = CreateNuGetVersion();
+        var includePrerelease = Arg.Any<bool>();
         versionProvider.GetVersionsAsync(dllName, includePrerelease, sourceUrl).Returns([nugetVersion]);
 
         // act
@@ -309,34 +268,138 @@ public sealed class ReplaceRefsCommandTests : IDisposable
         await command.ExecuteAsync(parameters);
 
         // assert
-        var projectOptions = new ProjectOptions
-        {
-            ProjectCollection = new ProjectCollection(),
-            LoadSettings = ProjectLoadSettings.IgnoreMissingImports
-        };
-
-        var actual = Project.FromFile(project1.FullPath, projectOptions);
+        var actual = Project.FromFile(project1.FullPath, DefaultProjectOptions);
         actual.GetItems("Reference").Should().ContainSingle();
         actual.GetItems("ModuleReference").Should().ContainSingle();
     }
 
-    private static string CreateSolution(string path)
+    [Test]
+    public async Task Should_allow_local_projects()
     {
-        var solutionPath = Path.Combine(path, $"{Guid.NewGuid().ToString()}.sln");
-        File.Create(solutionPath);
-        return solutionPath;
+        // arrange
+        var (modulePath, solutionPath, solutionConfiguration) = CreateModule();
+
+        var project1 = ProjectsFactory.CreateClassLib(["net8.0"]);
+
+        var prefix = Guid.NewGuid().ToString();
+        var include = string.Join('.', prefix, Guid.NewGuid());
+        project1.AddItem("Reference", include);
+
+        AddProjectToSolution(project1, solutionPath, solutionConfiguration);
+
+        var project2 = ProjectsFactory.CreateClassLib(["net8.0"]);
+        AddProjectToSolution(project2, solutionPath, solutionConfiguration, projectName: include);
+
+        var sourceUrl = Guid.NewGuid().ToString();
+        var nugetVersion = CreateNuGetVersion();
+        var includePrerelease = Arg.Any<bool>();
+        versionProvider.GetVersionsAsync(include, includePrerelease, sourceUrl).Returns([nugetVersion]);
+
+        // act
+        var parameters = CreateParameters(modulePath, solutionConfiguration, [sourceUrl], [prefix],
+            allowLocalProjects: true);
+
+        await command.ExecuteAsync(parameters);
+
+        // assert
+        var actual = Project.FromFile(project1.FullPath, DefaultProjectOptions);
+        actual.GetItems("Reference").Should().BeEmpty();
+        actual.GetItems("PackageReference").Should().ContainSingle();
     }
 
-    private void AddProjectToSolution(ProjectRootElement project, string solutionPath, string solutionConfiguration)
+    [Test]
+    public async Task Should_throw_when_ensuring_multi_targeting_and_hint_path_is_not_valid()
     {
-        var projectName = Guid.NewGuid().ToString();
+        // arrange
+        var (modulePath, solutionPath, solutionConfiguration) = CreateModule();
+
+        var project = ProjectsFactory.CreateClassLib(["net8.0"]);
+
+        var prefix = Guid.NewGuid().ToString();
+        var include = string.Join('.', prefix, Guid.NewGuid());
+        var reference = project.AddItem("Reference", include);
+        
+        var hintPath = string.Join('/', Guid.NewGuid(), "netstandard2.0", include + ".dll");
+        reference.AddMetadata("HintPath", hintPath);
+
+        AddProjectToSolution(project, solutionPath, solutionConfiguration);
+
+        var sourceUrl = Guid.NewGuid().ToString();
+        var nugetVersion = CreateNuGetVersion();
+        var includePrerelease = Arg.Any<bool>();
+        versionProvider.GetVersionsAsync(include, includePrerelease, sourceUrl).Returns([nugetVersion]);
+
+        // act
+        var parameters = CreateParameters(modulePath, solutionConfiguration, [sourceUrl], [prefix],
+            ensureMultitargeted: true);
+
+        var act = async () => await command.ExecuteAsync(parameters);
+
+        // assert
+        await act.Should().ThrowAsync<Exception>();
+    }
+
+    [Test]
+    public async Task Should_ignore_module_reference_when_ensuring_multi_targeting()
+    {
+        // arrange
+        var (modulePath, solutionPath, solutionConfiguration) = CreateModule();
+
+        var depName = Guid.NewGuid().ToString();
+        workspace.CreateModule(depName);
+
+        var prefix = Guid.NewGuid().ToString();
+        var dllName = string.Join('.', prefix, Guid.NewGuid());
+        var depYaml = $"""
+                       full-build:
+                         install:
+                           - {dllName}.dll
+                       """;
+
+        workspace.WriteYaml(depName, depYaml);
+
+        var project = ProjectsFactory.CreateClassLib(["net8.0"]);
+        project.AddItem("ModuleReference", depName);
+
+        AddProjectToSolution(project, solutionPath, solutionConfiguration);
+
+        var sourceUrl = Guid.NewGuid().ToString();
+        var includePrerelease = Arg.Any<bool>();
+        var nugetVersion = CreateNuGetVersion();
+        versionProvider.GetVersionsAsync(dllName, includePrerelease, sourceUrl).Returns([nugetVersion]);
+
+        // act
+        var parameters = CreateParameters(modulePath, solutionConfiguration, [sourceUrl], [prefix],
+            ensureMultitargeted: true);
+
+        var act = async () => await command.ExecuteAsync(parameters);
+
+        // assert
+        await act.Should().NotThrowAsync();
+    }
+
+    private (string ModulePath, string SolutionPath, string SolutionConfiguration) CreateModule()
+    {
+        var moduleName = Guid.NewGuid().ToString();
+        var modulePath = workspace.CreateModule(moduleName);
+
+        var solutionConfiguration = Guid.NewGuid().ToString();
+        var solutionPath = Path.Combine(modulePath, $"{Guid.NewGuid().ToString()}.sln");
+        File.Create(solutionPath);
+
+        return (modulePath, solutionPath, solutionConfiguration);
+    }
+
+    private void AddProjectToSolution(ProjectRootElement project, string solutionPath,
+        string solutionConfiguration, string? projectName = null)
+    {
+        projectName ??= Guid.NewGuid().ToString();
         var projectPath = Path.Combine(workspace.Path, $"{projectName}.csproj");
         project.Save(projectPath);
 
         var solutionProject = new SolutionProject(projectPath, projectName);
-        projectProvider.GetFromSolution(solutionPath, solutionConfiguration).Returns([solutionProject]);
-    } 
-    
+        projectProvider.AddToSolution(solutionProject, solutionPath, solutionConfiguration);
+    }
 
     private static NuGetVersion CreateNuGetVersion()
     {
@@ -347,14 +410,13 @@ public sealed class ReplaceRefsCommandTests : IDisposable
     }
 
     private static Parameters CreateParameters(string targetSlnPath, string solutionConfiguration,
-        IReadOnlyCollection<string> sourceUrls, IReadOnlyCollection<string> cementReferencePrefixes)
+        IReadOnlyCollection<string> sourceUrls, IReadOnlyCollection<string> cementReferencePrefixes,
+        bool allowLocalProjects = false, bool ensureMultitargeted = false)
     {
         var missingReferencesToRemove = Array.Empty<string>();
         var referencesToRemove = Array.Empty<string>();
         var failOnNotFoundPackage = true;
-        var allowLocalProjects = false;
         var allowPrereleasePackages = false;
-        var ensureMultitargeted = false;
         var copyPrivateAssetsMetadata = false;
         var useFloatingVersions = false;
 
