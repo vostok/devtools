@@ -94,7 +94,11 @@ internal sealed class ReplaceRefsCommand
         }
         if (parameters.EnsureMultitargeted)
         {
-            var singleTargeted = references.Select(r => r.DirectMetadata.Single(m => m.Name == "HintPath").UnevaluatedValue).Where(r => !r.Contains("$(") && r.Contains("netstandard2.0")).ToArray();
+            var singleTargeted = references
+                .Select(r => r.DirectMetadata.Single(m => m.Name == WellKnownMetadata.Reference.HintPath).UnevaluatedValue)
+                .Where(r => !r.Contains("$(") && r.Contains("netstandard2.0"))
+                .ToArray();
+            
             if (singleTargeted.Any())
             {
                 throw new($"All cement references should support multitargeting and contain $(ReferencesFramework). But {string.Join(",", singleTargeted)} don't.");
@@ -103,7 +107,7 @@ internal sealed class ReplaceRefsCommand
         
         var itemsFromModuleReferences = ReplaceModuleReferences(project).ToHashSet();
         var itemsQuery = project.ItemsIgnoringCondition
-            .Where(x => x.ItemType == "Reference")
+            .Where(x => x.ItemType == WellKnownItems.Reference)
             .Where(x => itemsFromModuleReferences.Contains(x.EvaluatedInclude));
         
         if (!parameters.AllowLocalProjects)
@@ -166,7 +170,9 @@ internal sealed class ReplaceRefsCommand
 
     private static string[] GetUsePrereleaseForPrefixes(Project project)
     {
-        var property = project.Properties.FirstOrDefault(x => x.Name == "DotnetCementRefsUsePrereleaseForPrefixes");
+        var property = project.Properties
+            .FirstOrDefault(x => x.Name == WellKnownProperties.DotnetCementRefsUsePrereleaseForPrefixes);
+        
         var usePrereleaseForPrefixes = property?.EvaluatedValue.Split(new[] { ';', ',', ' ' }, StringSplitOptions.RemoveEmptyEntries)
                                        ?? new string[] { };
         return usePrereleaseForPrefixes;
@@ -174,7 +180,7 @@ internal sealed class ReplaceRefsCommand
 
     private static bool HasPrereleaseVersionSuffix(Project project, out string? suffix)
     {
-        suffix = project.GetProperty("VersionSuffix")?.EvaluatedValue;
+        suffix = project.GetProperty(WellKnownProperties.VersionSuffix)?.EvaluatedValue;
         return !string.IsNullOrWhiteSpace(suffix);
     }
 
@@ -182,7 +188,7 @@ internal sealed class ReplaceRefsCommand
     {
         return project
             .Properties
-            .Any(item => item.Name == "DotnetCementRefsExclude" && item.EvaluatedValue.ToLower() is "true");
+            .Any(item => item.Name == WellKnownProperties.DotnetCementRefsExclude && item.EvaluatedValue.ToLower() is "true");
     }
 
 
@@ -190,7 +196,7 @@ internal sealed class ReplaceRefsCommand
         string[] cementRefPrefixes)
     {
         return project.ItemsIgnoringCondition
-            .Where(item => item.ItemType == "Reference")
+            .Where(item => item.ItemType == WellKnownItems.Reference)
             .Where(item => cementRefPrefixes.Any(x => item.EvaluatedInclude.StartsWith(x)))
             .Where(item => !localProjects.Contains(item.EvaluatedInclude))
             .ToList();
@@ -199,14 +205,14 @@ internal sealed class ReplaceRefsCommand
     private static List<ProjectItem> FindLocalProjectReferences(Project project, ISet<string> localProjects)
     {
         return project.ItemsIgnoringCondition
-            .Where(item => item.ItemType == "Reference")
+            .Where(item => item.ItemType == WellKnownItems.Reference)
             .Where(item => localProjects.Contains(item.EvaluatedInclude))
             .ToList();
     }
 
     private async Task HandleReferenceAsync(Project project, ProjectItem reference, bool allowPrereleasePackages, Parameters parameters)
     {
-        var packageName = reference.GetMetadataValue("NugetPackageName");
+        var packageName = reference.GetMetadataValue(WellKnownMetadata.Reference.NugetPackageName);
         if (packageName is "")
             packageName = reference.EvaluatedInclude;
         if (packageName.Contains(","))
@@ -219,7 +225,10 @@ internal sealed class ReplaceRefsCommand
             return;
         }
 
-        var explicitPrereleaseFlag = reference.GetMetadataValue("NugetPackageAllowPrerelease").ToLower();
+        var explicitPrereleaseFlag = reference
+            .GetMetadataValue(WellKnownMetadata.Reference.NugetPackageAllowPrerelease)
+            .ToLower();
+        
         if (explicitPrereleaseFlag is "true" or "false")
             allowPrereleasePackages = bool.Parse(explicitPrereleaseFlag);
         var packageVersion = await GetLatestNugetVersionWithCacheAsync(packageName, allowPrereleasePackages, parameters.SourceUrls);
@@ -238,8 +247,8 @@ internal sealed class ReplaceRefsCommand
         }
         await Console.Out.WriteLineAsync($"Latest version of NuGet package '{packageName}' is '{packageVersion}'");
 
-        var itemGroupsWithCementRef = project.Xml.ItemGroups.Where(g => g.Items.Any(r => r.ElementName == "Reference" && r.Include == reference.EvaluatedInclude)).ToList();
-        var itemGroupsWithPackageRef = project.Xml.ItemGroups.Where(ig => ig.Items.Any(i => i.ElementName == "PackageReference" && i.Include == packageName)).ToList();
+        var itemGroupsWithCementRef = project.Xml.ItemGroups.Where(g => g.Items.Any(r => r.ElementName == WellKnownItems.Reference && r.Include == reference.EvaluatedInclude)).ToList();
+        var itemGroupsWithPackageRef = project.Xml.ItemGroups.Where(ig => ig.Items.Any(i => i.ElementName == WellKnownItems.PackageReference && i.Include == packageName)).ToList();
         var metadata = ConstructMetadata(reference, parameters, packageVersion);
         var condition = ConstructCondition(reference);
         if (itemGroupsWithCementRef.Any())
@@ -250,7 +259,7 @@ internal sealed class ReplaceRefsCommand
                     continue;
                 }
 
-                var item = group.AddItem("PackageReference", packageName, metadata);
+                var item = group.AddItem(WellKnownItems.PackageReference, packageName, metadata);
                 if (condition != null)
                 {
                     item.Condition = condition;
@@ -258,9 +267,9 @@ internal sealed class ReplaceRefsCommand
             }
         else
         {
-            if (!project.Items.Any(i => i.ItemType == "PackageReference" && i.EvaluatedInclude == packageName))
+            if (!project.Items.Any(i => i.ItemType == WellKnownItems.PackageReference && i.EvaluatedInclude == packageName))
             {
-                var item = project.AddItem("PackageReference", packageName, metadata)[0];
+                var item = project.AddItem(WellKnownItems.PackageReference, packageName, metadata)[0];
                 if (condition != null)
                 {
                     item.Xml.Condition = condition;
@@ -281,10 +290,12 @@ internal sealed class ReplaceRefsCommand
             version = $"{packageVersion.Version.Major}.{packageVersion.Version.Minor}.";
             version += packageVersion.IsPrerelease ? "*-*" : "*";
         }
-        var metadata = new List<KeyValuePair<string, string>> { new("Version", version) };
-        var privateAssets = reference.GetMetadataValue("PrivateAssets");
+
+        var versionMetadata = new KeyValuePair<string, string>(WellKnownMetadata.PackageReference.Version, version);
+        var metadata = new List<KeyValuePair<string, string>> { versionMetadata };
+        var privateAssets = reference.GetMetadataValue(WellKnownMetadata.Reference.PrivateAssets);
         if (parameters.CopyPrivateAssetsMetadata && !string.IsNullOrEmpty(privateAssets))
-            metadata.Add(new("PrivateAssets", privateAssets));
+            metadata.Add(new(WellKnownMetadata.PackageReference.PrivateAssets, privateAssets));
         return metadata.ToArray();
     }
 

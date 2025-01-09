@@ -51,7 +51,7 @@ public sealed class ReplaceRefsCommandTests : IDisposable
 
         var prefix = Guid.NewGuid().ToString();
         var include = string.Join('.', prefix, Guid.NewGuid());
-        project.AddItem("Reference", include);
+        project.AddItem(WellKnownItems.Reference, include);
 
         AddProjectToSolution(project, solutionPath, solutionConfiguration);
 
@@ -66,11 +66,12 @@ public sealed class ReplaceRefsCommandTests : IDisposable
 
         // assert
         var actual = Project.FromFile(project.FullPath, DefaultProjectOptions);
-        actual.GetItems("Reference").Should().BeEmpty();
+        actual.GetItems(WellKnownItems.Reference).Should().BeEmpty();
 
-        var packageReference = actual.GetItems("PackageReference").Single();
+        var packageReference = actual.GetItems(WellKnownItems.PackageReference).Single();
         packageReference.EvaluatedInclude.Should().Be(include);
-        packageReference.GetMetadataValue("Version").Should().Be(nugetVersion.ToString());
+        packageReference.GetMetadataValue(WellKnownMetadata.PackageReference.Version)
+            .Should().Be(nugetVersion.ToString());
     }
 
     [Test]
@@ -93,7 +94,7 @@ public sealed class ReplaceRefsCommandTests : IDisposable
         workspace.WriteYaml(depName, depYaml);
 
         var project = ProjectsFactory.CreateClassLib(["net8.0"]);
-        project.AddItem("ModuleReference", depName);
+        project.AddItem(WellKnownItems.ModuleReference, depName);
 
         AddProjectToSolution(project, solutionPath, solutionConfiguration);
 
@@ -108,12 +109,13 @@ public sealed class ReplaceRefsCommandTests : IDisposable
 
         // assert
         var actual = Project.FromFile(project.FullPath, DefaultProjectOptions);
-        actual.GetItems("Reference").Should().BeEmpty();
-        actual.GetItems("ModuleReference").Should().BeEmpty();
+        actual.GetItems(WellKnownItems.Reference).Should().BeEmpty();
+        actual.GetItems(WellKnownItems.ModuleReference).Should().BeEmpty();
 
-        var packageReference = actual.GetItems("PackageReference").Single();
+        var packageReference = actual.GetItems(WellKnownItems.PackageReference).Single();
         packageReference.EvaluatedInclude.Should().Be(dllName);
-        packageReference.GetMetadataValue("Version").Should().Be(nugetVersion.ToString());
+        packageReference.GetMetadataValue(WellKnownMetadata.PackageReference.Version)
+            .Should().Be(nugetVersion.ToString());
     }
 
     [Test]
@@ -143,7 +145,7 @@ public sealed class ReplaceRefsCommandTests : IDisposable
         workspace.WriteYaml(depName, depYaml);
 
         var project = ProjectsFactory.CreateClassLib(["net6.0", "net8.0"]);
-        project.AddItem("ModuleReference", depName);
+        project.AddItem(WellKnownItems.ModuleReference, depName);
 
         AddProjectToSolution(project, solutionPath, solutionConfiguration);
 
@@ -172,17 +174,18 @@ public sealed class ReplaceRefsCommandTests : IDisposable
                 LoadSettings = ProjectLoadSettings.IgnoreMissingImports,
                 GlobalProperties = new Dictionary<string, string>
                 {
-                    ["TargetFramework"] = framework
+                    [WellKnownProperties.TargetFramework] = framework
                 }
             };
 
             var actual = Project.FromFile(project.FullPath, projectOptions);
-            actual.GetItems("Reference").Should().BeEmpty();
-            actual.GetItems("ModuleReference").Should().BeEmpty();
+            actual.GetItems(WellKnownItems.Reference).Should().BeEmpty();
+            actual.GetItems(WellKnownItems.ModuleReference).Should().BeEmpty();
 
-            var packageReference = actual.GetItems("PackageReference").Single();
+            var packageReference = actual.GetItems(WellKnownItems.PackageReference).Single();
             packageReference.EvaluatedInclude.Should().Be(dll);
-            packageReference.GetMetadataValue("Version").Should().Be(nugetVersion.ToString());
+            packageReference.GetMetadataValue(WellKnownMetadata.PackageReference.Version)
+                .Should().Be(nugetVersion.ToString());
         }
     }
 
@@ -209,8 +212,8 @@ public sealed class ReplaceRefsCommandTests : IDisposable
         workspace.WriteYaml(depName, depYaml);
 
         var project = ProjectsFactory.CreateClassLib(["net8.0"]);
-        project.AddItem("ModuleReference", depName);
-        project.AddItem("Reference", dllName);
+        project.AddItem(WellKnownItems.ModuleReference, depName);
+        project.AddItem(WellKnownItems.Reference, dllName);
 
         AddProjectToSolution(project, solutionPath, solutionConfiguration);
 
@@ -225,9 +228,9 @@ public sealed class ReplaceRefsCommandTests : IDisposable
 
         // assert
         var actual = Project.FromFile(project.FullPath, DefaultProjectOptions);
-        actual.GetItems("Reference").Should().BeEmpty();
-        actual.GetItems("ModuleReference").Should().BeEmpty();
-        actual.GetItems("PackageReference").Should().ContainSingle();
+        actual.GetItems(WellKnownItems.Reference).Should().BeEmpty();
+        actual.GetItems(WellKnownItems.ModuleReference).Should().BeEmpty();
+        actual.GetItems(WellKnownItems.PackageReference).Should().ContainSingle();
     }
 
     [Test]
@@ -250,8 +253,8 @@ public sealed class ReplaceRefsCommandTests : IDisposable
         workspace.WriteYaml(depName, depYaml);
 
         var project1 = ProjectsFactory.CreateClassLib(["net8.0"]);
-        project1.AddItem("ModuleReference", depName);
-        project1.AddItem("Reference", dllName);
+        project1.AddItem(WellKnownItems.ModuleReference, depName);
+        project1.AddItem(WellKnownItems.Reference, dllName);
 
         AddProjectToSolution(project1, solutionPath, solutionConfiguration);
 
@@ -269,8 +272,8 @@ public sealed class ReplaceRefsCommandTests : IDisposable
 
         // assert
         var actual = Project.FromFile(project1.FullPath, DefaultProjectOptions);
-        actual.GetItems("Reference").Should().ContainSingle();
-        actual.GetItems("ModuleReference").Should().ContainSingle();
+        actual.GetItems(WellKnownItems.Reference).Should().ContainSingle();
+        actual.GetItems(WellKnownItems.ModuleReference).Should().ContainSingle();
     }
 
     [Test]
@@ -283,7 +286,7 @@ public sealed class ReplaceRefsCommandTests : IDisposable
 
         var prefix = Guid.NewGuid().ToString();
         var include = string.Join('.', prefix, Guid.NewGuid());
-        project1.AddItem("Reference", include);
+        project1.AddItem(WellKnownItems.Reference, include);
 
         AddProjectToSolution(project1, solutionPath, solutionConfiguration);
 
@@ -303,8 +306,8 @@ public sealed class ReplaceRefsCommandTests : IDisposable
 
         // assert
         var actual = Project.FromFile(project1.FullPath, DefaultProjectOptions);
-        actual.GetItems("Reference").Should().BeEmpty();
-        actual.GetItems("PackageReference").Should().ContainSingle();
+        actual.GetItems(WellKnownItems.Reference).Should().BeEmpty();
+        actual.GetItems(WellKnownItems.PackageReference).Should().ContainSingle();
     }
 
     [Test]
@@ -317,10 +320,10 @@ public sealed class ReplaceRefsCommandTests : IDisposable
 
         var prefix = Guid.NewGuid().ToString();
         var include = string.Join('.', prefix, Guid.NewGuid());
-        var reference = project.AddItem("Reference", include);
+        var reference = project.AddItem(WellKnownItems.Reference, include);
         
         var hintPath = string.Join('/', Guid.NewGuid(), "netstandard2.0", include + ".dll");
-        reference.AddMetadata("HintPath", hintPath);
+        reference.AddMetadata(WellKnownMetadata.Reference.HintPath, hintPath);
 
         AddProjectToSolution(project, solutionPath, solutionConfiguration);
 
@@ -359,7 +362,7 @@ public sealed class ReplaceRefsCommandTests : IDisposable
         workspace.WriteYaml(depName, depYaml);
 
         var project = ProjectsFactory.CreateClassLib(["net8.0"]);
-        project.AddItem("ModuleReference", depName);
+        project.AddItem(WellKnownItems.ModuleReference, depName);
 
         AddProjectToSolution(project, solutionPath, solutionConfiguration);
 

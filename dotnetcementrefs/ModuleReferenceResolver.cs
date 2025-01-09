@@ -20,7 +20,7 @@ internal sealed class ModuleReferenceResolver
     public Reference[] Resolve(Project project)
     {
         var moduleReferences = project.ItemsIgnoringCondition
-            .Where(item => item.ItemType == "ModuleReference")
+            .Where(item => item.ItemType == WellKnownItems.ModuleReference)
             .ToList();
 
         if (moduleReferences.Count == 0)
@@ -28,10 +28,10 @@ internal sealed class ModuleReferenceResolver
             return [];
         }
 
-        var targetFrameworksProperty = project.GetPropertyValue("TargetFramework");
+        var targetFrameworksProperty = project.GetPropertyValue(WellKnownProperties.TargetFramework);
         if (string.IsNullOrWhiteSpace(targetFrameworksProperty))
         {
-            targetFrameworksProperty = project.GetPropertyValue("TargetFrameworks");
+            targetFrameworksProperty = project.GetPropertyValue(WellKnownProperties.TargetFrameworks);
         }
         
         var targetFrameworks = targetFrameworksProperty.Split(';', StringSplitOptions.RemoveEmptyEntries);
