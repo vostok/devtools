@@ -7,14 +7,19 @@ internal sealed class TempWorkspace : IDisposable
         Path = path;
     }
 
+    public string Path { get; }
+
+    public void Dispose()
+    {
+        Directory.Delete(Path, true);
+    }
+
     public static TempWorkspace Create()
     {
         var directory = Directory.CreateTempSubdirectory();
         directory.CreateSubdirectory(".cement");
         return new TempWorkspace(directory.FullName);
     }
-
-    public string Path { get; }
 
     public string CreateModule(string name, string yamlContent = "")
     {
@@ -32,10 +37,5 @@ internal sealed class TempWorkspace : IDisposable
         var modulePath = System.IO.Path.Combine(Path, name);
         var yamlPath = System.IO.Path.Combine(modulePath, "module.yaml");
         File.WriteAllText(yamlPath, yamlContent);
-    }
-
-    public void Dispose()
-    {
-        Directory.Delete(Path, true);
     }
 }
