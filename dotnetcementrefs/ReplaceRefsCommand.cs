@@ -2,13 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
-using NuGet.Common;
-using NuGet.Configuration;
-using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 
 namespace dotnetcementrefs;
@@ -16,6 +12,13 @@ namespace dotnetcementrefs;
 internal sealed class ReplaceRefsCommand
 {
     private static readonly Dictionary<(string package, bool includePrerelease, string[] sourceUrls), NuGetVersion> NugetCache = new();
+    
+    private readonly IPackageVersionProvider packageVersionProvider;
+
+    public ReplaceRefsCommand(IPackageVersionProvider packageVersionProvider)
+    {
+        this.packageVersionProvider = packageVersionProvider;
+    }
 
     public async Task ExecuteAsync(Parameters parameters)
     {
@@ -38,7 +41,7 @@ internal sealed class ReplaceRefsCommand
         }
     }
 
-    private static async Task HandleSolutionAsync(string solutionFile, Parameters parameters)
+    private async Task HandleSolutionAsync(string solutionFile, Parameters parameters)
     {
         var solution = SolutionFile.Parse(solutionFile);
         var solutionName = Path.GetFileName(solutionFile);
@@ -75,7 +78,7 @@ internal sealed class ReplaceRefsCommand
         }
     }
 
-    private static async Task HandleProjectAsync(
+    private async Task HandleProjectAsync(
         ProjectInSolution solutionProject,
         ISet<string> allProjectsInSolution,
         Parameters parameters)
@@ -214,7 +217,7 @@ internal sealed class ReplaceRefsCommand
             .ToList();
     }
 
-    private static async Task HandleReferenceAsync(Project project, ProjectItem reference, bool allowPrereleasePackages, Parameters parameters)
+    private async Task HandleReferenceAsync(Project project, ProjectItem reference, bool allowPrereleasePackages, Parameters parameters)
     {
         var packageName = reference.GetMetadataValue("NugetPackageName");
         if (packageName is "")
@@ -312,7 +315,7 @@ internal sealed class ReplaceRefsCommand
         return string.Join(" or ", conditions);
     }
 
-    private static async Task<NuGetVersion?> GetLatestNugetVersionWithCacheAsync(string package, bool includePrerelease, string[] sourceUrls)
+    private async Task<NuGetVersion?> GetLatestNugetVersionWithCacheAsync(string package, bool includePrerelease, string[] sourceUrls)
     {
         if (NugetCache.TryGetValue((package, includePrerelease, sourceUrls), out var value))
             return value;
@@ -323,7 +326,7 @@ internal sealed class ReplaceRefsCommand
         return version;
     }
 
-    private static async Task<NuGetVersion?> GetLatestNugetVersionDirectAsync(string package, bool includePrerelease, string[] sourceUrls)
+    private async Task<NuGetVersion?> GetLatestNugetVersionDirectAsync(string package, bool includePrerelease, string[] sourceUrls)
     {
         const int attempts = 3;
         for (var attempt = 1; attempt <= attempts; attempt++)
@@ -351,27 +354,10 @@ internal sealed class ReplaceRefsCommand
         return null;
     }
 
-    private static async Task<NuGetVersion?> GetLatestNugetVersionAsync(string package, bool includePrerelease, string sourceUrl)
+    private async Task<NuGetVersion?> GetLatestNugetVersionAsync(string package, bool includePrerelease, string sourceUrl)
     {
-        var providers = new List<Lazy<INuGetResourceProvider>>();
-        providers.AddRange(Repository.Provider.GetCoreV3());
-        var packageSource = new PackageSource(sourceUrl);
-        var sourceRepository = new SourceRepository(packageSource, providers);
-        var metadataResource = sourceRepository.GetResource<PackageMetadataResource>();
-        var searchResult = await metadataResource.GetMetadataAsync(
-            package,
-            includePrerelease,
-            false,
-            new(),
-            new NullLogger(),
-            CancellationToken.None
-        ).ConfigureAwait(false);
-        var versions = searchResult 
-            .Where(data => data.Identity.Id == package)
-            .OrderBy(data => data.Published)
-            .Select(data => data.Identity.Version)
-            .ToArray();
-        if (versions.Length == 0)
+        var versions = await packageVersionProvider.GetVersionsAsync(package, includePrerelease, sourceUrl);
+        if (versions.Count == 0)
             return null;
         
         var maxVer = versions.Max();
