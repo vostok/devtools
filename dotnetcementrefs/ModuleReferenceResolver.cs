@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Cement.Vostok.Devtools;
+using Kontur.IDevOps.Cement.Vostok.Devtools;
 using Microsoft.Build.Evaluation;
 using NuGet.Frameworks;
 
