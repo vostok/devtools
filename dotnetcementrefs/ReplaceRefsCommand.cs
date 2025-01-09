@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,13 +13,12 @@ using NuGet.Versioning;
 
 namespace dotnetcementrefs;
 
-public static class Program
+internal sealed class ReplaceRefsCommand
 {
     private static readonly Dictionary<(string package, bool includePrerelease, string[] sourceUrls), NuGetVersion> NugetCache = new();
 
-    public static async Task Main(string[] args)
+    public async Task ExecuteAsync(Parameters parameters)
     {
-        var parameters = new Parameters(args);
         await Console.Out.WriteLineAsync($"Converting cement references to NuGet package references for all projects of solutions located in '{parameters.TargetSlnPath}'.");
 
         var solutionFiles = parameters.TargetSlnPath.EndsWith(".sln", StringComparison.OrdinalIgnoreCase)
@@ -37,13 +36,6 @@ public static class Program
         {
             await HandleSolutionAsync(solutionFile, parameters).ConfigureAwait(false);
         }
-    }
-
-    private static IEnumerable<string> GetArgsByKey(string[] args, string key)
-    {
-        return args
-            .Where(x => x.StartsWith(key))
-            .Select(x => x.Substring(key.Length).Trim());
     }
 
     private static async Task HandleSolutionAsync(string solutionFile, Parameters parameters)
@@ -391,38 +383,5 @@ public static class Program
         var latest = versions.LastOrDefault(v => v.Version == maxVer.Version && !v.IsPrerelease)
             ?? versions.Last(v => v.Version == maxVer.Version);
         return latest;
-    }
-
-    private class Parameters
-    {
-        public string TargetSlnPath { get; }
-        public string SolutionConfiguration { get; }
-        public string[] SourceUrls { get; }
-        public string[] CementReferencePrefixes { get; }
-        public string[] MissingReferencesToRemove { get; }
-        public string[] ReferencesToRemove { get; }
-        public bool FailOnNotFoundPackage { get; }
-        public bool AllowLocalProjects { get; }
-        public bool AllowPrereleasePackages { get; }
-        public bool EnsureMultitargeted { get; }
-        public bool CopyPrivateAssetsMetadata { get; }
-        public bool UseFloatingVersions { get; }
-
-        public Parameters(string[] args)
-        {
-            var positionalArgs = args.Where(x => !x.StartsWith("-")).ToArray();
-            TargetSlnPath = positionalArgs.Length > 0 ? positionalArgs[0] : Environment.CurrentDirectory;
-            SourceUrls = GetArgsByKey(args, "--source:").ToArray();
-            CementReferencePrefixes = new[] {"Vostok."}.Concat(GetArgsByKey(args, "--refPrefix:")).ToArray();
-            MissingReferencesToRemove = GetArgsByKey(args, "--removeMissing:").ToArray();
-            ReferencesToRemove = GetArgsByKey(args, "--remove:").ToArray();
-            FailOnNotFoundPackage = !args.Contains("--ignoreMissingPackages");
-            SolutionConfiguration = GetArgsByKey(args, "--solutionConfiguration:").FirstOrDefault() ?? "Release";
-            AllowLocalProjects = args.Contains("--allowLocalProjects");
-            AllowPrereleasePackages = args.Contains("--allowPrereleasePackages");
-            EnsureMultitargeted = args.Contains("--ensureMultitargeted");
-            CopyPrivateAssetsMetadata = args.Contains("--copyPrivateAssets");
-            UseFloatingVersions = args.Contains("--useFloatingVersions");
-        }
     }
 }
