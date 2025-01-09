@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
 using NuGet.Versioning;
 
@@ -12,11 +11,13 @@ namespace dotnetcementrefs;
 internal sealed class ReplaceRefsCommand
 {
     private static readonly Dictionary<(string package, bool includePrerelease, string[] sourceUrls), NuGetVersion> NugetCache = new();
-    
+
+    private readonly IProjectsProvider projectsProvider;
     private readonly IPackageVersionProvider packageVersionProvider;
 
-    public ReplaceRefsCommand(IPackageVersionProvider packageVersionProvider)
+    public ReplaceRefsCommand(IProjectsProvider projectsProvider, IPackageVersionProvider packageVersionProvider)
     {
+        this.projectsProvider = projectsProvider;
         this.packageVersionProvider = packageVersionProvider;
     }
 
@@ -43,10 +44,9 @@ internal sealed class ReplaceRefsCommand
 
     private async Task HandleSolutionAsync(string solutionFile, Parameters parameters)
     {
-        var solution = SolutionFile.Parse(solutionFile);
         var solutionName = Path.GetFileName(solutionFile);
         await Console.Out.WriteLineAsync($"Working with '{parameters.SolutionConfiguration}' solution configuration.");
-        var projects = FilterProjectsByConfiguration(solution.ProjectsInOrder, parameters.SolutionConfiguration).ToArray();
+        var projects = projectsProvider.GetFromSolution(solutionFile, parameters.SolutionConfiguration);
         if (!projects.Any())
         {
             await Console.Out.WriteLineAsync($"No projects found in solution {solutionName}.");
@@ -65,21 +65,8 @@ internal sealed class ReplaceRefsCommand
         }
     }
 
-    private static IEnumerable<ProjectInSolution> FilterProjectsByConfiguration(IEnumerable<ProjectInSolution> projects, string configuration)
-    {
-        var keyPrefix = configuration + "|";
-        foreach (var project in projects)
-        {
-            var configurations = project.ProjectConfigurations;
-            var enabledConfigurations = configurations.Where(x => x.Value.IncludeInBuild);
-
-            if (enabledConfigurations.Any(x => x.Key.StartsWith(keyPrefix, StringComparison.OrdinalIgnoreCase)))
-                yield return project;
-        }
-    }
-
     private async Task HandleProjectAsync(
-        ProjectInSolution solutionProject,
+        SolutionProject solutionProject,
         ISet<string> allProjectsInSolution,
         Parameters parameters)
     {
