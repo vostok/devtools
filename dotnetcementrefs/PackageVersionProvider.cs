@@ -12,7 +12,8 @@ namespace dotnetcementrefs;
 
 internal class PackageVersionProvider : IPackageVersionProvider
 {
-    public async Task<IReadOnlyCollection<NuGetVersion>> GetVersionsAsync(string package, bool includePrerelease, string sourceUrl)
+    public async Task<IReadOnlyCollection<NuGetVersion>> GetVersionsAsync(string package, bool includePrerelease,
+        string sourceUrl, CancellationToken cancellationToken = default)
     {
         var providers = new List<Lazy<INuGetResourceProvider>>();
         providers.AddRange(Repository.Provider.GetCoreV3());
@@ -25,7 +26,7 @@ internal class PackageVersionProvider : IPackageVersionProvider
             false,
             new(),
             new NullLogger(),
-            CancellationToken.None
+            cancellationToken
         ).ConfigureAwait(false);
         var versions = searchResult 
             .Where(data => data.Identity.Id == package)

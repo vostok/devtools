@@ -387,7 +387,7 @@ public sealed class ReplaceRefsCommandTests : IDisposable
         var modulePath = workspace.CreateModule(moduleName);
 
         var solutionConfiguration = Guid.NewGuid().ToString();
-        var solutionPath = Path.Combine(modulePath, $"{Guid.NewGuid().ToString()}.sln");
+        var solutionPath = Path.Combine(modulePath, $"{Guid.NewGuid()}.sln");
         File.Create(solutionPath);
 
         return (modulePath, solutionPath, solutionConfiguration);
