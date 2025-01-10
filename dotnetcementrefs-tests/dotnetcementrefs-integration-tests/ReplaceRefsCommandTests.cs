@@ -391,6 +391,71 @@ public sealed class ReplaceRefsCommandTests : IDisposable
         await act.Should().NotThrowAsync();
     }
 
+    [Test]
+    public async Task Should_respect_conditions_for_module_reference()
+    {
+        // arrange
+        var (modulePath, solutionPath, solutionConfiguration) = CreateModule();
+
+        var depName = Guid.NewGuid().ToString();
+        workspace.CreateModule(depName);
+
+        var prefix = Guid.NewGuid().ToString();
+        var dllName = string.Join('.', prefix, Guid.NewGuid());
+        var depYaml = $"""
+                       full-build:
+                         install:
+                           - groups:
+                             - target-framework: net8.0
+                               libraries:
+                                 - {dllName}.dll
+                       """;
+
+        workspace.WriteYaml(depName, depYaml);
+
+        var project = ProjectsFactory.CreateClassLib(["net6.0", "net8.0"]);
+        var group = project.AddItemGroup();
+        group.Condition = $" '$({WellKnownProperties.TargetFramework})' == 'net8.0' ";
+        group.AddItem(WellKnownItems.ModuleReference, depName);
+
+        var solutionProject = SaveProject(project, modulePath);
+        projectProvider.AddToSolution(solutionProject, solutionPath, solutionConfiguration);
+
+        var sourceUrl = Guid.NewGuid().ToString();
+        var includePrerelease = Arg.Any<bool>();
+        var nugetVersion = CreateNuGetVersion();
+        versionProvider.GetVersionsAsync(dllName, includePrerelease, sourceUrl).Returns([nugetVersion]);
+
+        // act
+        var parameters = CreateParameters(modulePath, solutionConfiguration, [sourceUrl], [prefix]);
+        await command.ExecuteAsync(parameters);
+
+        // assert
+        var actualNet6 = Project.FromFile(project.FullPath, new ProjectOptions
+        {
+            ProjectCollection = new ProjectCollection(),
+            LoadSettings = ProjectLoadSettings.IgnoreMissingImports,
+            GlobalProperties = new Dictionary<string, string>
+            {
+                [WellKnownProperties.TargetFramework] = "net6.0"
+            }
+        });
+        
+        actualNet6.GetItems(WellKnownItems.PackageReference).Should().BeEmpty();  
+        
+        var actualNet8 = Project.FromFile(project.FullPath, new ProjectOptions
+        {
+            ProjectCollection = new ProjectCollection(),
+            LoadSettings = ProjectLoadSettings.IgnoreMissingImports,
+            GlobalProperties = new Dictionary<string, string>
+            {
+                [WellKnownProperties.TargetFramework] = "net8.0"
+            }
+        });
+
+        actualNet8.GetItems(WellKnownItems.PackageReference).Should().ContainSingle();
+    }
+
     private (string ModulePath, string SolutionPath, string SolutionConfiguration) CreateModule()
     {
         var moduleName = Guid.NewGuid().ToString();
