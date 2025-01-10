@@ -53,7 +53,8 @@ public sealed class ReplaceRefsCommandTests : IDisposable
         var include = string.Join('.', prefix, Guid.NewGuid());
         project.AddItem(WellKnownItems.Reference, include);
 
-        AddProjectToSolution(project, solutionPath, solutionConfiguration);
+        var solutionProject = SaveProject(project, modulePath);
+        projectProvider.AddToSolution(solutionProject, solutionPath, solutionConfiguration);
 
         var sourceUrl = Guid.NewGuid().ToString();
         var nugetVersion = CreateNuGetVersion();
@@ -96,7 +97,8 @@ public sealed class ReplaceRefsCommandTests : IDisposable
         var project = ProjectsFactory.CreateClassLib(["net8.0"]);
         project.AddItem(WellKnownItems.ModuleReference, depName);
 
-        AddProjectToSolution(project, solutionPath, solutionConfiguration);
+        var solutionProject = SaveProject(project, modulePath);
+        projectProvider.AddToSolution(solutionProject, solutionPath, solutionConfiguration);
 
         var sourceUrl = Guid.NewGuid().ToString();
         var includePrerelease = Arg.Any<bool>();
@@ -147,7 +149,8 @@ public sealed class ReplaceRefsCommandTests : IDisposable
         var project = ProjectsFactory.CreateClassLib(["net6.0", "net8.0"]);
         project.AddItem(WellKnownItems.ModuleReference, depName);
 
-        AddProjectToSolution(project, solutionPath, solutionConfiguration);
+        var solutionProject = SaveProject(project, modulePath);
+        projectProvider.AddToSolution(solutionProject, solutionPath, solutionConfiguration);
 
         var sourceUrl = Guid.NewGuid().ToString();
         var includePrerelease = Arg.Any<bool>();
@@ -215,7 +218,8 @@ public sealed class ReplaceRefsCommandTests : IDisposable
         project.AddItem(WellKnownItems.ModuleReference, depName);
         project.AddItem(WellKnownItems.Reference, dllName);
 
-        AddProjectToSolution(project, solutionPath, solutionConfiguration);
+        var solutionProject = SaveProject(project, modulePath);
+        projectProvider.AddToSolution(solutionProject, solutionPath, solutionConfiguration);
 
         var sourceUrl = Guid.NewGuid().ToString();
         var includePrerelease = Arg.Any<bool>();
@@ -256,10 +260,12 @@ public sealed class ReplaceRefsCommandTests : IDisposable
         project1.AddItem(WellKnownItems.ModuleReference, depName);
         project1.AddItem(WellKnownItems.Reference, dllName);
 
-        AddProjectToSolution(project1, solutionPath, solutionConfiguration);
+        var solutionProject1 = SaveProject(project1, modulePath);
+        projectProvider.AddToSolution(solutionProject1, solutionPath, solutionConfiguration);
 
         var project2 = ProjectsFactory.CreateClassLib(["net8.0"]);
-        AddProjectToSolution(project2, solutionPath, solutionConfiguration, projectName: dllName);
+        var solutionProject2 = SaveProject(project2, modulePath, projectName: dllName);
+        projectProvider.AddToSolution(solutionProject2, solutionPath, solutionConfiguration);
 
         var sourceUrl = Guid.NewGuid().ToString();
         var nugetVersion = CreateNuGetVersion();
@@ -288,10 +294,12 @@ public sealed class ReplaceRefsCommandTests : IDisposable
         var include = string.Join('.', prefix, Guid.NewGuid());
         project1.AddItem(WellKnownItems.Reference, include);
 
-        AddProjectToSolution(project1, solutionPath, solutionConfiguration);
+        var solutionProject1 = SaveProject(project1, modulePath);
+        projectProvider.AddToSolution(solutionProject1, solutionPath, solutionConfiguration);
 
         var project2 = ProjectsFactory.CreateClassLib(["net8.0"]);
-        AddProjectToSolution(project2, solutionPath, solutionConfiguration, projectName: include);
+        var solutionProject2 = SaveProject(project2, modulePath);
+        projectProvider.AddToSolution(solutionProject2, solutionPath, solutionConfiguration);
 
         var sourceUrl = Guid.NewGuid().ToString();
         var nugetVersion = CreateNuGetVersion();
@@ -325,7 +333,8 @@ public sealed class ReplaceRefsCommandTests : IDisposable
         var hintPath = string.Join('/', Guid.NewGuid(), "netstandard2.0", include + ".dll");
         reference.AddMetadata(WellKnownMetadata.Reference.HintPath, hintPath);
 
-        AddProjectToSolution(project, solutionPath, solutionConfiguration);
+        var solutionProject = SaveProject(project, modulePath);
+        projectProvider.AddToSolution(solutionProject, solutionPath, solutionConfiguration);
 
         var sourceUrl = Guid.NewGuid().ToString();
         var nugetVersion = CreateNuGetVersion();
@@ -364,7 +373,8 @@ public sealed class ReplaceRefsCommandTests : IDisposable
         var project = ProjectsFactory.CreateClassLib(["net8.0"]);
         project.AddItem(WellKnownItems.ModuleReference, depName);
 
-        AddProjectToSolution(project, solutionPath, solutionConfiguration);
+        var solutionProject = SaveProject(project, modulePath);
+        projectProvider.AddToSolution(solutionProject, solutionPath, solutionConfiguration);
 
         var sourceUrl = Guid.NewGuid().ToString();
         var includePrerelease = Arg.Any<bool>();
@@ -393,15 +403,13 @@ public sealed class ReplaceRefsCommandTests : IDisposable
         return (modulePath, solutionPath, solutionConfiguration);
     }
 
-    private void AddProjectToSolution(ProjectRootElement project, string solutionPath,
-        string solutionConfiguration, string? projectName = null)
+    private static SolutionProject SaveProject(ProjectRootElement project, string path, string? projectName = null)
     {
         projectName ??= Guid.NewGuid().ToString();
-        var projectPath = Path.Combine(workspace.Path, $"{projectName}.csproj");
+        var projectPath = Path.Combine(path, $"{projectName}.csproj");
         project.Save(projectPath);
 
-        var solutionProject = new SolutionProject(projectPath, projectName);
-        projectProvider.AddToSolution(solutionProject, solutionPath, solutionConfiguration);
+        return new SolutionProject(projectPath, projectName);
     }
 
     private static NuGetVersion CreateNuGetVersion()
