@@ -58,11 +58,6 @@ internal sealed class ModuleReferenceResolver
                     continue;
                 }
 
-                if (!reference.Xml.Location.Equals(moduleReference.Xml.Location))
-                {
-                    continue;
-                }
-
                 var items = Resolve(workspacePath, moduleReference, framework);
                 references.AddRange(items ?? []);
             }
