@@ -28,11 +28,12 @@
     <PackageReference Include="NuGet.Packaging.Core" Version="6.7.0" />
     <PackageReference Include="NuGet.ProjectModel" Version="6.7.0" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="7.0.3" />
+    <PackageReference Include="Kontur.IDevOps.Cement.Vostok.Devtools" Version="7.14.0" />
   </ItemGroup>
-
+  
   <ItemGroup>
-    <Reference Include="Cement.Vostok.Devtools" HintPath="../external/Cement.Vostok.Devtools.dll"/>
-    <PackageReference Include="SharpYaml" Version="2.1.0" />
+    <InternalsVisibleTo Include="DotnetCementRefs.Integration.Tests" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
 
 </Project>
