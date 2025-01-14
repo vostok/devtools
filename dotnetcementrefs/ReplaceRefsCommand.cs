@@ -1,25 +1,28 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
-using NuGet.Common;
-using NuGet.Configuration;
-using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 
 namespace dotnetcementrefs;
 
-public static class Program
+internal sealed class ReplaceRefsCommand
 {
     private static readonly Dictionary<(string package, bool includePrerelease, string[] sourceUrls), NuGetVersion> NugetCache = new();
 
-    public static async Task Main(string[] args)
+    private readonly IProjectsProvider projectsProvider;
+    private readonly IPackageVersionProvider packageVersionProvider;
+
+    public ReplaceRefsCommand(IProjectsProvider projectsProvider, IPackageVersionProvider packageVersionProvider)
     {
-        var parameters = new Parameters(args);
+        this.projectsProvider = projectsProvider;
+        this.packageVersionProvider = packageVersionProvider;
+    }
+
+    public async Task ExecuteAsync(Parameters parameters)
+    {
         await Console.Out.WriteLineAsync($"Converting cement references to NuGet package references for all projects of solutions located in '{parameters.TargetSlnPath}'.");
 
         var solutionFiles = parameters.TargetSlnPath.EndsWith(".sln", StringComparison.OrdinalIgnoreCase)
@@ -39,19 +42,11 @@ public static class Program
         }
     }
 
-    private static IEnumerable<string> GetArgsByKey(string[] args, string key)
+    private async Task HandleSolutionAsync(string solutionFile, Parameters parameters)
     {
-        return args
-            .Where(x => x.StartsWith(key))
-            .Select(x => x.Substring(key.Length).Trim());
-    }
-
-    private static async Task HandleSolutionAsync(string solutionFile, Parameters parameters)
-    {
-        var solution = SolutionFile.Parse(solutionFile);
         var solutionName = Path.GetFileName(solutionFile);
         await Console.Out.WriteLineAsync($"Working with '{parameters.SolutionConfiguration}' solution configuration.");
-        var projects = FilterProjectsByConfiguration(solution.ProjectsInOrder, parameters.SolutionConfiguration).ToArray();
+        var projects = projectsProvider.GetFromSolution(solutionFile, parameters.SolutionConfiguration);
         if (!projects.Any())
         {
             await Console.Out.WriteLineAsync($"No projects found in solution {solutionName}.");
@@ -70,21 +65,8 @@ public static class Program
         }
     }
 
-    private static IEnumerable<ProjectInSolution> FilterProjectsByConfiguration(IEnumerable<ProjectInSolution> projects, string configuration)
-    {
-        var keyPrefix = configuration + "|";
-        foreach (var project in projects)
-        {
-            var configurations = project.ProjectConfigurations;
-            var enabledConfigurations = configurations.Where(x => x.Value.IncludeInBuild);
-
-            if (enabledConfigurations.Any(x => x.Key.StartsWith(keyPrefix, StringComparison.OrdinalIgnoreCase)))
-                yield return project;
-        }
-    }
-
-    private static async Task HandleProjectAsync(
-        ProjectInSolution solutionProject,
+    private async Task HandleProjectAsync(
+        SolutionProject solutionProject,
         ISet<string> allProjectsInSolution,
         Parameters parameters)
     {
@@ -112,7 +94,11 @@ public static class Program
         }
         if (parameters.EnsureMultitargeted)
         {
-            var singleTargeted = references.Select(r => r.DirectMetadata.Single(m => m.Name == "HintPath").UnevaluatedValue).Where(r => !r.Contains("$(") && r.Contains("netstandard2.0")).ToArray();
+            var singleTargeted = references
+                .Select(r => r.DirectMetadata.Single(m => m.Name == WellKnownMetadata.Reference.HintPath).UnevaluatedValue)
+                .Where(r => !r.Contains("$(") && r.Contains("netstandard2.0"))
+                .ToArray();
+            
             if (singleTargeted.Any())
             {
                 throw new($"All cement references should support multitargeting and contain $(ReferencesFramework). But {string.Join(",", singleTargeted)} don't.");
@@ -121,7 +107,7 @@ public static class Program
         
         var itemsFromModuleReferences = ReplaceModuleReferences(project).ToHashSet();
         var itemsQuery = project.ItemsIgnoringCondition
-            .Where(x => x.ItemType == "Reference")
+            .Where(x => x.ItemType == WellKnownItems.Reference)
             .Where(x => itemsFromModuleReferences.Contains(x.EvaluatedInclude));
         
         if (!parameters.AllowLocalProjects)
@@ -184,7 +170,9 @@ public static class Program
 
     private static string[] GetUsePrereleaseForPrefixes(Project project)
     {
-        var property = project.Properties.FirstOrDefault(x => x.Name == "DotnetCementRefsUsePrereleaseForPrefixes");
+        var property = project.Properties
+            .FirstOrDefault(x => x.Name == WellKnownProperties.DotnetCementRefsUsePrereleaseForPrefixes);
+        
         var usePrereleaseForPrefixes = property?.EvaluatedValue.Split(new[] { ';', ',', ' ' }, StringSplitOptions.RemoveEmptyEntries)
                                        ?? new string[] { };
         return usePrereleaseForPrefixes;
@@ -192,7 +180,7 @@ public static class Program
 
     private static bool HasPrereleaseVersionSuffix(Project project, out string? suffix)
     {
-        suffix = project.GetProperty("VersionSuffix")?.EvaluatedValue;
+        suffix = project.GetProperty(WellKnownProperties.VersionSuffix)?.EvaluatedValue;
         return !string.IsNullOrWhiteSpace(suffix);
     }
 
@@ -200,7 +188,7 @@ public static class Program
     {
         return project
             .Properties
-            .Any(item => item.Name == "DotnetCementRefsExclude" && item.EvaluatedValue.ToLower() is "true");
+            .Any(item => item.Name == WellKnownProperties.DotnetCementRefsExclude && item.EvaluatedValue.ToLower() is "true");
     }
 
 
@@ -208,7 +196,7 @@ public static class Program
         string[] cementRefPrefixes)
     {
         return project.ItemsIgnoringCondition
-            .Where(item => item.ItemType == "Reference")
+            .Where(item => item.ItemType == WellKnownItems.Reference)
             .Where(item => cementRefPrefixes.Any(x => item.EvaluatedInclude.StartsWith(x)))
             .Where(item => !localProjects.Contains(item.EvaluatedInclude))
             .ToList();
@@ -217,14 +205,14 @@ public static class Program
     private static List<ProjectItem> FindLocalProjectReferences(Project project, ISet<string> localProjects)
     {
         return project.ItemsIgnoringCondition
-            .Where(item => item.ItemType == "Reference")
+            .Where(item => item.ItemType == WellKnownItems.Reference)
             .Where(item => localProjects.Contains(item.EvaluatedInclude))
             .ToList();
     }
 
-    private static async Task HandleReferenceAsync(Project project, ProjectItem reference, bool allowPrereleasePackages, Parameters parameters)
+    private async Task HandleReferenceAsync(Project project, ProjectItem reference, bool allowPrereleasePackages, Parameters parameters)
     {
-        var packageName = reference.GetMetadataValue("NugetPackageName");
+        var packageName = reference.GetMetadataValue(WellKnownMetadata.Reference.NugetPackageName);
         if (packageName is "")
             packageName = reference.EvaluatedInclude;
         if (packageName.Contains(","))
@@ -237,7 +225,10 @@ public static class Program
             return;
         }
 
-        var explicitPrereleaseFlag = reference.GetMetadataValue("NugetPackageAllowPrerelease").ToLower();
+        var explicitPrereleaseFlag = reference
+            .GetMetadataValue(WellKnownMetadata.Reference.NugetPackageAllowPrerelease)
+            .ToLower();
+        
         if (explicitPrereleaseFlag is "true" or "false")
             allowPrereleasePackages = bool.Parse(explicitPrereleaseFlag);
         var packageVersion = await GetLatestNugetVersionWithCacheAsync(packageName, allowPrereleasePackages, parameters.SourceUrls);
@@ -256,8 +247,8 @@ public static class Program
         }
         await Console.Out.WriteLineAsync($"Latest version of NuGet package '{packageName}' is '{packageVersion}'");
 
-        var itemGroupsWithCementRef = project.Xml.ItemGroups.Where(g => g.Items.Any(r => r.ElementName == "Reference" && r.Include == reference.EvaluatedInclude)).ToList();
-        var itemGroupsWithPackageRef = project.Xml.ItemGroups.Where(ig => ig.Items.Any(i => i.ElementName == "PackageReference" && i.Include == packageName)).ToList();
+        var itemGroupsWithCementRef = project.Xml.ItemGroups.Where(g => g.Items.Any(r => r.ElementName == WellKnownItems.Reference && r.Include == reference.EvaluatedInclude)).ToList();
+        var itemGroupsWithPackageRef = project.Xml.ItemGroups.Where(ig => ig.Items.Any(i => i.ElementName == WellKnownItems.PackageReference && i.Include == packageName)).ToList();
         var metadata = ConstructMetadata(reference, parameters, packageVersion);
         var condition = ConstructCondition(reference);
         if (itemGroupsWithCementRef.Any())
@@ -268,7 +259,7 @@ public static class Program
                     continue;
                 }
 
-                var item = group.AddItem("PackageReference", packageName, metadata);
+                var item = group.AddItem(WellKnownItems.PackageReference, packageName, metadata);
                 if (condition != null)
                 {
                     item.Condition = condition;
@@ -276,9 +267,9 @@ public static class Program
             }
         else
         {
-            if (!project.Items.Any(i => i.ItemType == "PackageReference" && i.EvaluatedInclude == packageName))
+            if (!project.Items.Any(i => i.ItemType == WellKnownItems.PackageReference && i.EvaluatedInclude == packageName))
             {
-                var item = project.AddItem("PackageReference", packageName, metadata)[0];
+                var item = project.AddItem(WellKnownItems.PackageReference, packageName, metadata)[0];
                 if (condition != null)
                 {
                     item.Xml.Condition = condition;
@@ -299,10 +290,12 @@ public static class Program
             version = $"{packageVersion.Version.Major}.{packageVersion.Version.Minor}.";
             version += packageVersion.IsPrerelease ? "*-*" : "*";
         }
-        var metadata = new List<KeyValuePair<string, string>> { new("Version", version) };
-        var privateAssets = reference.GetMetadataValue("PrivateAssets");
+
+        var versionMetadata = new KeyValuePair<string, string>(WellKnownMetadata.PackageReference.Version, version);
+        var metadata = new List<KeyValuePair<string, string>> { versionMetadata };
+        var privateAssets = reference.GetMetadataValue(WellKnownMetadata.Reference.PrivateAssets);
         if (parameters.CopyPrivateAssetsMetadata && !string.IsNullOrEmpty(privateAssets))
-            metadata.Add(new("PrivateAssets", privateAssets));
+            metadata.Add(new(WellKnownMetadata.PackageReference.PrivateAssets, privateAssets));
         return metadata.ToArray();
     }
 
@@ -320,7 +313,7 @@ public static class Program
         return string.Join(" or ", conditions);
     }
 
-    private static async Task<NuGetVersion?> GetLatestNugetVersionWithCacheAsync(string package, bool includePrerelease, string[] sourceUrls)
+    private async Task<NuGetVersion?> GetLatestNugetVersionWithCacheAsync(string package, bool includePrerelease, string[] sourceUrls)
     {
         if (NugetCache.TryGetValue((package, includePrerelease, sourceUrls), out var value))
             return value;
@@ -331,7 +324,7 @@ public static class Program
         return version;
     }
 
-    private static async Task<NuGetVersion?> GetLatestNugetVersionDirectAsync(string package, bool includePrerelease, string[] sourceUrls)
+    private async Task<NuGetVersion?> GetLatestNugetVersionDirectAsync(string package, bool includePrerelease, string[] sourceUrls)
     {
         const int attempts = 3;
         for (var attempt = 1; attempt <= attempts; attempt++)
@@ -359,27 +352,10 @@ public static class Program
         return null;
     }
 
-    private static async Task<NuGetVersion?> GetLatestNugetVersionAsync(string package, bool includePrerelease, string sourceUrl)
+    private async Task<NuGetVersion?> GetLatestNugetVersionAsync(string package, bool includePrerelease, string sourceUrl)
     {
-        var providers = new List<Lazy<INuGetResourceProvider>>();
-        providers.AddRange(Repository.Provider.GetCoreV3());
-        var packageSource = new PackageSource(sourceUrl);
-        var sourceRepository = new SourceRepository(packageSource, providers);
-        var metadataResource = sourceRepository.GetResource<PackageMetadataResource>();
-        var searchResult = await metadataResource.GetMetadataAsync(
-            package,
-            includePrerelease,
-            false,
-            new(),
-            new NullLogger(),
-            CancellationToken.None
-        ).ConfigureAwait(false);
-        var versions = searchResult 
-            .Where(data => data.Identity.Id == package)
-            .OrderBy(data => data.Published)
-            .Select(data => data.Identity.Version)
-            .ToArray();
-        if (versions.Length == 0)
+        var versions = await packageVersionProvider.GetVersionsAsync(package, includePrerelease, sourceUrl);
+        if (versions.Count == 0)
             return null;
         
         var maxVer = versions.Max();
@@ -391,38 +367,5 @@ public static class Program
         var latest = versions.LastOrDefault(v => v.Version == maxVer.Version && !v.IsPrerelease)
             ?? versions.Last(v => v.Version == maxVer.Version);
         return latest;
-    }
-
-    private class Parameters
-    {
-        public string TargetSlnPath { get; }
-        public string SolutionConfiguration { get; }
-        public string[] SourceUrls { get; }
-        public string[] CementReferencePrefixes { get; }
-        public string[] MissingReferencesToRemove { get; }
-        public string[] ReferencesToRemove { get; }
-        public bool FailOnNotFoundPackage { get; }
-        public bool AllowLocalProjects { get; }
-        public bool AllowPrereleasePackages { get; }
-        public bool EnsureMultitargeted { get; }
-        public bool CopyPrivateAssetsMetadata { get; }
-        public bool UseFloatingVersions { get; }
-
-        public Parameters(string[] args)
-        {
-            var positionalArgs = args.Where(x => !x.StartsWith("-")).ToArray();
-            TargetSlnPath = positionalArgs.Length > 0 ? positionalArgs[0] : Environment.CurrentDirectory;
-            SourceUrls = GetArgsByKey(args, "--source:").ToArray();
-            CementReferencePrefixes = new[] {"Vostok."}.Concat(GetArgsByKey(args, "--refPrefix:")).ToArray();
-            MissingReferencesToRemove = GetArgsByKey(args, "--removeMissing:").ToArray();
-            ReferencesToRemove = GetArgsByKey(args, "--remove:").ToArray();
-            FailOnNotFoundPackage = !args.Contains("--ignoreMissingPackages");
-            SolutionConfiguration = GetArgsByKey(args, "--solutionConfiguration:").FirstOrDefault() ?? "Release";
-            AllowLocalProjects = args.Contains("--allowLocalProjects");
-            AllowPrereleasePackages = args.Contains("--allowPrereleasePackages");
-            EnsureMultitargeted = args.Contains("--ensureMultitargeted");
-            CopyPrivateAssetsMetadata = args.Contains("--copyPrivateAssets");
-            UseFloatingVersions = args.Contains("--useFloatingVersions");
-        }
     }
 }
