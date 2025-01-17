@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project=".\Vostok.Tools.GitCommit2AssemblyTitle.props" />
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>

@@ -1,7 +1,11 @@
-<Project TreatAsLocalProperty="TaskAssembly">
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <TaskAssembly>$(MSBuildThisFileDirectory)Vostok.Tools.GitCommit2AssemblyTitle.dll</TaskAssembly>
+    <CIBuild Condition="'$(TEAMCITY_VERSION)' != '' Or '$(GITLAB_CI)' == 'true' Or '$(GITHUB_ACTIONS)' == 'true' Or '$(CI)' == 'true'">true</CIBuild>
+    <CIBuild Condition="'$(CIBuild)' == ''">false</CIBuild>
+
+    <GenerateGitCommit2AssemblyTitle Condition="'$(GenerateGitCommit2AssemblyTitle)' == '' And '$(GitCommit2AssemblyTitle)' == '' And '$(CIBuild)' == 'true'">true</GenerateGitCommit2AssemblyTitle>
+    <GenerateGitCommit2AssemblyTitle Condition="'$(GenerateGitCommit2AssemblyTitle)' == ''">false</GenerateGitCommit2AssemblyTitle>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -9,18 +13,122 @@
     <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
   </PropertyGroup>
 
-  <UsingTask TaskName="Vostok.Tools.GitCommit2AssemblyTitle.GitCommit2AssemblyTitle" AssemblyFile="$(TaskAssembly)" />
+  <PropertyGroup Condition=" '$(GenerateGitCommit2AssemblyTitle)' == 'true' And $([MSBuild]::IsOsPlatform('Windows'))">
+    <GetGitCommitHashCommand>git log -1 --pretty=&quot;%%H&quot;</GetGitCommitHashCommand>
+    <GetGitCommitAuthorCommand>git log -1 --pretty=&quot;%%an&quot;</GetGitCommitAuthorCommand>
+    <GetGitCommitDateCommand>git log -1 --pretty=&quot;%%ai&quot;</GetGitCommitDateCommand>
+    <GetGitCommitRefNamesCommand>git log -1 --pretty=&quot;%%d&quot;</GetGitCommitRefNamesCommand>
+  </PropertyGroup>
 
-  <Target Name="GenerateAssemblyTitle" BeforeTargets="BeforeBuild">
-    <PropertyGroup Condition="'$(Version)' == ''">
-      <Version>1.0.0.0</Version>
-    </PropertyGroup>
-    <GitCommit2AssemblyTitle AssemblyVersion="$(Version)"/>
+  <PropertyGroup Condition=" '$(GenerateGitCommit2AssemblyTitle)' == 'true' And $([MSBuild]::IsOsPlatform('Linux'))">
+    <GetGitCommitHashCommand>git log -1 --pretty=&quot;%H&quot;</GetGitCommitHashCommand>
+    <GetGitCommitAuthorCommand>git log -1 --pretty=&quot;%an&quot;</GetGitCommitAuthorCommand>
+    <GetGitCommitDateCommand>git log -1 --pretty=&quot;%ai&quot;</GetGitCommitDateCommand>
+    <GetGitCommitRefNamesCommand>git log -1 --pretty=&quot;%d&quot;</GetGitCommitRefNamesCommand>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(GenerateGitCommit2AssemblyTitle)' == 'true' And $([MSBuild]::IsOsPlatform('OSX'))">
+    <GetGitCommitHashCommand>git log -1 --pretty=&quot;%H&quot;</GetGitCommitHashCommand>
+    <GetGitCommitAuthorCommand>git log -1 --pretty=&quot;%an&quot;</GetGitCommitAuthorCommand>
+    <GetGitCommitDateCommand>git log -1 --pretty=&quot;%ai&quot;</GetGitCommitDateCommand>
+    <GetGitCommitRefNamesCommand>git log -1 --pretty=&quot;%d&quot;</GetGitCommitRefNamesCommand>
+  </PropertyGroup>
+
+  <Target Name="EnsureGitInstalled">
+    <Exec ConsoleToMSBuild="true" EchoOff="true" ContinueOnError="true" WorkingDirectory="$(ProjectDir)" Timeout="10000"
+          StandardOutputImportance="Low" Command="git --version">
+
+      <Output TaskParameter="ExitCode" PropertyName="GitVersionExitCode"/>
+    </Exec>
+    <Error Condition=" '$(GitVersionExitCode)' != '0'" Text="Git is required to generate GitCommit2AssemblyTitle."/>
   </Target>
 
-  <ItemGroup>
-    <Compile Remove="Properties\AssemblyTitle.cs" />
-    <Compile Include="Properties\AssemblyTitle.cs" />
-  </ItemGroup>
+  <Target Name="GetGitCommitHashFromSourceControlInformation"
+          Condition="'$(SourceControlInformationFeatureSupported)' == 'true'"
+          DependsOnTargets="InitializeSourceControlInformation">
+    <PropertyGroup>
+      <GitCommitHash Condition="'$(GitCommitHash)' == ''">$(SourceRevisionId)</GitCommitHash>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="GetGitCommitHash" DependsOnTargets="GetGitCommitHashFromSourceControlInformation">
+    <Exec Condition=" '$(GitCommitHash)' == ''" ConsoleToMSBuild="true" EchoOff="true" WorkingDirectory="$(ProjectDir)"
+          Timeout="10000" StandardOutputImportance="Low" Command="$(GetGitCommitHashCommand)">
+
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitCommitHash"/>
+      <Output TaskParameter="ExitCode" PropertyName="GetGitCommitHashExitCode"/>
+    </Exec>
+  </Target>
+
+  <Target Name="GetGitCommitAuthor" Condition=" '$(GitCommitAuthor)' == ''">
+    <Exec ConsoleToMSBuild="true" EchoOff="true" WorkingDirectory="$(ProjectDir)" Timeout="10000"
+          StandardOutputImportance="Low" Command="$(GetGitCommitAuthorCommand)">
+
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitCommitAuthor"/>
+      <Output TaskParameter="ExitCode" PropertyName="GetGitCommitAuthorExitCode"/>
+    </Exec>
+  </Target>
+
+  <Target Name="GetGitCommitDate" Condition=" '$(GitCommitDate)' == ''">
+    <Exec ConsoleToMSBuild="true" EchoOff="true" WorkingDirectory="$(ProjectDir)" Timeout="10000"
+          StandardOutputImportance="Low" Command="$(GetGitCommitDateCommand)">
+
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitCommitDate"/>
+      <Output TaskParameter="ExitCode" PropertyName="GetGitCommittDateExitCode"/>
+    </Exec>
+  </Target>
+
+  <Target Name="GetGitCommitRefNames" Condition=" '$(GitCommitRefNames)' == ''">
+    <Exec ConsoleToMSBuild="true" EchoOff="true" WorkingDirectory="$(ProjectDir)" Timeout="10000"
+          StandardOutputImportance="Low" Command="$(GetGitCommitRefNamesCommand)">
+
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitCommitRefNames"/>
+      <Output TaskParameter="ExitCode" PropertyName="GetGitCommitRefNamesExitCode"/>
+    </Exec>
+  </Target>
+
+  <!-- 
+  dstarasov: This is necessary to ensure backward compatibility in cases where this file is explicitly included
+  dstarasov: in projects that use this props-file.
+  -->
+  <Target Name="CleanPreviousAssemblyTitle" BeforeTargets="BeforeCompile;CoreCompile;GenerateAssemblyInfo">
+    <WriteLinesToFile File="Properties\AssemblyTitle.cs" Overwrite="true" WriteOnlyWhenDifferent="true" Lines=""/>
+
+    <ItemGroup>
+      <Compile Remove="Properties\AssemblyTitle.cs"/>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="GenerateGitCommit2AssemblyTitle" Condition="'$(GenerateGitCommit2AssemblyTitle)' == 'true'"
+          BeforeTargets="BeforeCompile;CoreCompile;GenerateAssemblyInfo"
+          DependsOnTargets="PrepareForBuild;CleanPreviousAssemblyTitle;EnsureGitInstalled;GetGitCommitHash;GetGitCommitAuthor;GetGitCommitDate;GetGitCommitRefNames">
+
+    <PropertyGroup>
+      <BuildTime Condition="'$(BuildTime)' == ''">$([System.DateTime]::Now.ToString("O"))</BuildTime>
+      <Version Condition="'$(Version)' == ''">1.0.0.0</Version>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <AssemblyAttribute Include="System.Reflection.AssemblyTitleAttribute" Condition="'$(AssemblyTitle)' != ''">
+        <_Parameter1><![CDATA[Commit: $(GitCommitHash)
+Author: $(GitCommitAuthor)
+Date: $(GitCommitDate)
+Ref names: $(GitCommitRefNames)
+Build date: $(BuildTime)]]></_Parameter1>
+      </AssemblyAttribute>
+    </ItemGroup>
+
+    <Message Importance="high" Text="
+------------------------------------------------------------
+             Vostok Git Commit 2 Assembly Title
+------------------------------------------------------------
+Commit: $(GitCommitHash)
+Author: $(GitCommitAuthor)
+Date: $(GitCommitDate)
+Ref names: $(GitCommitRefNames)
+Build date: $(BuildTime)
+------------------------------------------------------------
+"/>
+  </Target>
 
 </Project>

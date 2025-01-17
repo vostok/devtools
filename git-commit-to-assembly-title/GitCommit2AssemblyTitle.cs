@@ -11,6 +11,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Vostok.Tools.GitCommit2AssemblyTitle
 {
+    [Obsolete]
     public class GitCommit2AssemblyTitle : Microsoft.Build.Utilities.Task
     {
         private static readonly TimeSpan CommandTimeout = TimeSpan.FromSeconds(30);
@@ -18,6 +19,11 @@ namespace Vostok.Tools.GitCommit2AssemblyTitle
 
         public override bool Execute()
         {
+            var taskName = typeof(GitCommit2AssemblyTitle).FullName;
+            Log.LogWarning($"MSBuild-task '{taskName}' is deprecated and will be " +
+                           "removed in future versions. Please contact ~infra_support for details.\n\n" +
+                           "https://chat.skbkontur.ru/kontur/channels/infra_support");
+
             void LogMessageFunction(string str, object[] args) => Log.LogMessage(str, args);
 
             var assemblyTitleContent = GetAssemblyTitleContent(LogMessageFunction, AssemblyVersion);
