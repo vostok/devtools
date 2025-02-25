@@ -27,8 +27,20 @@ internal sealed class ReferenceHelper
             var frameworks = group.Select(x => x.TargetFramework.GetShortFolderName()).Distinct();
             var metadata = new Dictionary<string, string>
             {
-                [WellKnownMetadata.Reference.CementInstallFrameworks] = string.Join(';', frameworks),
+                [WellKnownMetadata.Reference.CementInstallFrameworks] = string.Join(';', frameworks)
             };
+
+            var nugetPackageName = group.Select(x => x.NugetPackageName).FirstOrDefault(x => x != null);
+            if (!string.IsNullOrWhiteSpace(nugetPackageName))
+            {
+                metadata.Add(WellKnownMetadata.Reference.NugetPackageName, nugetPackageName!);
+            }
+            
+            var nugetPackageAllowPrerelease = group.Select(x => x.NugetPackageAllowPrerelease).FirstOrDefault(x => x != null);
+            if (!string.IsNullOrWhiteSpace(nugetPackageAllowPrerelease))
+            {
+                metadata.Add(WellKnownMetadata.Reference.NugetPackageAllowPrerelease, nugetPackageAllowPrerelease!);
+            }
 
             var itemGroup = group.Select(x => x.Source.Xml.Parent).FirstOrDefault(x => x is ProjectItemGroupElement);
             if (itemGroup != null)
