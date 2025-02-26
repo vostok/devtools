@@ -53,7 +53,7 @@ internal sealed class ModuleReferenceResolver
 
             foreach (var moduleReference in moduleReferences)
             {
-                if (!frameworkSpecificReferences.TryGetValue(moduleReference.EvaluatedInclude, out var reference))
+                if (!frameworkSpecificReferences.TryGetValue(moduleReference.EvaluatedInclude, out _))
                 {
                     continue;
                 }
@@ -99,6 +99,22 @@ internal sealed class ModuleReferenceResolver
             var nuGetFramework = NuGetFramework.ParseFolder(framework);
 
             var reference = new Reference(moduleReference, include, nuGetFramework);
+
+            if (moduleReference.HasMetadata(WellKnownMetadata.Reference.NugetPackageName))
+            {
+                reference.NugetPackageName =
+                    moduleReference.GetMetadataValue(WellKnownMetadata.Reference.NugetPackageName);
+            }
+
+            if (moduleReference.HasMetadata(WellKnownMetadata.Reference.NugetPackageAllowPrerelease))
+            {
+                var meta = moduleReference.GetMetadataValue(WellKnownMetadata.Reference.NugetPackageAllowPrerelease);
+                if (bool.TryParse(meta, out var isAllowed))
+                {
+                    reference.NugetPackageAllowPrerelease = isAllowed;
+                }
+            }
+
             references.Add(reference);
         }
 
