@@ -456,6 +456,103 @@ public sealed class ReplaceRefsCommandTests : IDisposable
         actualNet8.GetItems(WellKnownItems.PackageReference).Should().ContainSingle();
     }
 
+    [Test]
+    public async Task Should_replace_module_reference_with_nuget_package_name()
+    {
+        // arrange
+        var (modulePath, solutionPath, solutionConfiguration) = CreateModule();
+
+        var depName = Guid.NewGuid().ToString();
+        workspace.CreateModule(depName);
+
+        var prefix = Guid.NewGuid().ToString();
+        var dllName = string.Join('.', prefix, Guid.NewGuid());
+        var depYaml = $"""
+                       full-build:
+                         install:
+                           - {dllName}.dll
+                       """;
+
+        workspace.WriteYaml(depName, depYaml);
+
+        var project = ProjectsFactory.CreateClassLib(["net8.0"]);
+        var packageName = Guid.NewGuid().ToString();
+        var metadata = new Dictionary<string, string>
+        {
+            { WellKnownMetadata.Reference.NugetPackageName, packageName }
+        };
+
+        project.AddItem(WellKnownItems.ModuleReference, depName, metadata);
+
+        var solutionProject = SaveProject(project, modulePath);
+        projectProvider.AddToSolution(solutionProject, solutionPath, solutionConfiguration);
+
+        var sourceUrl = Guid.NewGuid().ToString();
+        var includePrerelease = Arg.Any<bool>();
+        var nugetVersion = CreateNuGetVersion();
+        versionProvider.GetVersionsAsync(packageName, includePrerelease, sourceUrl).Returns([nugetVersion]);
+
+        // act
+        var parameters = CreateParameters(modulePath, solutionConfiguration, [sourceUrl], [prefix]);
+        await command.ExecuteAsync(parameters);
+
+        // assert
+        var actual = Project.FromFile(project.FullPath, DefaultProjectOptions);
+        actual.GetItems(WellKnownItems.Reference).Should().BeEmpty();
+        actual.GetItems(WellKnownItems.ModuleReference).Should().BeEmpty();
+
+        var packageReference = actual.GetItems(WellKnownItems.PackageReference).Single();
+        packageReference.EvaluatedInclude.Should().Be(packageName);
+    }
+
+    [Test]
+    public async Task Should_replace_module_reference_with_allow_prerelease()
+    {
+        // arrange
+        var (modulePath, solutionPath, solutionConfiguration) = CreateModule();
+
+        var depName = Guid.NewGuid().ToString();
+        workspace.CreateModule(depName);
+
+        var prefix = Guid.NewGuid().ToString();
+        var dllName = string.Join('.', prefix, Guid.NewGuid());
+        var depYaml = $"""
+                       full-build:
+                         install:
+                           - {dllName}.dll
+                       """;
+
+        workspace.WriteYaml(depName, depYaml);
+
+        var project = ProjectsFactory.CreateClassLib(["net8.0"]);
+        var includePrerelease = true;
+        var metadata = new Dictionary<string, string>
+        {
+            { WellKnownMetadata.Reference.NugetPackageAllowPrerelease, includePrerelease.ToString() }
+        };
+
+        project.AddItem(WellKnownItems.ModuleReference, depName, metadata);
+
+        var solutionProject = SaveProject(project, modulePath);
+        projectProvider.AddToSolution(solutionProject, solutionPath, solutionConfiguration);
+
+        var sourceUrl = Guid.NewGuid().ToString();
+        var nugetVersion = CreateNuGetVersion();
+        versionProvider.GetVersionsAsync(dllName, includePrerelease, sourceUrl).Returns([nugetVersion]);
+
+        // act
+        var parameters = CreateParameters(modulePath, solutionConfiguration, [sourceUrl], [prefix]);
+        await command.ExecuteAsync(parameters);
+
+        // assert
+        var actual = Project.FromFile(project.FullPath, DefaultProjectOptions);
+        actual.GetItems(WellKnownItems.Reference).Should().BeEmpty();
+        actual.GetItems(WellKnownItems.ModuleReference).Should().BeEmpty();
+
+        var packageReference = actual.GetItems(WellKnownItems.PackageReference).Single();
+        packageReference.EvaluatedInclude.Should().Be(dllName);
+    }
+
     private (string ModulePath, string SolutionPath, string SolutionConfiguration) CreateModule()
     {
         var moduleName = Guid.NewGuid().ToString();
