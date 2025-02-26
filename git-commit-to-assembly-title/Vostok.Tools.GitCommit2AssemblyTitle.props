@@ -16,6 +16,17 @@
       <Version>1.0.0.0</Version>
     </PropertyGroup>
     <GitCommit2AssemblyTitle AssemblyVersion="$(Version)"/>
+
+    <Warning Text="
+============================================================
+
+  The project 'Vostok.Tools.GitCommit2AssemblyTitle' is 
+  deprecated and is no longer maintained, please use 
+  NuGet-package `Vostok.DevTools.GitCommit2AssemblyTitle` 
+  instead
+
+============================================================
+"/>
   </Target>
 
   <ItemGroup>
