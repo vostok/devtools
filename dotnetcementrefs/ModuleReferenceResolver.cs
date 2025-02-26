@@ -108,8 +108,11 @@ internal sealed class ModuleReferenceResolver
 
             if (moduleReference.HasMetadata(WellKnownMetadata.Reference.NugetPackageAllowPrerelease))
             {
-                reference.NugetPackageAllowPrerelease =
-                    moduleReference.GetMetadataValue(WellKnownMetadata.Reference.NugetPackageAllowPrerelease);
+                var meta = moduleReference.GetMetadataValue(WellKnownMetadata.Reference.NugetPackageAllowPrerelease);
+                if (bool.TryParse(meta, out var isAllowed))
+                {
+                    reference.NugetPackageAllowPrerelease = isAllowed;
+                }
             }
 
             references.Add(reference);

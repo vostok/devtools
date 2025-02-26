@@ -16,5 +16,5 @@ internal sealed record Reference
     public string Include { get; }
     public NuGetFramework TargetFramework { get; }
     public string? NugetPackageName { get; set; }
-    public string? NugetPackageAllowPrerelease { get; set; }
+    public bool? NugetPackageAllowPrerelease { get; set; }
 }

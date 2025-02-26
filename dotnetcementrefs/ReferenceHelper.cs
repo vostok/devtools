@@ -35,11 +35,14 @@ internal sealed class ReferenceHelper
             {
                 metadata.Add(WellKnownMetadata.Reference.NugetPackageName, nugetPackageName!);
             }
+
+            var nugetPackageAllowPrerelease = group.Select(x => x.NugetPackageAllowPrerelease)
+                .FirstOrDefault(x => x != null);
             
-            var nugetPackageAllowPrerelease = group.Select(x => x.NugetPackageAllowPrerelease).FirstOrDefault(x => x != null);
-            if (!string.IsNullOrWhiteSpace(nugetPackageAllowPrerelease))
+            if (nugetPackageAllowPrerelease != null)
             {
-                metadata.Add(WellKnownMetadata.Reference.NugetPackageAllowPrerelease, nugetPackageAllowPrerelease!);
+                var isAllowed = nugetPackageAllowPrerelease.Value.ToString();
+                metadata.Add(WellKnownMetadata.Reference.NugetPackageAllowPrerelease, isAllowed);
             }
 
             var itemGroup = group.Select(x => x.Source.Xml.Parent).FirstOrDefault(x => x is ProjectItemGroupElement);
