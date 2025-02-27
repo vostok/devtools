@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <LangVersion>Latest</LangVersion>
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
     <Authors>Vostok team</Authors>
     <Product>dotnetcementrefs</Product>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
