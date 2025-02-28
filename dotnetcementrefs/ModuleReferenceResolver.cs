@@ -83,15 +83,16 @@ internal sealed class ModuleReferenceResolver
 
     private IReadOnlyCollection<Reference>? Resolve(string workspacePath, ProjectItem moduleReference, string framework)
     {
-        var assets = assetsResolver.Resolve(workspacePath, moduleReference.EvaluatedInclude, framework);
-        if (assets == null)
+        var direct = assetsResolver.ResolveDirect(workspacePath, moduleReference.EvaluatedInclude, framework);
+        var all = assetsResolver.ResolveRecursive(workspacePath, moduleReference.EvaluatedInclude, framework);
+        if (direct == null || all == null)
         {
             return null;
         }
 
         var references = new List<Reference>();
 
-        foreach (var file in assets.InstallFiles)
+        foreach (var file in all.InstallFiles)
         {
             var filePath = LinuxPath.ReplaceSeparator(file);
 
@@ -100,13 +101,15 @@ internal sealed class ModuleReferenceResolver
 
             var reference = new Reference(moduleReference, include, nuGetFramework);
 
-            if (moduleReference.HasMetadata(WellKnownMetadata.Reference.NugetPackageName))
+            if (moduleReference.HasMetadata(WellKnownMetadata.Reference.NugetPackageName) 
+                && direct.InstallFiles.Contains(file))
             {
                 reference.NugetPackageName =
                     moduleReference.GetMetadataValue(WellKnownMetadata.Reference.NugetPackageName);
             }
 
-            if (moduleReference.HasMetadata(WellKnownMetadata.Reference.NugetPackageAllowPrerelease))
+            if (moduleReference.HasMetadata(WellKnownMetadata.Reference.NugetPackageAllowPrerelease) 
+                && direct.InstallFiles.Contains(file))
             {
                 var meta = moduleReference.GetMetadataValue(WellKnownMetadata.Reference.NugetPackageAllowPrerelease);
                 if (bool.TryParse(meta, out var isAllowed))
