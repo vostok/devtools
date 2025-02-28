@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <LangVersion>Latest</LangVersion>
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
     <Authors>Vostok team</Authors>
     <Product>dotnetcementrefs</Product>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
@@ -28,7 +28,7 @@
     <PackageReference Include="NuGet.Packaging.Core" Version="6.7.0" />
     <PackageReference Include="NuGet.ProjectModel" Version="6.7.0" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="7.0.3" />
-    <PackageReference Include="Kontur.IDevOps.Cement.Vostok.Devtools" Version="7.14.0" />
+    <PackageReference Include="Kontur.IDevOps.Cement.Vostok.Devtools" Version="7.16.0" />
   </ItemGroup>
   
   <ItemGroup>
