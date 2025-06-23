@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>net8.0;net6.0;netcoreapp2.1</TargetFrameworks>
-    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TargetFrameworks);net471</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TargetFrameworks);net472</TargetFrameworks>
     <ReferencesFramework>netstandard2.0</ReferencesFramework>
     <ReferencesFramework Condition="'$(TargetFramework)' == 'net8.0'">net8.0</ReferencesFramework>
     <ReferencesFramework Condition="'$(TargetFramework)' == 'net6.0'">net6.0</ReferencesFramework>
