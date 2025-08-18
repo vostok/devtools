@@ -10,6 +10,12 @@ internal static class LinuxPath
     {
         var path = Path.Combine(path1, path2);
         return ReplaceSeparator(path);
+    }  
+    
+    public static string Combine(string path1, string path2, string path3)
+    {
+        var path = Path.Combine(path1, path2, path3);
+        return ReplaceSeparator(path);
     }
 
     public static string ReplaceSeparator(string path)
