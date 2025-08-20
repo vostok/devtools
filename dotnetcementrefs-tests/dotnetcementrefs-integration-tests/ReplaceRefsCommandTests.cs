@@ -546,7 +546,7 @@ public sealed class ReplaceRefsCommandTests : IDisposable
         
         var reference = actual.GetItems(WellKnownItems.Reference).Single();
         var hintPath = reference.GetMetadata(WellKnownMetadata.Reference.HintPath);
-        hintPath.UnevaluatedValue.Should().Be($"$(CementDir){LinuxPath.Combine(depName, dllName)}.dll");
+        hintPath.UnevaluatedValue.Should().Be($"$(CementDir){PathUtils.Combine(depName, dllName)}.dll");
         hintPath.Xml.Condition.Should().Be("'$(TargetFramework)' == 'net8.0'");
     }   
     
@@ -605,8 +605,8 @@ public sealed class ReplaceRefsCommandTests : IDisposable
         net6Metadata.Should().NotBeNull();
         net8Metadata.Should().NotBeNull();
 
-        net6Metadata!.Value.Should().Be($"$(CementDir){LinuxPath.Combine(depName, "net6.0", dllName)}.dll");
-        net8Metadata!.Value.Should().Be($"$(CementDir){LinuxPath.Combine(depName, "net8.0", dllName)}.dll");
+        net6Metadata!.Value.Should().Be($"$(CementDir){PathUtils.Combine(depName, "net6.0", dllName)}.dll");
+        net8Metadata!.Value.Should().Be($"$(CementDir){PathUtils.Combine(depName, "net8.0", dllName)}.dll");
     }     
     
     [Test]
