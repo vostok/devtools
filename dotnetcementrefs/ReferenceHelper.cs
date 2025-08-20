@@ -25,15 +25,21 @@ internal sealed class ReferenceHelper
             }
             
             var frameworks = group.Select(x => x.TargetFramework.GetShortFolderName()).Distinct();
+            var paths = group
+                .DistinctBy(x => x.TargetFramework.GetShortFolderName())
+                .Select(x => (x.Path, x.TargetFramework))
+                .ToArray();
+
             var metadata = new Dictionary<string, string>
             {
-                [WellKnownMetadata.Reference.CementInstallFrameworks] = string.Join(';', frameworks)
+                [WellKnownMetadata.Reference.CementInstallFrameworks] = string.Join(';', frameworks),
+                [WellKnownMetadata.Reference.CementInstallPaths] = CementMetadataSerializer.SerializeInstallPath(paths)
             };
 
             var nugetPackageName = group.Select(x => x.NugetPackageName).FirstOrDefault(x => x != null);
             if (!string.IsNullOrWhiteSpace(nugetPackageName))
             {
-                metadata.Add(WellKnownMetadata.Reference.NugetPackageName, nugetPackageName!);
+                metadata.Add(WellKnownMetadata.Reference.NugetPackageName, nugetPackageName);
             }
 
             var nugetPackageAllowPrerelease = group.Select(x => x.NugetPackageAllowPrerelease)
