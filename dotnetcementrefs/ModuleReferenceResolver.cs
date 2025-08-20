@@ -99,7 +99,7 @@ internal sealed class ModuleReferenceResolver
             var include = Path.GetFileNameWithoutExtension(filePath);
             var nuGetFramework = NuGetFramework.ParseFolder(framework);
 
-            var reference = new Reference(moduleReference, include, nuGetFramework);
+            var reference = new Reference(moduleReference, include, nuGetFramework, filePath);
 
             if (moduleReference.HasMetadata(WellKnownMetadata.Reference.NugetPackageName) 
                 && direct.InstallFiles.Contains(file))

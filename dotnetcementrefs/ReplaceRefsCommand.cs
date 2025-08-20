@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
 using NuGet.Versioning;
 
@@ -240,9 +241,40 @@ internal sealed class ReplaceRefsCommand
                 project.RemoveItem(reference);
                 return;
             }
-
+            
             if (parameters.FailOnNotFoundPackage)
+            {
                 throw new($"No versions of package '{packageName}' were found on '{string.Join(", ", parameters.SourceUrls)}'.");
+            }
+            
+            var installs = reference.GetMetadataValue(WellKnownMetadata.Reference.CementInstallPaths);
+            if (!string.IsNullOrWhiteSpace(installs))
+            {
+                project.RemoveItem(reference);
+                
+                var paths = CementMetadataSerializer.DeserializeInstallPath(installs);
+
+                if (reference.Xml.Parent is ProjectItemGroupElement group)
+                {
+                    var item = group.AddItem(WellKnownItems.Reference, reference.EvaluatedInclude);
+                    AddMetadata(item);
+                }
+                else
+                {
+                    var item =  project.AddItem(WellKnownItems.Reference, reference.EvaluatedInclude)[0].Xml;
+                    AddMetadata(item);
+                }
+
+                void AddMetadata(ProjectItemElement item)
+                {
+                    foreach (var (path, framework) in paths)
+                    {
+                        var metadata = item.AddMetadata(WellKnownMetadata.Reference.HintPath, $"$({WellKnownProperties.CementDir}){path}");
+                        metadata.Condition = $"'$({WellKnownProperties.TargetFramework})' == '{framework.GetShortFolderName()}'";
+                    }
+                }
+            }
+            
             return;
         }
         await Console.Out.WriteLineAsync($"Latest version of NuGet package '{packageName}' is '{packageVersion}'");
@@ -309,7 +341,7 @@ internal sealed class ReplaceRefsCommand
         }
         
         var frameworks = targetFrameworks.Split(';');
-        var conditions = frameworks.Select(x => $"'$(TargetFramework)' == '{x}'");
+        var conditions = frameworks.Select(x => $"'$({WellKnownProperties.TargetFramework})' == '{x}'");
         return string.Join(" or ", conditions);
     }
 
