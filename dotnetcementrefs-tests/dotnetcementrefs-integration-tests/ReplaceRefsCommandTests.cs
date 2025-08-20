@@ -506,6 +506,110 @@ public sealed class ReplaceRefsCommandTests : IDisposable
     }     
     
     [Test]
+    public async Task Should_replace_module_reference_with_hint_path_when_package_not_found()
+    {
+        // arrange
+        var (modulePath, solutionPath, solutionConfiguration) = CreateModule();
+
+        var depName = Guid.NewGuid().ToString();
+        workspace.CreateModule(depName);
+
+        var prefix = Guid.NewGuid().ToString();
+        var dllName = string.Join('.', prefix, Guid.NewGuid());
+        var depYaml = $"""
+                       full-build:
+                         install:
+                           - {dllName}.dll
+                       """;
+
+        workspace.WriteYaml(depName, depYaml);
+
+        var project = ProjectsFactory.CreateClassLib(["net8.0"]);
+        project.AddItem(WellKnownItems.ModuleReference, depName);
+
+        var solutionProject = SaveProject(project, modulePath);
+        projectProvider.AddToSolution(solutionProject, solutionPath, solutionConfiguration);
+
+        var packageName = Arg.Any<string>();
+        var sourceUrl = Guid.NewGuid().ToString();
+        var includePrerelease = Arg.Any<bool>();
+        versionProvider.GetVersionsAsync(packageName, includePrerelease, sourceUrl).Returns([]);
+
+        // act
+        var parameters = CreateParameters(modulePath, solutionConfiguration, [sourceUrl], [prefix], failOnNotFoundPackage: false);
+        await command.ExecuteAsync(parameters);
+
+        // assert
+        var actual = Project.FromFile(project.FullPath, DefaultProjectOptions);
+        actual.GetItems(WellKnownItems.ModuleReference).Should().BeEmpty();
+        actual.GetItems(WellKnownItems.Reference).Should().ContainSingle();
+        
+        var reference = actual.GetItems(WellKnownItems.Reference).Single();
+        var hintPath = reference.GetMetadata(WellKnownMetadata.Reference.HintPath);
+        hintPath.UnevaluatedValue.Should().Be($"$(CementDir){PathUtils.Combine(depName, dllName)}.dll");
+        hintPath.Xml.Condition.Should().Be("'$(TargetFramework)' == 'net8.0'");
+    }   
+    
+    
+    [Test]
+    public async Task Should_replace_multitarget_module_reference_with_hint_path_when_package_not_found()
+    {
+        // arrange
+        var (modulePath, solutionPath, solutionConfiguration) = CreateModule();
+
+        var depName = Guid.NewGuid().ToString();
+        workspace.CreateModule(depName);
+
+        var prefix = Guid.NewGuid().ToString();
+        var dllName = Guid.NewGuid().ToString();
+        var depYaml = $"""
+                       full-build:
+                         install:
+                           - groups:
+                             - target-framework: "net6.0"
+                               libraries:
+                                 - net6.0/{dllName}.dll
+                             - target-framework: "net8.0"
+                               libraries:
+                                 - net8.0/{dllName}.dll
+                       """;
+
+        workspace.WriteYaml(depName, depYaml);
+
+        var project = ProjectsFactory.CreateClassLib(["net6.0", "net8.0"]);
+        project.AddItem(WellKnownItems.ModuleReference, depName);
+
+        var solutionProject = SaveProject(project, modulePath);
+        projectProvider.AddToSolution(solutionProject, solutionPath, solutionConfiguration);
+
+        var packageName = Arg.Any<string>();
+        var sourceUrl = Guid.NewGuid().ToString();
+        var includePrerelease = Arg.Any<bool>();
+        versionProvider.GetVersionsAsync(packageName, includePrerelease, sourceUrl).Returns([]);
+
+        // act
+        var parameters = CreateParameters(modulePath, solutionConfiguration, [sourceUrl], [prefix], failOnNotFoundPackage: false);
+        await command.ExecuteAsync(parameters);
+
+        // assert
+        var actual = Project.FromFile(project.FullPath, DefaultProjectOptions);
+        actual.GetItems(WellKnownItems.ModuleReference).Should().BeEmpty();
+        actual.GetItems(WellKnownItems.Reference).Should().ContainSingle();
+
+        var reference = actual.GetItems(WellKnownItems.Reference).Single();
+        reference.Xml.Metadata.Should().HaveCount(2);
+
+        var net6Metadata = reference.Xml.Metadata.FirstOrDefault(x => x.Condition == "'$(TargetFramework)' == 'net6.0'");
+        var net8Metadata = reference.Xml.Metadata.FirstOrDefault(x => x.Condition == "'$(TargetFramework)' == 'net8.0'");
+
+        net6Metadata.Should().NotBeNull();
+        net8Metadata.Should().NotBeNull();
+
+        net6Metadata!.Value.Should().Be($"$(CementDir){PathUtils.Combine(depName, "net6.0", dllName)}.dll");
+        net8Metadata!.Value.Should().Be($"$(CementDir){PathUtils.Combine(depName, "net8.0", dllName)}.dll");
+    }     
+    
+    [Test]
     public async Task Should_replace_only_direct_installs_of_module_reference_with_nuget_package_name()
     {
         // arrange
@@ -644,11 +748,10 @@ public sealed class ReplaceRefsCommandTests : IDisposable
 
     private static Parameters CreateParameters(string targetSlnPath, string solutionConfiguration,
         IReadOnlyCollection<string> sourceUrls, IReadOnlyCollection<string> cementReferencePrefixes,
-        bool allowLocalProjects = false, bool ensureMultitargeted = false)
+        bool allowLocalProjects = false, bool ensureMultitargeted = false, bool failOnNotFoundPackage = true)
     {
         var missingReferencesToRemove = Array.Empty<string>();
         var referencesToRemove = Array.Empty<string>();
-        var failOnNotFoundPackage = true;
         var allowPrereleasePackages = false;
         var copyPrivateAssetsMetadata = false;
         var useFloatingVersions = false;

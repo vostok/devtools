@@ -7,4 +7,5 @@ internal static class WellKnownProperties
     public const string DotnetCementRefsExclude = "DotnetCementRefsExclude";
     public const string TargetFramework = "TargetFramework";
     public const string TargetFrameworks = "TargetFrameworks";
+    public const string CementDir = "CementDir";
 }
