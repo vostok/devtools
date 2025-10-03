@@ -59,7 +59,7 @@ internal sealed class ModuleReferenceResolver
                 }
 
                 var items = Resolve(workspacePath, moduleReference, framework);
-                references.AddRange(items ?? []);
+                references.AddRange(items);
             }
         }
 
@@ -81,14 +81,10 @@ internal sealed class ModuleReferenceResolver
         return projectWithFramework.GetItems(WellKnownItems.ModuleReference).ToArray();
     }
 
-    private IReadOnlyCollection<Reference>? Resolve(string workspacePath, ProjectItem moduleReference, string framework)
+    private IReadOnlyCollection<Reference> Resolve(string workspacePath, ProjectItem moduleReference, string framework)
     {
         var direct = assetsResolver.ResolveDirect(workspacePath, moduleReference.EvaluatedInclude, framework);
         var all = assetsResolver.ResolveRecursive(workspacePath, moduleReference.EvaluatedInclude, framework);
-        if (direct == null || all == null)
-        {
-            return null;
-        }
 
         var references = new List<Reference>();
 
