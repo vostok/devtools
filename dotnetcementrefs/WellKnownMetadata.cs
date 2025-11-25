@@ -16,5 +16,6 @@ internal static class WellKnownMetadata
     {
         public const string PrivateAssets = "PrivateAssets";
         public const string Version = "Version";
+        public const string VersionOverride = "VersionOverride";
     }
 }
