@@ -18,8 +18,9 @@ internal sealed class Parameters
     public bool EnsureMultitargeted { get; }
     public bool CopyPrivateAssetsMetadata { get; }
     public bool UseFloatingVersions { get; }
+    public bool UseVersionOverride { get; }
 
-    public Parameters(string targetSlnPath, string solutionConfiguration, string[] sourceUrls, string[] cementReferencePrefixes, string[] missingReferencesToRemove, string[] referencesToRemove, bool failOnNotFoundPackage, bool allowLocalProjects, bool allowPrereleasePackages, bool ensureMultitargeted, bool copyPrivateAssetsMetadata, bool useFloatingVersions)
+    public Parameters(string targetSlnPath, string solutionConfiguration, string[] sourceUrls, string[] cementReferencePrefixes, string[] missingReferencesToRemove, string[] referencesToRemove, bool failOnNotFoundPackage, bool allowLocalProjects, bool allowPrereleasePackages, bool ensureMultitargeted, bool copyPrivateAssetsMetadata, bool useFloatingVersions, bool useVersionOverride)
     {
         TargetSlnPath = targetSlnPath;
         SolutionConfiguration = solutionConfiguration;
@@ -33,6 +34,7 @@ internal sealed class Parameters
         EnsureMultitargeted = ensureMultitargeted;
         CopyPrivateAssetsMetadata = copyPrivateAssetsMetadata;
         UseFloatingVersions = useFloatingVersions;
+        UseVersionOverride = useVersionOverride;
     }
 
     public static Parameters Parse(string[] args)
@@ -50,10 +52,12 @@ internal sealed class Parameters
         var ensureMultitargeted = args.Contains("--ensureMultitargeted");
         var copyPrivateAssetsMetadata = args.Contains("--copyPrivateAssets");
         var useFloatingVersions = args.Contains("--useFloatingVersions");
+        var useVersionOverride = args.Contains("--useVersionOverride");
         
         return new Parameters(targetSlnPath, solutionConfiguration, sourceUrls, cementReferencePrefixes,
             missingReferencesToRemove, referencesToRemove, failOnNotFoundPackage, allowLocalProjects,
-            allowPrereleasePackages, ensureMultitargeted, copyPrivateAssetsMetadata, useFloatingVersions);
+            allowPrereleasePackages, ensureMultitargeted, copyPrivateAssetsMetadata, useFloatingVersions,
+            useVersionOverride);
     }
 
     private static IEnumerable<string> GetArgsByKey(string[] args, string key)

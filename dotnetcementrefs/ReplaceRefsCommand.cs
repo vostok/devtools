@@ -323,11 +323,17 @@ internal sealed class ReplaceRefsCommand
             version += packageVersion.IsPrerelease ? "*-*" : "*";
         }
 
-        var versionMetadata = new KeyValuePair<string, string>(WellKnownMetadata.PackageReference.Version, version);
+        var versionKey = parameters.UseVersionOverride
+            ? WellKnownMetadata.PackageReference.VersionOverride
+            : WellKnownMetadata.PackageReference.Version;
+
+        var versionMetadata = new KeyValuePair<string, string>(versionKey, version);
         var metadata = new List<KeyValuePair<string, string>> { versionMetadata };
+
         var privateAssets = reference.GetMetadataValue(WellKnownMetadata.Reference.PrivateAssets);
         if (parameters.CopyPrivateAssetsMetadata && !string.IsNullOrEmpty(privateAssets))
             metadata.Add(new(WellKnownMetadata.PackageReference.PrivateAssets, privateAssets));
+
         return metadata.ToArray();
     }
 
