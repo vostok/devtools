@@ -194,7 +194,7 @@ public static class Program
 
         project.AddItem("PackageReference", packageName, new[]
         {
-            new KeyValuePair<string, string>("Version", version)
+            new KeyValuePair<string, string>(parameters.UseVersionOverride ? "VersionOverride" : "Version", version)
         });
 
         Console.Out.WriteLine($"Added package reference to '{packageName}' of version '{version}'.");
@@ -218,6 +218,7 @@ public static class Program
         public string[] ReferencesToRemove { get; }
         public bool FailOnNotFoundPackage { get; }
         public bool AllowLocalProjects { get; }
+        public bool UseVersionOverride { get; }
 
         public Parameters(string[] args)
         {
@@ -231,6 +232,7 @@ public static class Program
             FailOnNotFoundPackage = !args.Contains("--ignoreMissingPackages");
             SolutionConfiguration = GetArgsByKey(args, "--solutionConfiguration:").FirstOrDefault() ?? "Release";
             AllowLocalProjects = args.Contains("--allowLocalProjects");
+            UseVersionOverride = args.Contains("--useVersionOverride");
         }
     }
 }

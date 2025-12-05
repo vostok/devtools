@@ -76,6 +76,41 @@ public sealed class ReplaceRefsCommandTests : IDisposable
     }
 
     [Test]
+    public async Task Should_replace_reference_with_version_override()
+    {
+        // arrange
+        var (modulePath, solutionPath, solutionConfiguration) = CreateModule();
+
+        var project = ProjectsFactory.CreateClassLib(["net8.0"]);
+
+        var prefix = Guid.NewGuid().ToString();
+        var include = string.Join('.', prefix, Guid.NewGuid());
+        project.AddItem(WellKnownItems.Reference, include);
+
+        var solutionProject = SaveProject(project, modulePath);
+        projectProvider.AddToSolution(solutionProject, solutionPath, solutionConfiguration);
+
+        var sourceUrl = Guid.NewGuid().ToString();
+        var nugetVersion = CreateNuGetVersion();
+        var includePrerelease = Arg.Any<bool>();
+        versionProvider.GetVersionsAsync(include, includePrerelease, sourceUrl).Returns([nugetVersion]);
+
+        // act
+        var parameters = CreateParameters(modulePath, solutionConfiguration, [sourceUrl], [prefix],
+            useVersionOverride: true);
+        await command.ExecuteAsync(parameters);
+
+        // assert
+        var actual = Project.FromFile(project.FullPath, DefaultProjectOptions);
+        actual.GetItems(WellKnownItems.Reference).Should().BeEmpty();
+
+        var packageReference = actual.GetItems(WellKnownItems.PackageReference).Single();
+        packageReference.EvaluatedInclude.Should().Be(include);
+        packageReference.GetMetadataValue(WellKnownMetadata.PackageReference.VersionOverride)
+            .Should().Be(nugetVersion.ToString());
+    }
+
+    [Test]
     public async Task Should_replace_module_reference()
     {
         // arrange
@@ -748,7 +783,8 @@ public sealed class ReplaceRefsCommandTests : IDisposable
 
     private static Parameters CreateParameters(string targetSlnPath, string solutionConfiguration,
         IReadOnlyCollection<string> sourceUrls, IReadOnlyCollection<string> cementReferencePrefixes,
-        bool allowLocalProjects = false, bool ensureMultitargeted = false, bool failOnNotFoundPackage = true)
+        bool allowLocalProjects = false, bool ensureMultitargeted = false, bool failOnNotFoundPackage = true,
+        bool useVersionOverride = false)
     {
         var missingReferencesToRemove = Array.Empty<string>();
         var referencesToRemove = Array.Empty<string>();
@@ -759,6 +795,6 @@ public sealed class ReplaceRefsCommandTests : IDisposable
         return new Parameters(targetSlnPath, solutionConfiguration, sourceUrls.ToArray(),
             cementReferencePrefixes.ToArray(), missingReferencesToRemove, referencesToRemove, failOnNotFoundPackage,
             allowLocalProjects, allowPrereleasePackages, ensureMultitargeted, copyPrivateAssetsMetadata,
-            useFloatingVersions);
+            useFloatingVersions, useVersionOverride);
     }
 }
