@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <LangVersion>Latest</LangVersion>
-    <Version>1.1.2</Version>
+    <Version>1.1.3</Version>
     <Authors>Vostok team</Authors>
     <Product>dotnetcementrefs</Product>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
