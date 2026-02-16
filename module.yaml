@@ -5,7 +5,7 @@ src:
 
 full-build:
   deps:
-    - vostok.devtools.ilrepack.bin
+    - vostok.devtools.ilrepack.bin@remove-binary-formatter
   build:
     target: None
     configuration: None
