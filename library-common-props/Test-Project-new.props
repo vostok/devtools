@@ -5,6 +5,8 @@
   <PropertyGroup>
       <Nullable>enable</Nullable>
       <LangVersion>latest</LangVersion>
+      <!-- https://learn.microsoft.com/en-us/nuget/concepts/auditing-packages#warning-codes -->
+      <WarningsNotAsErrors>$(WarningsNotAsErrors);NU1900;NU1901;NU1902;NU1903;NU1904;NU1905</WarningsNotAsErrors>
   </PropertyGroup>
 
 </Project>

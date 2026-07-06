@@ -49,6 +49,8 @@
   <PropertyGroup>
     <NoWarn>1701;1702;1591;1573;NETSDK1138;NU5125;NU5048</NoWarn>
     <WarningsAsErrors>RS0016,RS0017,RS0024,RS0025,RS0048,RS0050</WarningsAsErrors>
+    <!-- https://learn.microsoft.com/en-us/nuget/concepts/auditing-packages#warning-codes -->
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);NU1900;NU1901;NU1902;NU1903;NU1904;NU1905</WarningsNotAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
