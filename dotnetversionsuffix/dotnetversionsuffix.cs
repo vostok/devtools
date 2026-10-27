@@ -11,80 +11,56 @@ public static class Program
     public static void Main(string[] args)
     {
         var parameters = new Parameters(args);
-        
-        Console.Out.WriteLine(
-            $"Setting version {parameters.VersionPart} '{parameters.VersionValue}' for all projects of solutions located in '{parameters.WorkingDirectory}'.");
 
-        var solutionFiles = Directory.GetFiles(parameters.WorkingDirectory, "*.sln");
+        var workingDir = parameters.WorkingDirectory;
+        Console.Out.WriteLine($"Setting version {parameters.VersionPart} '{parameters.VersionValue}' " +
+                              $"for all projects of solutions located in '{workingDir}'.");
+
+        var solutionFiles = Directory.GetFiles(workingDir, "*.sln");
         if (solutionFiles.Length == 0)
         {
             Console.Out.WriteLine("No solution files found.");
             return;
         }
 
+        var csprojFiles = GetMatchingProjectsPaths(solutionFiles, parameters.SolutionConfiguration);
         Console.Out.WriteLine(
-            $"Found solution files: {Environment.NewLine}\t{string.Join(Environment.NewLine + "\t", solutionFiles)}");
+            $"Found {csprojFiles.Count} csproj files: {Environment.NewLine}\t{string.Join(Environment.NewLine + "\t", csprojFiles)}");
 
-        foreach (var solutionFile in solutionFiles)
-            HandleSolution(solutionFile, parameters);
+        foreach (var csprojFile in csprojFiles)
+            HandleProject(csprojFile, parameters.CsProjProperty, parameters.VersionValue);
     }
 
-    private static void HandleSolution(string solutionFile, Parameters parameters)
+    private static HashSet<string> GetMatchingProjectsPaths(
+        string[] slnPaths,
+        string configuration
+    ) => slnPaths
+        .Select(SolutionFile.Parse)
+        .SelectMany(sln => sln.ProjectsInOrder)
+        .Where(proj => proj.ProjectConfigurations.Any(cfg =>
+            cfg.Value.IncludeInBuild &&
+            cfg.Key.StartsWith(configuration + '|', StringComparison.OrdinalIgnoreCase)
+        ))
+        .Select(proj => proj.AbsolutePath)
+        .ToHashSet();
+
+    private static void HandleProject(string projectFile, string csprojPropertyName, string csprojPropertyValue)
     {
-        var parsedSolution = SolutionFile.Parse(solutionFile);
-                
-        Console.Out.WriteLine($"Working with '{solutionFile}.");
-        Console.Out.WriteLine($"Working with '{parameters.SolutionConfiguration}' solution configuration.");
-
-        var projects = FilterProjectsByConfiguration(parsedSolution.ProjectsInOrder, parameters.SolutionConfiguration);
-
-        var projectFiles = projects
-            .Select(project => project.AbsolutePath)
-            .ToArray();
-
-        if (projectFiles.Length == 0)
+        if (!File.Exists(projectFile))
         {
-            Console.Out.WriteLine("No projects found in solutions.");
+            Console.Out.WriteLine($"Project file '{projectFile}' doesn't exists.");
             return;
         }
 
-        Console.Out.WriteLine(
-            $"Found project files: {Environment.NewLine}\t{string.Join(Environment.NewLine + "\t", projectFiles)}");
+        Console.Out.WriteLine($"Working with project '{Path.GetFileName(projectFile)}'..");
 
-        foreach (var projectFile in projectFiles)
+        var project = Project.FromFile(projectFile, new ProjectOptions
         {
-            if (!File.Exists(projectFile))
-            {
-                Console.Out.WriteLine($"Project file '{projectFile}' doesn't exists.");
-                continue;
-            }
+            LoadSettings = ProjectLoadSettings.IgnoreMissingImports
+        });
 
-            Console.Out.WriteLine($"Working with project '{Path.GetFileName(projectFile)}'..");
-
-            var project = Project.FromFile(projectFile, new ProjectOptions
-            {
-                LoadSettings = ProjectLoadSettings.IgnoreMissingImports
-            });
-
-            project.SetProperty(parameters.CsProjProperty, parameters.VersionValue);
-            project.Save();
-        }
-    }
-
-    private static IEnumerable<ProjectInSolution> FilterProjectsByConfiguration(
-        IEnumerable<ProjectInSolution> projects,
-        string configuration)
-    {
-        var keyPrefix = configuration + "|";
-
-        foreach (var project in projects)
-        {
-            var configurations = project.ProjectConfigurations;
-            var enabledConfigurations = configurations.Where(x => x.Value.IncludeInBuild);
-
-            if (enabledConfigurations.Any(x => x.Key.StartsWith(keyPrefix, StringComparison.OrdinalIgnoreCase)))
-                yield return project;
-        }
+        project.SetProperty(csprojPropertyName, csprojPropertyValue);
+        project.Save();
     }
 
     private class Parameters
